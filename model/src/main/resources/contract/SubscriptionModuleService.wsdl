@@ -1,0 +1,288 @@
+<definitions name="SubscriptionModule"
+             targetNamespace="module.subscription.wsdl.fisheries.ec.europa.eu"
+             xmlns:v="module.subscription.wsdl.fisheries.ec.europa.eu"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns="http://schemas.xmlsoap.org/wsdl/">
+
+    <types>
+        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="module.subscription.wsdl.fisheries.ec.europa.eu">
+
+            <xsd:simpleType name="SubscriptionMethod">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="SUBSCRIPTION_LIST"/>
+                    <xsd:enumeration value="PING"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+
+            <xsd:complexType name="SubscriptionRequest" abstract="true">
+                <xsd:sequence>
+                    <xsd:element name="method" type="v:SubscriptionMethod"/>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:element name="SubscriptionListRequest">
+                <xsd:complexType>
+                    <xsd:complexContent>
+                        <xsd:extension base="v:SubscriptionRequest">
+                            <xsd:sequence>
+                                <xsd:element name="query" type="v:SubscriptionListQuery"/>
+                            </xsd:sequence>
+                        </xsd:extension>
+                    </xsd:complexContent>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:complexType name="SubscriptionListQuery">
+                <xsd:sequence>
+                    <xsd:element name="organisation" type="xsd:string" />
+                    <xsd:element name="channel" type="xsd:string" />
+                    <xsd:element name="endPoint" type="xsd:string" />
+                    <xsd:element name="assetId" type="v:AssetId" />
+                    <xsd:element name="areaId" type="v:AreaId" />
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <!-- asset -->
+
+            <xsd:complexType name="AssetId">
+                <xsd:sequence>
+                    <xsd:element name="assetType" type="v:AssetType"/>
+                    <xsd:element name="assetIdList" type="v:AssetIdList" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:simpleType name="AssetType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="VESSEL"/>
+                    <xsd:enumeration value="AIR"/>
+                    <xsd:enumeration value="VEHICLE"/>
+                    <xsd:enumeration value="OTHER"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+
+            <xsd:complexType name="AssetIdList">
+                <xsd:sequence>
+                    <xsd:element name="idType" type="v:AssetIdType" />
+                    <xsd:element name="value" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:simpleType name="AssetIdType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="ID" />
+                    <xsd:enumeration value="CFR" />
+                    <xsd:enumeration value="IRCS" />
+                    <xsd:enumeration value="IMO" />
+                    <xsd:enumeration value="MMSI"/>
+                    <xsd:enumeration value="GUID"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+
+            <!-- area -->
+
+            <xsd:complexType name="AreaId">
+                <xsd:sequence>
+                    <xsd:element name="assetType" type="v:AreaType"/>
+                    <xsd:element name="assetIdList" type="v:AreaIdList" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:simpleType name="AreaType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="USER"/>
+                    <xsd:enumeration value="SYSTEM"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+
+            <xsd:complexType name="AreaIdList">
+                <xsd:sequence>
+                    <xsd:element name="idType" type="v:AreaIdType" />
+                    <xsd:element name="value" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:simpleType name="AreaIdType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="EEZ" />
+                    <xsd:enumeration value="RFMO" />
+                    <xsd:enumeration value="STAT_RECT" />
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:element name="ListSubscriptionResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="totalNumberOfPages" type="xsd:int"/>
+                        <xsd:element name="currentPage" type="xsd:int"/>
+                        <xsd:element name="subscription" type="v:Subscription" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <!-- Ping request -->
+
+            <xsd:element name="pingRequest">
+                <xsd:complexType>
+                    <xsd:complexContent>
+                        <xsd:extension base="v:SubscriptionRequest"/>
+                    </xsd:complexContent>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="pingResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="response" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:complexType name="Subscription" abstract="true">
+                <xsd:sequence>
+                    <xsd:element name="enabled" type="xsd:boolean"/>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:element name="SalesSubscription">
+                <xsd:complexType>
+                    <xsd:complexContent>
+                        <xsd:extension base="v:Subscription">
+
+                        </xsd:extension>
+                    </xsd:complexContent>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="ActivitySubscription">
+                <xsd:complexType>
+                    <xsd:complexContent>
+                        <xsd:extension base="v:Subscription">
+
+                        </xsd:extension>
+                    </xsd:complexContent>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="VMSSubscription">
+                <xsd:complexType>
+                    <xsd:complexContent>
+                        <xsd:extension base="v:Subscription">
+
+                        </xsd:extension>
+                    </xsd:complexContent>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="SubscriptionFault">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="code" type="xsd:int" />
+                        <xsd:element name="fault" type="xsd:string" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <!-- SubscriptionListQuery -->
+
+
+            <xsd:complexType name="SubscriptionCriteria">
+                <xsd:sequence>
+                    <xsd:element name="criteria" type="v:SubscriptionCriteriaPair" maxOccurs="unbounded"/>
+                    <xsd:element name="isDynamic" type="xsd:boolean" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:complexType name="SubscriptionListPagination">
+                <xsd:sequence>
+                    <xsd:element name="page" type="xsd:int"/>
+                    <xsd:element name="listSize" type="xsd:int"/>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:complexType name="SubscriptionCriteriaPair">
+                <xsd:sequence>
+                    <xsd:element name="key" type="v:SubscriptionCriteriaType" />
+                    <xsd:element name="value" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:simpleType name="SubscriptionCriteriaType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="GUID"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+
+            <xsd:simpleType name="SubscriptionType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="FA_QUERY"/>
+                    <xsd:enumeration value="FA_RESPONSE"/>
+                    <xsd:enumeration value="FA_REPORT"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+
+        </xsd:schema>
+    </types>
+    
+    <message name="SubscriptionFaultException">
+        <part name="body" element="v:SubscriptionFault"/>
+    </message>
+
+    <message name="SubscriptionListRequest">
+        <part name="body" element="v:SubscriptionListRequest"/>
+    </message>
+
+    <message name="SubscriptionListResponse">
+        <part name="body" element="v:ListSubscriptionResponse"/>
+    </message>
+
+    <message name="PingRequest">
+        <part name="body" element="v:pingRequest"/>
+    </message>
+
+    <message name="PingResponse">
+        <part name="body" element="v:pingResponse"/>
+    </message>
+
+    <portType name="SubscriptionPortType">
+        <operation name="SubscriptionList">
+            <input message="v:SubscriptionListRequest"/>
+            <output message="v:SubscriptionListResponse"/>
+            <fault name="SubscriptionFaultException" message="v:SubscriptionFaultException"/>
+        </operation>
+        <operation name="Ping">
+            <input message="v:PingRequest"/>
+            <output message="v:PingResponse"/>
+        </operation>
+    </portType>
+
+    <binding name="SubscriptionSoapBinding" type="v:SubscriptionPortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <operation name="SubscriptionList">
+            <!-- <soap:operation soapAction="http://www.snowboard-info.com/EndorsementSearch"/> -->
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="SubscriptionFaultException">
+                <soap:fault name="SubscriptionFaultException" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="Ping">
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+    </binding>
+
+    <service name="SubscriptionService">
+        <port name="SubscriptionPortType" binding="v:SubscriptionSoapBinding">
+            <soap:address location="http://REPLACE_ME"/>
+        </port>
+    </service>
+
+</definitions>
