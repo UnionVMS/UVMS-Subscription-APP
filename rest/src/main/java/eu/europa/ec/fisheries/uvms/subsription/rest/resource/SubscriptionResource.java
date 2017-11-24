@@ -35,12 +35,11 @@ import java.util.List;
 
 import eu.europa.ec.fisheries.uvms.rest.security.RequiresFeature;
 import eu.europa.ec.fisheries.uvms.rest.security.UnionVMSFeature;
-import eu.europa.ec.fisheries.uvms.subscription.service.bean.RestServiceBean;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionServiceBean;
 import eu.europa.ec.fisheries.uvms.subsription.rest.dto.request.SubscriptionListRequestDTO;
-import eu.europa.ec.fisheries.uvms.subsription.rest.dto.respond.ResponseCodeConstant;
+import eu.europa.ec.fisheries.uvms.subsription.rest.dto.respond.ResponseCode;
 import eu.europa.ec.fisheries.uvms.subsription.rest.dto.respond.ResponseDto;
-import eu.europa.ec.fisheries.uvms.subsription.rest.error.ErrorHandler;
+import eu.europa.ec.fisheries.wsdl.subscription.module.Subscription;
 import lombok.extern.slf4j.Slf4j;
 
 @Path("/subscription")
@@ -49,7 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SubscriptionResource {
 
     @EJB
-    private RestServiceBean service;
+    private SubscriptionServiceBean service;
 
     @Context
     private HttpServletRequest servletRequest;
@@ -59,15 +58,14 @@ public class SubscriptionResource {
     @Produces(value = { MediaType.APPLICATION_JSON })
     @Path("list")
     @RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals)
-    public ResponseDto getAssetList(final SubscriptionListRequestDTO request) {
+    public ResponseDto getSubscriptionList(final SubscriptionListRequestDTO request) {
         try {
 
-            List<SubscriptionEntity> subscriptions = service.listSubscription(null);
-
-            return new ResponseDto(subscriptions, ResponseCodeConstant.OK);
+            List<Subscription> subscription = service.listSubscriptions(null);
+            return new ResponseDto(subscription, ResponseCode.OK);
         } catch (Exception e) {
-            log.error("[ Error when getting subscription list. ] ");
-            return ErrorHandler.getFault(e);
+            log.error("[ Error when getting subscription list. ] {} {}", e.getLocalizedMessage(), e.getStackTrace());
+            return new ResponseDto(e.getMessage(), ResponseCode.ERROR);
         }
     }
 

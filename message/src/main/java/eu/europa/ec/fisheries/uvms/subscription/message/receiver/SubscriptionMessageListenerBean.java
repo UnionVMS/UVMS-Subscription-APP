@@ -28,10 +28,10 @@ import javax.jms.TextMessage;
 
 import eu.europa.ec.fisheries.uvms.commons.message.api.Fault;
 import eu.europa.ec.fisheries.uvms.subscription.message.sender.SubscriptionSenderBean;
-import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionMessageServiceBean;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionListModuleRequest;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionModuleMethod;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionModuleRequest;
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionServiceBean;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionListRequest;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionMethod;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @MessageDriven(mappedName = QUEUE_SUBSCRIPTION_EVENT, activationConfig = {
@@ -51,7 +51,7 @@ public class SubscriptionMessageListenerBean implements MessageListener {
     private SubscriptionSenderBean subscription;
 
     @EJB
-    private SubscriptionMessageServiceBean service;
+    private SubscriptionServiceBean service;
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
@@ -61,15 +61,15 @@ public class SubscriptionMessageListenerBean implements MessageListener {
         try {
 
             textMessage = (TextMessage) message;
-            SubscriptionModuleRequest moduleRequest = unMarshallMessage(textMessage.getText(), SubscriptionModuleRequest.class);
-            SubscriptionModuleMethod method = moduleRequest.getMethod();
+            SubscriptionRequest moduleRequest = unMarshallMessage(textMessage.getText(), SubscriptionRequest.class);
+            SubscriptionMethod method = moduleRequest.getMethod();
 
-                switch (method) {
+            switch (method) {
                     case PING:
                         break;
                     case SUBSCRIPTION_LIST:
-                        SubscriptionListModuleRequest request =
-                                unMarshallMessage(textMessage.getText(), SubscriptionListModuleRequest.class);
+                        SubscriptionListRequest request =
+                                unMarshallMessage(textMessage.getText(), SubscriptionListRequest.class);
                         service.listSubscriptions(request);
                         break;
                     default:

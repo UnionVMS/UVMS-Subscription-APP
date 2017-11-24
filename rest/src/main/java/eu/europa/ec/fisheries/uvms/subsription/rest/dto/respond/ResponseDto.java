@@ -31,71 +31,36 @@ copy of the GNU General Public License along with the IFDM Suite. If not, see <h
  */
 package eu.europa.ec.fisheries.uvms.subsription.rest.dto.respond;
 
-import java.io.Serializable;
-import java.util.Objects;
-
 import org.slf4j.MDC;
 
 /**
  ** @param <T>
  */
-public class ResponseDto<T> implements Serializable{
+public class ResponseDto<T> {
 
     private T data;
-    private final Integer code;
+    private final RestResponseCode code;
     private String requestId = MDC.get("requestId");
 
-
-    public ResponseDto(T data, ResponseCodeConstant code) {
+    public ResponseDto(T data, RestResponseCode code) {
         this.data = data;
-        this.code = code.getCode();
+        this.code = code;
     }
 
-    public ResponseDto(T data, Integer code) {
-    	this.data = data;
-    	this.code = code;
-    }
-    
-    public ResponseDto(ResponseCodeConstant code) {
-        this.code = code.getCode();
+    public ResponseDto(RestResponseCode code) {
+        this.code = code;
     }
 
     public T getData() {
         return data;
     }
 
-    public int getCode() {
-        return code;
+    public String getCode() {
+        return code.getCode();
     }
 
     public String getRequestId() {
         return requestId ;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 23 * hash + Objects.hashCode(this.data);
-        hash = 23 * hash + Objects.hashCode(this.code);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final ResponseDto<?> other = (ResponseDto<?>) obj;
-        if (!Objects.equals(this.data, other.data)) {
-            return false;
-        }
-        if (!Objects.equals(this.code, other.code)) {
-            return false;
-        }
-        return true;
     }
 
     @Override

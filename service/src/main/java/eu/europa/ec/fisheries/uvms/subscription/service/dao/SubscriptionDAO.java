@@ -12,8 +12,13 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import javax.persistence.EntityManager;
 
+import java.util.Map;
+
 import eu.europa.ec.fisheries.uvms.commons.service.dao.AbstractDAO;
+import eu.europa.ec.fisheries.uvms.commons.service.dao.QueryParameter;
+import eu.europa.ec.fisheries.uvms.commons.service.exception.ServiceException;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionListRequest;
 
 public class SubscriptionDAO extends AbstractDAO<SubscriptionEntity> {
 
@@ -26,5 +31,10 @@ public class SubscriptionDAO extends AbstractDAO<SubscriptionEntity> {
     @Override
     public EntityManager getEntityManager() {
         return em;
+    }
+
+    public void listSubscriptions(SubscriptionListRequest listModuleRequest) throws ServiceException {
+        Map parameters = QueryParameter.with("", "").parameters();
+        findEntityByNamedQuery(SubscriptionEntity.class, null, parameters);
     }
 }
