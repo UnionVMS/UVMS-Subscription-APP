@@ -48,6 +48,11 @@
                 <artifactId>subscription-model</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
+                <artifactId>subscription-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 			<dependency>
 				<groupId>fish.focus.uvms.maven</groupId>
 				<artifactId>uvms-pom-logging-deps</artifactId>
