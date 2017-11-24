@@ -139,14 +139,12 @@
 
             <xsd:complexType name="Subscription">
                 <xsd:sequence>
-                    <xsd:element name="active" type="xsd:boolean"/>
+                    <xsd:element name="messageType" type="v:MessageType"/>
                     <xsd:element name="name" type="xsd:string"/>
                     <xsd:element name="organisation" type="xsd:string"/>
                     <xsd:element name="endPoint" type="xsd:string"/>
                     <xsd:element name="channel" type="xsd:string"/>
-                    <xsd:element name="description" type="xsd:string"/>
-                    <xsd:element name="subscriptionType" type="v:SubscriptionType"/>
-                    <xsd:element name="messageType" type="v:MessageType"/>
+                    <xsd:element name="assets" type="v:AssetId" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:complexType>
 
@@ -192,15 +190,7 @@
             <xsd:simpleType name="MessageType">
                 <xsd:restriction base="xsd:string">
                     <xsd:enumeration value="FLUX_FA_QUERY"/>
-                    <xsd:enumeration value="FLUX_FA_RESPONSE"/>
                     <xsd:enumeration value="FLUX_FA_REPORT"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-
-            <xsd:simpleType name="SubscriptionType">
-                <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="PUSH"/>
-                    <xsd:enumeration value="PULL"/>
                 </xsd:restriction>
             </xsd:simpleType>
 

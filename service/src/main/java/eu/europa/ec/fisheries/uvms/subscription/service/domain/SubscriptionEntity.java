@@ -10,31 +10,47 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
+import static eu.europa.ec.fisheries.uvms.subscription.service.type.SubscriptionType.*;
+import static eu.europa.ec.fisheries.uvms.subscription.service.type.TriggerType.*;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
+import eu.europa.ec.fisheries.uvms.subscription.service.type.SubscriptionType;
 import eu.europa.ec.fisheries.uvms.subscription.service.type.TriggerType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionType;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 @Entity
 @Data
 @RequiredArgsConstructor
+@Table(name = "subscription")
 public class SubscriptionEntity implements Serializable {
 
-    @JsonProperty("subscription_type")
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    private SubscriptionType subscriptionType;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     @JsonProperty("subscription_type")
     @NotNull
@@ -42,15 +58,21 @@ public class SubscriptionEntity implements Serializable {
     private MessageType messageType;
 
     @JsonProperty("name")
+    @Column(unique = true)
     @NotNull
     private String name;
 
+    @Size(min = 36, max = 36)
+    @Column(name = "subscription_guid", unique = true)
+    private String guid;
+
     private String description;
 
+    @NotNull
     private Boolean active;
 
     @Embedded
-    private DateRange validityPeriod;
+    private DateRange validityPeriod = new DateRange();
 
     @NotNull
     private String organisation;
@@ -67,9 +89,13 @@ public class SubscriptionEntity implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @NotNull
-    private TriggerType trigger;
+    private TriggerType trigger = MANUAL;
 
     private String delay;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "post_id")
+    private Set<AssetIdentifierEntity> assets = new HashSet<>();
 
     @JsonProperty("start")
     public Date getStartDate(){
@@ -81,4 +107,36 @@ public class SubscriptionEntity implements Serializable {
         return validityPeriod.getStartDate();
     }
 
+    @JsonProperty("subscription_type")
+    public SubscriptionType getSubscriptionType(){
+
+        SubscriptionType subscriptionType;
+
+        switch (messageType){
+            case FLUX_FA_QUERY:
+                subscriptionType = RX_PULL;
+                break;
+            case FLUX_FA_REPORT:
+            subscriptionType = TX_PULL;
+                break;
+            default:
+                subscriptionType = UNDEFINED;
+        }
+        return subscriptionType;
+    }
+
+    public void addAsset(AssetIdentifierEntity asset) {
+        assets.add(asset);
+        asset.setSubscription(this);
+    }
+
+    public void removeAsset(AssetIdentifierEntity asset) {
+        assets.remove(asset);
+        asset.setSubscription(this);
+    }
+
+    @PrePersist
+    private void prepersist() {
+        setGuid(UUID.randomUUID().toString());
+    }
 }

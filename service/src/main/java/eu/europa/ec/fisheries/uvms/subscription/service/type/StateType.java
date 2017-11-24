@@ -13,4 +13,5 @@ package eu.europa.ec.fisheries.uvms.subscription.service.type;
 public enum StateType {
 
     RUNNING, IDLE
+
 }

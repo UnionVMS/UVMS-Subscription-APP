@@ -14,7 +14,10 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.wsdl.subscription.module.Subscription;
 import org.mapstruct.Mapper;
 
-@Mapper
+/**
+ * TODO create test
+ */
+@Mapper(uses = CustomMapper.class)
 public interface SubscriptionMapper {
 
     Subscription entityToModel(SubscriptionEntity entity);
