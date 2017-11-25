@@ -10,7 +10,7 @@
 
             <xsd:simpleType name="SubscriptionMethod">
                 <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="SUBSCRIPTION_LIST"/>
+                    <xsd:enumeration value="SUBSCRIPTION_DATA"/>
                     <xsd:enumeration value="PING"/>
                 </xsd:restriction>
             </xsd:simpleType>
@@ -21,19 +21,27 @@
                 </xsd:sequence>
             </xsd:complexType>
 
-            <xsd:element name="SubscriptionListRequest">
+            <xsd:element name="SubscriptionTriggerRequest">
                 <xsd:complexType>
                     <xsd:complexContent>
                         <xsd:extension base="v:SubscriptionRequest">
                             <xsd:sequence>
-                                <xsd:element name="query" type="v:SubscriptionListQuery"/>
+                                <xsd:element name="query" type="v:SubscriptionQuery"/>
                             </xsd:sequence>
                         </xsd:extension>
                     </xsd:complexContent>
                 </xsd:complexType>
             </xsd:element>
 
-            <xsd:complexType name="SubscriptionListQuery">
+            <xsd:element name="SubscriptionTriggerResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:complexType name="SubscriptionQuery">
                 <xsd:sequence>
                     <xsd:element name="organisation" type="xsd:string" />
                     <xsd:element name="channel" type="xsd:string" />
@@ -109,15 +117,6 @@
                     <xsd:enumeration value="STAT_RECT" />
                 </xsd:restriction>
             </xsd:simpleType>
-            <xsd:element name="ListSubscriptionResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="totalNumberOfPages" type="xsd:int"/>
-                        <xsd:element name="currentPage" type="xsd:int"/>
-                        <xsd:element name="subscription" type="v:Subscription" minOccurs="0" maxOccurs="unbounded"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
 
             <!-- Ping request -->
 
@@ -137,17 +136,6 @@
                 </xsd:complexType>
             </xsd:element>
 
-            <xsd:complexType name="Subscription">
-                <xsd:sequence>
-                    <xsd:element name="messageType" type="v:MessageType"/>
-                    <xsd:element name="name" type="xsd:string"/>
-                    <xsd:element name="organisation" type="xsd:string"/>
-                    <xsd:element name="endPoint" type="xsd:string"/>
-                    <xsd:element name="channel" type="xsd:string"/>
-                    <xsd:element name="assets" type="v:AssetId" maxOccurs="unbounded"/>
-                </xsd:sequence>
-            </xsd:complexType>
-
             <xsd:element name="SubscriptionFault">
                 <xsd:complexType>
                     <xsd:sequence>
@@ -164,13 +152,6 @@
                 <xsd:sequence>
                     <xsd:element name="criteria" type="v:SubscriptionCriteriaPair" maxOccurs="unbounded"/>
                     <xsd:element name="isDynamic" type="xsd:boolean" minOccurs="0"/>
-                </xsd:sequence>
-            </xsd:complexType>
-
-            <xsd:complexType name="SubscriptionListPagination">
-                <xsd:sequence>
-                    <xsd:element name="page" type="xsd:int"/>
-                    <xsd:element name="listSize" type="xsd:int"/>
                 </xsd:sequence>
             </xsd:complexType>
 
@@ -201,13 +182,14 @@
         <part name="body" element="v:SubscriptionFault"/>
     </message>
 
-    <message name="SubscriptionListRequest">
-        <part name="body" element="v:SubscriptionListRequest"/>
+    <message name="SubscriptionTriggerRequest">
+        <part name="body" element="v:SubscriptionTriggerRequest"/>
     </message>
 
-    <message name="SubscriptionListResponse">
-        <part name="body" element="v:ListSubscriptionResponse"/>
+    <message name="SubscriptionTriggerResponse">
+        <part name="body" element="v:SubscriptionTriggerResponse"/>
     </message>
+
 
     <message name="PingRequest">
         <part name="body" element="v:pingRequest"/>
@@ -218,9 +200,9 @@
     </message>
 
     <portType name="SubscriptionPortType">
-        <operation name="SubscriptionList">
-            <input message="v:SubscriptionListRequest"/>
-            <output message="v:SubscriptionListResponse"/>
+        <operation name="Subscription">
+            <input message="v:SubscriptionTriggerRequest"/>
+            <output message="v:SubscriptionTriggerResponse"/>
             <fault name="SubscriptionFaultException" message="v:SubscriptionFaultException"/>
         </operation>
         <operation name="Ping">
@@ -231,7 +213,7 @@
 
     <binding name="SubscriptionSoapBinding" type="v:SubscriptionPortType">
         <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
-        <operation name="SubscriptionList">
+        <operation name="Subscription">
             <!-- <soap:operation soapAction="http://www.snowboard-info.com/EndorsementSearch"/> -->
             <input>
                 <soap:body use="literal"/>

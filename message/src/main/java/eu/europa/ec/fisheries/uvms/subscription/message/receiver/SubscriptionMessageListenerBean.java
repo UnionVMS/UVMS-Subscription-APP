@@ -29,9 +29,10 @@ import javax.jms.TextMessage;
 import eu.europa.ec.fisheries.uvms.commons.message.api.Fault;
 import eu.europa.ec.fisheries.uvms.subscription.message.sender.SubscriptionSenderBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionServiceBean;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionListRequest;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionMethod;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionRequest;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionTriggerRequest;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionTriggerResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @MessageDriven(mappedName = QUEUE_SUBSCRIPTION_EVENT, activationConfig = {
@@ -67,10 +68,10 @@ public class SubscriptionMessageListenerBean implements MessageListener {
             switch (method) {
                     case PING:
                         break;
-                    case SUBSCRIPTION_LIST:
-                        SubscriptionListRequest request =
-                                unMarshallMessage(textMessage.getText(), SubscriptionListRequest.class);
-                        service.listSubscriptions(request);
+                case SUBSCRIPTION_DATA:
+                    SubscriptionTriggerRequest request =
+                                unMarshallMessage(textMessage.getText(), SubscriptionTriggerRequest.class);
+                        SubscriptionTriggerResponse subscriptionQueryResponse = service.triggerSubscriptions(request.getQuery());
                         break;
                     default:
                         String error = "[ Not implemented method consumed: {} ]";

@@ -11,14 +11,24 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.mapper;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.wsdl.subscription.module.Subscription;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
 
 /**
  * TODO create test
  */
-@Mapper(uses = CustomMapper.class)
+@Mapper(uses = CustomMapper.class, componentModel = "cdi")
 public interface SubscriptionMapper {
 
-    Subscription entityToModel(SubscriptionEntity entity);
+    @Mappings({
+            @Mapping(target = "startDate", source = "validityPeriod.startDate"),
+            @Mapping(target = "endDate", source = "validityPeriod.endDate")
+    })
+    SubscriptionDto mapEntityToDto(SubscriptionEntity subscription);
+
+    @InheritInverseConfiguration
+    SubscriptionEntity mapDtoToEntity(SubscriptionDto subscription);
 }

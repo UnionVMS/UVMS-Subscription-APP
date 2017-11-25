@@ -12,6 +12,7 @@ package eu.europa.ec.fisheries.uvms.subsription.rest.resource;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.interceptor.Interceptors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -19,21 +20,23 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import java.util.List;
+import javax.ws.rs.core.Response;
 
+import eu.europa.ec.fisheries.uvms.commons.rest.resource.UnionVMSResource;
 import eu.europa.ec.fisheries.uvms.rest.security.RequiresFeature;
 import eu.europa.ec.fisheries.uvms.rest.security.UnionVMSFeature;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionServiceBean;
-import eu.europa.ec.fisheries.uvms.subsription.rest.dto.request.SubscriptionListRequestDTO;
-import eu.europa.ec.fisheries.uvms.subsription.rest.dto.respond.ResponseCode;
-import eu.europa.ec.fisheries.uvms.subsription.rest.dto.respond.ResponseDto;
-import eu.europa.ec.fisheries.wsdl.subscription.module.Subscription;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryFilterDto;
+import eu.europa.ec.fisheries.uvms.subsription.rest.filter.SubscriptionServiceExceptionHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.NotImplementedException;
 
 @Path("/subscription")
 @Stateless
 @Slf4j
-public class SubscriptionResource {
+@Interceptors(SubscriptionServiceExceptionHandler.class)
+public class SubscriptionResource extends UnionVMSResource {
 
     @EJB
     private SubscriptionServiceBean service;
@@ -41,20 +44,34 @@ public class SubscriptionResource {
     @Context
     private HttpServletRequest servletRequest;
 
+    /**
+     * Search for subscription matching the given criteria.
+     *
+     * @param filters criteria to search on
+     * @return found subscription. An empty list when nothing found.
+     */
     @POST
-    @Consumes(value = { MediaType.APPLICATION_JSON })
-    @Produces(value = { MediaType.APPLICATION_JSON })
-    @Path("list")
+    @Consumes(value = {MediaType.APPLICATION_JSON})
+    @Produces(value = {MediaType.APPLICATION_JSON})
+    @Path("search")
     @RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals)
-    public ResponseDto getSubscriptionList(final SubscriptionListRequestDTO request) {
-        try {
+    public Response search(final SubscriptionQueryFilterDto filters) {
+        return createSuccessResponse(service.search(filters));
+    }
 
-            List<Subscription> subscription = service.listSubscriptions(null);
-            return new ResponseDto(subscription, ResponseCode.OK);
-        } catch (Exception e) {
-            log.error("[ Error when getting subscription list. ] {} {}", e.getLocalizedMessage(), e.getStackTrace());
-            return new ResponseDto(e.getMessage(), ResponseCode.ERROR);
-        }
+    /**
+     * Create new subscription.
+     *
+     * @param subscription subscription to create
+     * @return subscription
+     */
+    @POST
+    @Consumes(value = {MediaType.APPLICATION_JSON})
+    @Produces(value = {MediaType.APPLICATION_JSON})
+    @Path("search")
+    @RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals)
+    public Response create(final SubscriptionDto subscription) {
+        throw new NotImplementedException();
     }
 
 }

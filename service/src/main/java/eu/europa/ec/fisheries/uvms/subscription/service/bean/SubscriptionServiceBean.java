@@ -19,11 +19,11 @@ import java.util.List;
 import java.util.Map;
 
 import eu.europa.ec.fisheries.uvms.commons.service.dao.QueryParameter;
-import eu.europa.ec.fisheries.uvms.commons.service.exception.ServiceException;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDAO;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.wsdl.subscription.module.Subscription;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionListRequest;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryFilterDto;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionQuery;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionTriggerResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Stateless
@@ -41,11 +41,35 @@ public class SubscriptionServiceBean {
         subscriptionDAO = new SubscriptionDAO(em);
     }
 
-    public List<Subscription> listSubscriptions(SubscriptionListRequest listModuleRequest) throws ServiceException {
-        Map parameters = QueryParameter.with(null, null).parameters();
-        List<SubscriptionEntity> entityList =
-                subscriptionDAO.findEntityByNamedQuery(SubscriptionEntity.class, null, parameters);
+    /**
+     * Search and trigger subscriptions asynchronously. Used over JMS service.
+     * @param query filter criteria to retrieve subscriptions to be triggered
+     * @return ?
+     */
+    @SuppressWarnings("unchecked")
+    public SubscriptionTriggerResponse triggerSubscriptions(SubscriptionQuery query) {
 
-        return null;
+        List<SubscriptionEntity> subscriptions =
+                subscriptionDAO.listSubscriptions(query);
+
+        for (SubscriptionEntity subscription: subscriptions) {
+
+
+        }
+
+        return new SubscriptionTriggerResponse();
+    }
+
+    /**
+     * Search for subscriptions synchronously. Used over REST service.
+     * @param filters filter criteria
+     * @return page of search results
+     */
+    public List<SubscriptionEntity> search(SubscriptionQueryFilterDto filters) {
+
+        // TODO map dto to SubscriptionQuery request
+        SubscriptionQuery query = new SubscriptionQuery();
+        Map parameters = QueryParameter.with(null, null).parameters();
+        return subscriptionDAO.listSubscriptions(query);
     }
 }

@@ -10,22 +10,10 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.mapper;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetIdentifierEntity;
-import eu.europa.ec.fisheries.wsdl.subscription.module.AssetId;
-import eu.europa.ec.fisheries.wsdl.subscription.module.AssetIdList;
-
 /**
  * TODO create test
  */
 public class CustomMapper {
 
-    public AssetId mapEntityToModel(AssetIdentifierEntity entity){
-        AssetId assetId = new AssetId();
-        assetId.setAssetType(entity.getAssetType());
-        AssetIdList assetIdListd = new AssetIdList();
-        assetIdListd.setIdType(entity.getIdType());
-        assetIdListd.setValue(entity.getValue());
-        assetId.getAssetIdList().add(assetIdListd);
-        return assetId;
-    }
+
 }

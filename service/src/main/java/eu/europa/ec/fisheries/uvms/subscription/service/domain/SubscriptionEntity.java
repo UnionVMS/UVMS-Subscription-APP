@@ -10,8 +10,10 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
-import static eu.europa.ec.fisheries.uvms.subscription.service.type.SubscriptionType.*;
-import static eu.europa.ec.fisheries.uvms.subscription.service.type.TriggerType.*;
+import static eu.europa.ec.fisheries.uvms.subscription.service.type.SubscriptionType.RX_PULL;
+import static eu.europa.ec.fisheries.uvms.subscription.service.type.SubscriptionType.TX_PULL;
+import static eu.europa.ec.fisheries.uvms.subscription.service.type.SubscriptionType.UNDEFINED;
+import static eu.europa.ec.fisheries.uvms.subscription.service.type.TriggerType.MANUAL;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -29,7 +31,6 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -52,12 +53,10 @@ public class SubscriptionEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @JsonProperty("subscription_type")
     @NotNull
     @Enumerated(EnumType.STRING)
     private MessageType messageType;
 
-    @JsonProperty("name")
     @Column(unique = true)
     @NotNull
     private String name;
@@ -96,16 +95,6 @@ public class SubscriptionEntity implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "post_id")
     private Set<AssetIdentifierEntity> assets = new HashSet<>();
-
-    @JsonProperty("start")
-    public Date getStartDate(){
-        return validityPeriod.getStartDate();
-    }
-
-    @JsonProperty("end")
-    public Date getEndDateDate(){
-        return validityPeriod.getStartDate();
-    }
 
     @JsonProperty("subscription_type")
     public SubscriptionType getSubscriptionType(){

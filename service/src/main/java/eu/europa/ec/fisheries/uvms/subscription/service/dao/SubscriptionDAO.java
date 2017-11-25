@@ -11,14 +11,14 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import javax.persistence.EntityManager;
-
+import java.util.List;
 import java.util.Map;
 
 import eu.europa.ec.fisheries.uvms.commons.service.dao.AbstractDAO;
 import eu.europa.ec.fisheries.uvms.commons.service.dao.QueryParameter;
-import eu.europa.ec.fisheries.uvms.commons.service.exception.ServiceException;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionListRequest;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionQuery;
+import lombok.SneakyThrows;
 
 public class SubscriptionDAO extends AbstractDAO<SubscriptionEntity> {
 
@@ -33,8 +33,10 @@ public class SubscriptionDAO extends AbstractDAO<SubscriptionEntity> {
         return em;
     }
 
-    public void listSubscriptions(SubscriptionListRequest listModuleRequest) throws ServiceException {
+    @SuppressWarnings("unchecked")
+    @SneakyThrows
+    public List<SubscriptionEntity> listSubscriptions(SubscriptionQuery query) {
         Map parameters = QueryParameter.with("", "").parameters();
-        findEntityByNamedQuery(SubscriptionEntity.class, null, parameters);
+        return findEntityByNamedQuery(SubscriptionEntity.class, null, parameters);
     }
 }
