@@ -66,19 +66,19 @@ public class SubscriptionMessageListenerBean implements MessageListener {
             SubscriptionMethod method = moduleRequest.getMethod();
 
             switch (method) {
-                    case PING:
-                        break;
+                case PING:
+                    break;
                 case SUBSCRIPTION_TRIGGER:
                     SubscriptionTriggerRequest request =
-                                unMarshallMessage(textMessage.getText(), SubscriptionTriggerRequest.class);
-                        SubscriptionTriggerResponse subscriptionQueryResponse = service.triggerSubscriptions(request.getQuery());
-                        break;
-                    default:
-                        String error = "[ Not implemented method consumed: {} ]";
-                        log.error(error, method);
-                        Fault fault = new Fault(1, error);
-                        subscription.sendFault(textMessage, fault);
-                }
+                            unMarshallMessage(textMessage.getText(), SubscriptionTriggerRequest.class);
+                    SubscriptionTriggerResponse subscriptionQueryResponse = service.triggerSubscriptions(request.getQuery());
+                    break;
+                default:
+                    String error = "[ Not implemented method consumed: {} ]";
+                    log.error(error, method);
+                    Fault fault = new Fault(1, error);
+                    subscription.sendFault(textMessage, fault);
+            }
 
 
         } catch (Exception e) {
