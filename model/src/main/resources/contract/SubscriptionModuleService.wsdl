@@ -10,7 +10,7 @@
 
             <xsd:simpleType name="SubscriptionMethod">
                 <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="SUBSCRIPTION_DATA"/>
+                    <xsd:enumeration value="SUBSCRIPTION_TRIGGER"/>
                     <xsd:enumeration value="PING"/>
                 </xsd:restriction>
             </xsd:simpleType>

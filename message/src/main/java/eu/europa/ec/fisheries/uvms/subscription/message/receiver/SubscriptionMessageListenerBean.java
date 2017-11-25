@@ -68,7 +68,7 @@ public class SubscriptionMessageListenerBean implements MessageListener {
             switch (method) {
                     case PING:
                         break;
-                case SUBSCRIPTION_DATA:
+                case SUBSCRIPTION_TRIGGER:
                     SubscriptionTriggerRequest request =
                                 unMarshallMessage(textMessage.getText(), SubscriptionTriggerRequest.class);
                         SubscriptionTriggerResponse subscriptionQueryResponse = service.triggerSubscriptions(request.getQuery());
