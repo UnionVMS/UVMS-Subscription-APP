@@ -64,7 +64,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SubscriptionListenerBean implements MessageListener {
 
-    public static final String QUEUE_SUBSCRIPTION_EVENT = "jms/queue/UVMSSubscriptionEvent";
+    static final String QUEUE_SUBSCRIPTION_EVENT = "jms/queue/UVMSSubscriptionEvent";
     static final String QUEUE_NAME_SUBSCRIPTION_EVENT = "UVMSSubscriptionEvent";
 
     @EJB

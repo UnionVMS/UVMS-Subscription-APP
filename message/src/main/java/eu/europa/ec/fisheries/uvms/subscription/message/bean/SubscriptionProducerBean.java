@@ -10,25 +10,54 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.message.bean;
 
+import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.QUEUE_ASSET_EVENT;
+import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.QUEUE_CONFIG;
+import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.QUEUE_ECB_PROXY;
+import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.QUEUE_MDR_EVENT;
+import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.QUEUE_MODULE_RULES;
+import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.QUEUE_RULES;
+import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.QUEUE_SALES;
+import static eu.europa.ec.fisheries.uvms.commons.message.impl.JMSUtils.lookupConnectionFactory;
+import static eu.europa.ec.fisheries.uvms.commons.message.impl.JMSUtils.lookupQueue;
+
 import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.jms.ConnectionFactory;
+import javax.jms.Queue;
 
 import eu.europa.ec.fisheries.uvms.commons.message.impl.SimpleAbstractProducer;
-import eu.europa.ec.fisheries.uvms.commons.message.impl.JMSUtils;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Stateless
 @LocalBean
 @Slf4j
+@Getter
 public class SubscriptionProducerBean extends SimpleAbstractProducer {
 
+    @Getter(AccessLevel.NONE)
     private ConnectionFactory connectionFactory;
+
+    private Queue salesQueue;
+    private Queue assetQueue;
+    private Queue ecbProxyQueue;
+    private Queue configQueue;
+    private Queue rulesEventQueue;
+    private Queue mdrQueue;
+    private Queue rulesQueue;
 
     @PostConstruct
     public void init() {
-        connectionFactory = JMSUtils.lookupConnectionFactory();
+        connectionFactory = lookupConnectionFactory();
+        assetQueue = lookupQueue(QUEUE_ASSET_EVENT);
+        salesQueue = lookupQueue(QUEUE_SALES);
+        ecbProxyQueue = lookupQueue(QUEUE_ECB_PROXY);
+        configQueue = lookupQueue(QUEUE_CONFIG);
+        rulesEventQueue = lookupQueue(QUEUE_MODULE_RULES);
+        rulesQueue = lookupQueue(QUEUE_RULES);
+        mdrQueue = lookupQueue(QUEUE_MDR_EVENT);
     }
 
     @Override
