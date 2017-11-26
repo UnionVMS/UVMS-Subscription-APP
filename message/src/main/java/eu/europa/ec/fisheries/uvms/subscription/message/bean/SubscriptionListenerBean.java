@@ -42,6 +42,7 @@ import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.jms.Destination;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
@@ -67,7 +68,7 @@ public class SubscriptionListenerBean implements MessageListener {
     static final String QUEUE_NAME_SUBSCRIPTION_EVENT = "UVMSSubscriptionEvent";
 
     @EJB
-    private ModuleResponderBean responder;
+    private SubscriptionProducerBean producer;
 
     @EJB
     private SubscriptionServiceBean service;
@@ -76,9 +77,13 @@ public class SubscriptionListenerBean implements MessageListener {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void onMessage(Message message) {
 
-        TextMessage textMessage = null;
+        Destination jmsReplyTo = null;
+        TextMessage textMessage;
+        String messageID = null;
         try {
             textMessage = (TextMessage) message;
+            messageID = textMessage.getJMSMessageID();
+            jmsReplyTo = textMessage.getJMSReplyTo();
             SubscriptionRequest moduleRequest = unMarshallMessage(textMessage.getText(), SubscriptionRequest.class);
             SubscriptionMethod method = moduleRequest.getMethod();
 
@@ -90,11 +95,11 @@ public class SubscriptionListenerBean implements MessageListener {
                     SubscriptionTriggerResponse subscriptionQueryResponse = service.triggerSubscriptions(request.getQuery());
                     break;
                 default:
-                    responder.sendModuleResponseMessage(textMessage, "[ Not implemented method consumed: {} ]");
+                    producer.sendMessage(messageID, jmsReplyTo, "[ Not implemented method consumed: {} ]");
             }
 
         } catch (Exception e) {
-            responder.sendModuleResponseMessage(textMessage, e.getLocalizedMessage());
+            producer.sendMessage(messageID, jmsReplyTo, e.getLocalizedMessage());
         }
     }
 }

@@ -13,20 +13,16 @@ package eu.europa.ec.fisheries.uvms.subscription.message.bean;
 import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
-import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
 
+import eu.europa.ec.fisheries.uvms.commons.message.impl.SimpleAbstractProducer;
 import eu.europa.ec.fisheries.uvms.commons.message.impl.JMSUtils;
-import eu.europa.ec.fisheries.uvms.subscription.message.SubscriptionMessageProducer;
 import lombok.extern.slf4j.Slf4j;
 
 @Stateless
 @LocalBean
 @Slf4j
-public class ModuleResponderBean implements SubscriptionMessageProducer {
+public class SubscriptionProducerBean extends SimpleAbstractProducer {
 
     private ConnectionFactory connectionFactory;
 
@@ -36,21 +32,7 @@ public class ModuleResponderBean implements SubscriptionMessageProducer {
     }
 
     @Override
-    public void sendModuleResponseMessage(TextMessage message, String text) {
-
-        try ( Connection connection = connectionFactory.createConnection();
-              Session session = JMSUtils.connectToQueue(connection);
-              MessageProducer producer = session.createProducer(message.getJMSReplyTo())) {
-
-            log.debug("Sending message back to recipient from  with correlationId {} on queue: {}",
-                    message.getJMSMessageID(), message.getJMSReplyTo());
-
-            final TextMessage response = session.createTextMessage();
-            response.setText(text);
-            producer.send(response);
-        } //Connection, Session and Producer are auto closed here. No explicit calls to close.
-        catch (Exception e) {
-            log.error("[ Error when returning request. ] {} {}", e.getMessage(), e.getStackTrace());
-        }
+    public ConnectionFactory getConnectionFactory() {
+        return connectionFactory;
     }
 }
