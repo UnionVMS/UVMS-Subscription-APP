@@ -74,7 +74,7 @@ public class SubscriptionResource extends UnionVMSResource {
     @Path("search")
     @RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals)
     public Response create(final SubscriptionDto subscription) {
-        throw return createSuccessResponse(service.create(subscription));
+        return createSuccessResponse(service.create(subscription));
     }
 
 }

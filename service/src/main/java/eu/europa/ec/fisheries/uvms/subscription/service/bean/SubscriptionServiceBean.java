@@ -18,13 +18,13 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.List;
 
-import eu.europa.ec.fisheries.uvms.commons.service.exception.ServiceException;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDAO;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionTriggerResponse;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Stateless
@@ -78,7 +78,8 @@ public class SubscriptionServiceBean {
         return subscriptionDAO.listSubscriptions(query);
     }
 
-    public SubscriptionDto create(SubscriptionDto subscription) throws ServiceException {
+    @SneakyThrows
+    public SubscriptionDto create(SubscriptionDto subscription) {
         SubscriptionEntity entity = mapper.mapDtoToEntity(subscription);
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
         return mapper.mapEntityToDto(saved);
