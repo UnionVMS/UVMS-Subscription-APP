@@ -30,8 +30,7 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
-/**
- * TODO create test
- */
-public class SubscriptionQueryFilterDto {
+public class SubscriptionQueryDto {
+
+
 }

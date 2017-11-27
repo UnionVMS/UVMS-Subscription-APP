@@ -13,16 +13,17 @@ package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.List;
-import java.util.Map;
 
-import eu.europa.ec.fisheries.uvms.commons.service.dao.QueryParameter;
+import eu.europa.ec.fisheries.uvms.commons.service.exception.ServiceException;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDAO;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryFilterDto;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionQuery;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionTriggerResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,6 +33,9 @@ import lombok.extern.slf4j.Slf4j;
 public class SubscriptionServiceBean {
 
     private SubscriptionDAO subscriptionDAO;
+
+    @Inject
+    private SubscriptionMapper mapper;
 
     @PersistenceContext(unitName = "subscriptionPU")
     private EntityManager em;
@@ -47,7 +51,7 @@ public class SubscriptionServiceBean {
      * @return ?
      */
     @SuppressWarnings("unchecked")
-    public SubscriptionTriggerResponse triggerSubscriptions(SubscriptionQuery query) {
+    public SubscriptionTriggerResponse triggerSubscriptions(eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionQuery query) {
 
         List<SubscriptionEntity> subscriptions =
                 subscriptionDAO.listSubscriptions(query);
@@ -62,14 +66,21 @@ public class SubscriptionServiceBean {
 
     /**
      * Search for subscriptions synchronously. Used over REST service.
-     * @param filters filter criteria
+     * @param reportParam filter criteria
      * @return page of search results
      */
-    public List<SubscriptionEntity> search(SubscriptionQueryFilterDto filters) {
+    public List<SubscriptionEntity> search(SubscriptionQueryDto reportParam) {
+
+        eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionQuery query = new eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionQuery();
 
         // TODO map dto to SubscriptionQuery request
-        SubscriptionQuery query = new SubscriptionQuery();
-        Map parameters = QueryParameter.with(null, null).parameters();
+
         return subscriptionDAO.listSubscriptions(query);
+    }
+
+    public SubscriptionDto create(SubscriptionDto subscription) throws ServiceException {
+        SubscriptionEntity entity = mapper.mapDtoToEntity(subscription);
+        SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
+        return mapper.mapEntityToDto(saved);
     }
 }
