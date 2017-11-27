@@ -31,7 +31,7 @@ import java.util.List;
 import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
-import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDAO;
+import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AssetId;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AssetIdList;
@@ -45,7 +45,7 @@ import org.junit.Test;
 
 public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
 
-    private SubscriptionDAO dao = new SubscriptionDAO(em);
+    private SubscriptionDao dao = new SubscriptionDao(em);
 
     @Before
     public void prepare(){

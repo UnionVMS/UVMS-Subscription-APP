@@ -30,11 +30,11 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class SubscriptionDAO extends AbstractDAO<SubscriptionEntity> {
+public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
 
     private EntityManager em;
 
-    public SubscriptionDAO(EntityManager em) {
+    public SubscriptionDao(EntityManager em) {
         this.em = em;
     }
 

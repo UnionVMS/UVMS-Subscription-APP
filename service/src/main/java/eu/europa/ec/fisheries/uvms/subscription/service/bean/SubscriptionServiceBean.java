@@ -18,7 +18,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.List;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDAO;
+import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto;
@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SubscriptionServiceBean {
 
-    private SubscriptionDAO subscriptionDAO;
+    private SubscriptionDao subscriptionDAO;
 
     @Inject
     private SubscriptionMapper mapper;
@@ -43,7 +43,7 @@ public class SubscriptionServiceBean {
 
     @PostConstruct
     public void init() {
-        subscriptionDAO = new SubscriptionDAO(em);
+        subscriptionDAO = new SubscriptionDao(em);
     }
 
     /**
