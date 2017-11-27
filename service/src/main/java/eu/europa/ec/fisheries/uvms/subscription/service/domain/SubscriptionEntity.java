@@ -10,9 +10,7 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
-import static eu.europa.ec.fisheries.uvms.subscription.service.type.SubscriptionType.RX_PULL;
-import static eu.europa.ec.fisheries.uvms.subscription.service.type.SubscriptionType.TX_PULL;
-import static eu.europa.ec.fisheries.uvms.subscription.service.type.SubscriptionType.UNDEFINED;
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
 import static eu.europa.ec.fisheries.uvms.subscription.service.type.TriggerType.MANUAL;
 
 import javax.persistence.CascadeType;
@@ -24,30 +22,49 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
-import eu.europa.ec.fisheries.uvms.subscription.service.type.SubscriptionType;
 import eu.europa.ec.fisheries.uvms.subscription.service.type.TriggerType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Data
 @RequiredArgsConstructor
 @Table(name = "subscription")
+@NamedQueries({
+        @NamedQuery(name = LIST_SUBSCRIPTION, query =
+                "SELECT s FROM SubscriptionEntity s LEFT JOIN FETCH s.assets a WHERE " +
+                        "((:channel is null) or s.channel = :channel) AND" +
+                        "((:organisation is null) or s.organisation = :organisation) AND" +
+                        "((:endPoint is null) or s.endPoint = :endPoint) AND" +
+                        "((:messageType is null) or s.messageType = :messageType) AND" +
+                        "((:active is null) or s.active = :active) AND" +
+                        "((:name is null) or s.name = :name) AND" +
+                        "((:description is null) or s.description = :description) AND" +
+                        "(a.idType = 'CFR' AND a.value in (:cfrValues))"
+                    )
+})
+@EqualsAndHashCode(exclude = "assets")
+@ToString(exclude = "assets")
 public class SubscriptionEntity implements Serializable {
+
+    public static final String LIST_SUBSCRIPTION = "subscription.list";
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -68,10 +85,11 @@ public class SubscriptionEntity implements Serializable {
     private String description;
 
     @NotNull
-    private Boolean active;
+    private boolean active = true;
 
     @Embedded
-    private DateRange validityPeriod = new DateRange();
+    @NotNull
+    private DateRange validityPeriod = new DateRange(new Date(), new Date(Long.MAX_VALUE));
 
     @NotNull
     private String organisation;
@@ -92,27 +110,8 @@ public class SubscriptionEntity implements Serializable {
 
     private String delay;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "post_id")
+    @OneToMany(mappedBy = "subscription",cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AssetIdentifierEntity> assets = new HashSet<>();
-
-    @JsonProperty("subscription_type")
-    public SubscriptionType getSubscriptionType(){
-
-        SubscriptionType subscriptionType;
-
-        switch (messageType){
-            case FLUX_FA_QUERY:
-                subscriptionType = RX_PULL;
-                break;
-            case FLUX_FA_REPORT:
-            subscriptionType = TX_PULL;
-                break;
-            default:
-                subscriptionType = UNDEFINED;
-        }
-        return subscriptionType;
-    }
 
     public void addAsset(AssetIdentifierEntity asset) {
         assets.add(asset);

@@ -10,16 +10,26 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.AssetType.*;
+
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import eu.europa.ec.fisheries.uvms.commons.service.dao.AbstractDAO;
 import eu.europa.ec.fisheries.uvms.commons.service.dao.QueryParameter;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.wsdl.subscription.module.AssetId;
+import eu.europa.ec.fisheries.wsdl.subscription.module.AssetIdList;
+import eu.europa.ec.fisheries.wsdl.subscription.module.AssetIdType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.AssetType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionQuery;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class SubscriptionDAO extends AbstractDAO<SubscriptionEntity> {
 
     private EntityManager em;
@@ -36,7 +46,65 @@ public class SubscriptionDAO extends AbstractDAO<SubscriptionEntity> {
     @SuppressWarnings("unchecked")
     @SneakyThrows
     public List<SubscriptionEntity> listSubscriptions(SubscriptionQuery query) {
-        Map parameters = QueryParameter.with("", "").parameters();
-        return findEntityByNamedQuery(SubscriptionEntity.class, null, parameters);
+
+        Map parameters = QueryParameter
+                .with("organisation", query != null ? query.getOrganisation() : null)
+                .and("channel", query != null ? query.getChannel() : null)
+                .and("endPoint", query != null ? query.getEndPoint() : null)
+                .and("messageType", query != null ? query.getMessageType() : null)
+                .and("description", query != null ? query.getDescription() : null)
+                .and("name", query != null ? query.getName() : null)
+                .and("active", query != null ? query.isActive() : null)
+                .and("cfrValues", new ArrayList<>())
+                .parameters();
+
+        if (query != null){
+            getAssetIdentifiers(query, parameters);
+        }
+
+        return findEntityByNamedQuery(SubscriptionEntity.class, LIST_SUBSCRIPTION, parameters);
+    }
+
+    private void getAssetIdentifiers(SubscriptionQuery query, Map parameters) {
+        AssetId assetId = query.getAssetId();
+
+        if (assetId != null){
+            AssetType assetType = assetId.getAssetType();
+            if (VESSEL.equals(assetType)) {
+                getVesselIdentifierParameters(parameters, assetId);
+            }
+            if(AIR.equals(assetType)){
+                log.debug("Yeah right :-)");
+            }
+        }
+    }
+
+    private void getVesselIdentifierParameters(Map parameters, AssetId assetId) {
+
+        List<AssetIdList> assetIdList = assetId.getAssetIdList();
+        for (AssetIdList idList : assetIdList){
+
+            AssetIdType idType = idList.getIdType();
+
+            switch (idType){
+                case CFR:
+                    List<String> cfrValues = (List<String>) parameters.get("cfrValues");
+                    cfrValues.add(idList.getValue());
+                    System.out.println("");
+                    break;
+                case ID:
+                    break;
+                case GUID:
+                    break;
+                case IMO:
+                    break;
+                case IRCS:
+                    break;
+                case MMSI:
+                    break;
+                default:
+            }
+
+        }
     }
 }

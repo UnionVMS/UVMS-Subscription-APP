@@ -10,7 +10,7 @@
 
     <context-param>
         <param-name>javamelody.datasources</param-name>
-        <param-value>java:/jdbc/uvms_asset</param-value>
+        <param-value>java:/jdbc/uvms_subscription</param-value>
     </context-param>
 	<listener>
 		<listener-class>net.bull.javamelody.SessionListener</listener-class>
@@ -29,11 +29,11 @@
 		</init-param>
 		<init-param>
 			<param-name>storage-directory</param-name>
-			<param-value>javamelody-asset</param-value>
+			<param-value>javamelody-subscription</param-value>
 		</init-param>
 		<init-param>
 			<param-name>datasources</param-name>
-			<param-value>java:/jdbc/uvms_asset</param-value>
+			<param-value>java:/jdbc/uvms_subscription</param-value>
 		</init-param>
 	</filter>
 	<filter-mapping>

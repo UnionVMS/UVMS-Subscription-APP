@@ -18,7 +18,6 @@
 	    <relativePath>../pom.xml</relativePath>
     </parent>
 	
-	<groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
 	<artifactId>liquibase</artifactId>
 	<version>4.0.5-SNAPSHOT</version>
 	<name>liquibase</name>
@@ -52,7 +51,7 @@
 				  <artifactId>${driver.artifactId}</artifactId>
 				  <version>${driver.version}</version>
 				</dependency>
-			</dependencies>			
+			</dependencies>
 		</profile>
 		<profile>
             <id>oracle</id>
@@ -75,7 +74,7 @@
 				  <artifactId>${driver.artifactId}</artifactId>
 				  <version>${driver.version}</version>
 				</dependency>
-			</dependencies>            
+			</dependencies>
         </profile>
         <profile>
 			<id>publish-sql</id>

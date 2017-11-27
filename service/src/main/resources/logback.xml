@@ -6,7 +6,6 @@
     
     <jmxConfigurator />
 
-    
     <appender class="ch.qos.logback.core.rolling.RollingFileAppender" name="FILE">
         <append>true</append>
         <file>${application.logfile}</file>
@@ -43,7 +42,6 @@
         </filter>
     </appender>
 
-    
     <appender class="ch.qos.logback.core.ConsoleAppender" name="CONSOLE">
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss} %X{requestId} %-5level %logger{40} %X{userId}- %msg%n</pattern>

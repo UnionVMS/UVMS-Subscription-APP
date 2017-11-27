@@ -23,6 +23,7 @@
         <audit.model.version>4.0.0</audit.model.version>
         <lombok.version>1.16.18</lombok.version>
         <mapstruct.version>1.2.0.Final</mapstruct.version>
+        <uvms.test.version>0.0.4</uvms.test.version>
         <uvms.commons.version>3.0.6-SNAPSHOT</uvms.commons.version>
         <project.scm.id>github</project.scm.id>
     </properties>
@@ -116,6 +117,19 @@
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct-processor</artifactId>
                 <version>${mapstruct.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>eu.europa.ec.fisheries.uvms</groupId>
+                <artifactId>uvms-test</artifactId>
+                <version>${uvms.test.version}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
         </dependencies>

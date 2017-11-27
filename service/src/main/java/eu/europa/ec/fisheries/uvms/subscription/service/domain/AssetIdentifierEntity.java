@@ -20,6 +20,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.io.Serializable;
 
 import eu.europa.ec.fisheries.wsdl.subscription.module.AssetIdType;
@@ -27,6 +28,7 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.AssetType;
 import lombok.Data;
 
 @Entity
+@Table(name = "asset_identifier")
 @Data
 public class AssetIdentifierEntity implements Serializable {
 
@@ -42,10 +44,10 @@ public class AssetIdentifierEntity implements Serializable {
     @Enumerated(EnumType.STRING)
     private AssetIdType idType;
 
-    protected String value;
+    private String value;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "asset_id")
+    @JoinColumn(name = "subscription_id")
     private SubscriptionEntity subscription;
 
 }

@@ -47,6 +47,10 @@
                     <xsd:element name="channel" type="xsd:string" />
                     <xsd:element name="endPoint" type="xsd:string" />
                     <xsd:element name="assetId" type="v:AssetId" />
+                    <xsd:element name="messageType" type="v:MessageType" />
+                    <xsd:element name="description" type="xsd:string" />
+                    <xsd:element name="name" type="xsd:string" />
+                    <xsd:element name="active" type="xsd:boolean" />
                     <xsd:element name="areaId" type="v:AreaId" />
                 </xsd:sequence>
             </xsd:complexType>
