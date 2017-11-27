@@ -23,6 +23,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionTriggerResponse;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +52,7 @@ public class SubscriptionServiceBean {
      * @return ?
      */
     @SuppressWarnings("unchecked")
-    public SubscriptionTriggerResponse triggerSubscriptions(eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionQuery query) {
+    public SubscriptionTriggerResponse triggerSubscriptions(SubscriptionQuery query) {
 
         List<SubscriptionEntity> subscriptions =
                 subscriptionDAO.listSubscriptions(query);
@@ -71,7 +72,7 @@ public class SubscriptionServiceBean {
      */
     public List<SubscriptionEntity> search(SubscriptionQueryDto reportParam) {
 
-        eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionQuery query = new eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionQuery();
+        SubscriptionQuery query = new SubscriptionQuery();
 
         // TODO map dto to SubscriptionQuery request
 
