@@ -52,7 +52,8 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
         Operation operation = sequenceOf(
                 DELETE_ALL,
                 INSERT_SUBSCRIPTION_REFERENCE_DATA,
-                INSERT_ASSET_IDENTIFIER_REFERENCE_DATA
+                INSERT_ASSET_IDENTIFIER_REFERENCE_DATA,
+                INSERT_ASSET_AREA_REFERENCE_DATA
         );
         DbSetup dbSetup = new DbSetup(new DataSourceDestination(ds), operation);
         dbSetupTracker.launchIfNecessary(dbSetup);
@@ -61,23 +62,20 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
     @Test
     @SneakyThrows
     public void testCreate(){
-
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
-
+        em.getTransaction().begin();
         SubscriptionEntity entity = dao.createEntity(subscriptionEntity);
-
+        em.getTransaction().commit();
         assertNotNull(entity.getId());
         assertNotNull(entity.getGuid());
         assertNotNull(entity.getValidityPeriod().getStartDate());
         assertNotNull(entity.getValidityPeriod().getEndDate());
         assertEquals(MANUAL, entity.getTrigger());
-
     }
 
     @Test
     @SneakyThrows
     public void testListSubscriptionsWithNoParametersShouldReturnAllSubscriptions(){
-
         List<SubscriptionEntity> subscriptionEntities = dao.listSubscriptions(null);
         assertTrue(CollectionUtils.isNotEmpty(subscriptionEntities));
     }

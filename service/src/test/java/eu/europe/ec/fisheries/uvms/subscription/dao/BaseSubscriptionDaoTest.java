@@ -30,12 +30,12 @@ import eu.europa.ec.fisheries.uvms.BaseDAOTest;
 
 public abstract class BaseSubscriptionDaoTest extends BaseDAOTest {
 
-    protected static final Operation DELETE_ALL = sequenceOf(
+     static final Operation DELETE_ALL = sequenceOf(
             deleteAllFrom("subscription.subscription"),
             deleteAllFrom("subscription.asset_identifier")
     );
 
-    protected static final Operation INSERT_SUBSCRIPTION_REFERENCE_DATA = sequenceOf(
+    static final Operation INSERT_SUBSCRIPTION_REFERENCE_DATA = sequenceOf(
             insertInto("subscription.subscription")
                     .columns("ID", "NAME", "CHANNEL", "ORGANISATION", "MESSAGETYPE", "ACTIVE")
                     .values(1L, "subscription1", "channel1", "org1", "FLUX_FA_QUERY", "1")
@@ -45,7 +45,7 @@ public abstract class BaseSubscriptionDaoTest extends BaseDAOTest {
                     .build()
     );
 
-    protected static final Operation INSERT_ASSET_IDENTIFIER_REFERENCE_DATA = sequenceOf(
+    static final Operation INSERT_ASSET_IDENTIFIER_REFERENCE_DATA = sequenceOf(
             insertInto("subscription.asset_identifier")
                     .columns("ID", "SUBSCRIPTION_ID", "ASSET_TYPE", "ID_TYPE", "VALUE")
                     .values(1L, 1L, "VESSEL", "CFR", "cfr1")
@@ -53,6 +53,14 @@ public abstract class BaseSubscriptionDaoTest extends BaseDAOTest {
 
                     .build()
     );
+
+    static final Operation INSERT_ASSET_AREA_REFERENCE_DATA = sequenceOf(
+            insertInto("subscription.area_identifier")
+                    .columns("ID", "GEOM", "SUBSCRIPTION_ID")
+                    .values(1L, "MULTIPOLYGON(((-8.72722170899993 40.722410075, -12.211019511 34.9460901480001,-13.3017399999999 41.46626, -8.72722170899993 40.722410075)))", 1L)
+                    .build()
+    );
+
 
     @Override
     protected String getSchema() {

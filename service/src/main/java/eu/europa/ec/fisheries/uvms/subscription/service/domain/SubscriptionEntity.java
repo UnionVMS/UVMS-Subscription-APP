@@ -49,19 +49,19 @@ import lombok.ToString;
 @Table(name = "subscription")
 @NamedQueries({
         @NamedQuery(name = LIST_SUBSCRIPTION, query =
-                "SELECT s FROM SubscriptionEntity s LEFT JOIN FETCH s.assets a WHERE " +
-                        "((:channel is null) or s.channel = :channel) AND" +
-                        "((:organisation is null) or s.organisation = :organisation) AND" +
-                        "((:endPoint is null) or s.endPoint = :endPoint) AND" +
-                        "((:messageType is null) or s.messageType = :messageType) AND" +
-                        "((:active is null) or s.active = :active) AND" +
-                        "((:name is null) or s.name = :name) AND" +
-                        "((:description is null) or s.description = :description) AND" +
-                        "(a.idType = 'CFR' AND a.value in (:cfrValues))"
-                    )
+                "SELECT s FROM SubscriptionEntity s LEFT JOIN FETCH s.assets a LEFT JOIN FETCH s.areas area WHERE " +
+                        "((:channel is null AND :channel IS NOT NULL or :channel IS NULL) or s.channel = :channel) AND" +
+                        "((:organisation is null AND :organisation IS NOT NULL or :organisation IS NULL) or s.organisation = :organisation) AND" +
+                        "((:endPoint is null AND :endPoint IS NOT NULL or :endPoint IS NULL) or s.endPoint = :endPoint) AND" +
+                        "((:messageType is null AND :messageType IS NOT NULL or :messageType IS NULL) or s.messageType = :messageType) AND" +
+                        "((:active is null AND :active IS NOT NULL or :active IS NULL) or s.active = :active) AND" +
+                        "((:name is null AND :name IS NOT NULL or :active IS NULL) or s.name = :name) AND" +
+                        "((:description is null AND :description IS NOT NULL or :description IS NULL) or s.description = :description) AND" +
+                        "(:cfrListHasItems = 0) or (a.idType = 'CFR' AND a.value in (:cfrValues))"
+                    ) // TODO add st_within() on areaIdentifier
 })
-@EqualsAndHashCode(exclude = "assets")
-@ToString(exclude = "assets")
+@EqualsAndHashCode(exclude = {"assets", "areas"})
+@ToString(exclude = {"assets", "areas"})
 public class SubscriptionEntity implements Serializable {
 
     public static final String LIST_SUBSCRIPTION = "subscription.list";
@@ -105,13 +105,15 @@ public class SubscriptionEntity implements Serializable {
     private String endCondition;
 
     @Enumerated(EnumType.STRING)
-    @NotNull
     private TriggerType trigger = MANUAL;
 
     private String delay;
 
     @OneToMany(mappedBy = "subscription",cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AssetIdentifierEntity> assets = new HashSet<>();
+
+    @OneToMany(mappedBy = "subscription",cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<AreaIdentifierEntity> areas = new HashSet<>();
 
     public void addAsset(AssetIdentifierEntity asset) {
         assets.add(asset);
@@ -121,6 +123,16 @@ public class SubscriptionEntity implements Serializable {
     public void removeAsset(AssetIdentifierEntity asset) {
         assets.remove(asset);
         asset.setSubscription(this);
+    }
+
+    public void addArea(AreaIdentifierEntity area) {
+        areas.add(area);
+        area.setSubscription(this);
+    }
+
+    public void removeArea(AreaIdentifierEntity area) {
+        areas.remove(area);
+        area.setSubscription(this);
     }
 
     @PrePersist

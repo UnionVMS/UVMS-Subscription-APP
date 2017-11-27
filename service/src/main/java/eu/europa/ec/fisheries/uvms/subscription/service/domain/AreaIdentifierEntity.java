@@ -10,48 +10,48 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.PostLoad;
 import javax.persistence.Table;
-import java.io.Serializable;
+import javax.persistence.Transient;
 
-import eu.europa.ec.fisheries.wsdl.subscription.module.AssetIdType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.AssetType;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.WKTWriter;
+import lombok.AccessLevel;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Setter;
+import org.hibernate.annotations.Type;
 
 @Entity
-@Table(name = "asset_identifier")
+@Table(name = "area_identifier")
 @Data
-@ToString(exclude = "subscription")
-@EqualsAndHashCode(exclude = "subscription")
-public class AssetIdentifierEntity implements Serializable {
+public class AreaIdentifierEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "asset_type")
-    @Enumerated(EnumType.STRING)
-    private AssetType assetType;
+    @Type(type = "org.hibernate.spatial.GeometryType")
+    private Geometry geom;
 
-    @Column(name = "id_type")
-    @Enumerated(EnumType.STRING)
-    private AssetIdType idType;
-
-    private String value;
+    @Setter(AccessLevel.NONE)
+    @Transient
+    private String wkt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subscription_id")
     private SubscriptionEntity subscription;
 
+    @PostLoad
+    private void onLoad() {
+        if(this.geom != null){
+            this.wkt = new WKTWriter().write(geom);
+        }
+    }
 }

@@ -11,7 +11,8 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
-import static eu.europa.ec.fisheries.wsdl.subscription.module.AssetType.*;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.AssetType.AIR;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.AssetType.VESSEL;
 
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
@@ -55,17 +56,18 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
                 .and("description", query != null ? query.getDescription() : null)
                 .and("name", query != null ? query.getName() : null)
                 .and("active", query != null ? query.isActive() : null)
+                .and("cfrListHasItems", 0)
                 .and("cfrValues", new ArrayList<>())
                 .parameters();
 
-        if (query != null){
+        if (query != null && query.getAssetId() != null){
             getAssetIdentifiers(query, parameters);
         }
 
         return findEntityByNamedQuery(SubscriptionEntity.class, LIST_SUBSCRIPTION, parameters);
     }
 
-    private void getAssetIdentifiers(SubscriptionQuery query, Map parameters) {
+    private void getAssetIdentifiers(SubscriptionQuery query, Map<String, Object> parameters) {
         AssetId assetId = query.getAssetId();
 
         if (assetId != null){
@@ -73,24 +75,26 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
             if (VESSEL.equals(assetType)) {
                 getVesselIdentifierParameters(parameters, assetId);
             }
-            if(AIR.equals(assetType)){
+            if (AIR.equals(assetType)){
                 log.debug("Yeah right :-)");
             }
         }
     }
 
-    private void getVesselIdentifierParameters(Map parameters, AssetId assetId) {
+    private void getVesselIdentifierParameters(Map<String, Object> parameters, AssetId assetId) {
 
         List<AssetIdList> assetIdList = assetId.getAssetIdList();
+        List<String> cfrValues = new ArrayList<>();
+        Integer cfrListHasItems = cfrValues.size();
+
         for (AssetIdList idList : assetIdList){
 
             AssetIdType idType = idList.getIdType();
 
             switch (idType){
                 case CFR:
-                    List<String> cfrValues = (List<String>) parameters.get("cfrValues");
                     cfrValues.add(idList.getValue());
-                    System.out.println("");
+                    cfrListHasItems++;
                     break;
                 case ID:
                     break;
@@ -106,5 +110,8 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
             }
 
         }
+        parameters.put("cfrValues", cfrValues);
+        parameters.put("cfrListHasItems", cfrListHasItems);
+
     }
 }
