@@ -63,9 +63,7 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
     @SneakyThrows
     public void testCreate(){
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
-        em.getTransaction().begin();
         SubscriptionEntity entity = dao.createEntity(subscriptionEntity);
-        em.getTransaction().commit();
         assertNotNull(entity.getId());
         assertNotNull(entity.getGuid());
         assertNotNull(entity.getValidityPeriod().getStartDate());

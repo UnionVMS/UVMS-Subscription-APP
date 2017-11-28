@@ -32,8 +32,10 @@ public abstract class BaseSubscriptionDaoTest extends BaseDAOTest {
 
      static final Operation DELETE_ALL = sequenceOf(
             deleteAllFrom("subscription.subscription"),
-            deleteAllFrom("subscription.asset_identifier")
-    );
+            deleteAllFrom("subscription.asset_identifier"),
+             deleteAllFrom("subscription.area_identifier")
+
+     );
 
     static final Operation INSERT_SUBSCRIPTION_REFERENCE_DATA = sequenceOf(
             insertInto("subscription.subscription")

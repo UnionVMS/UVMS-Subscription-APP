@@ -22,7 +22,6 @@
         <uvms.config.version>4.0.0</uvms.config.version>
         <audit.model.version>4.0.0</audit.model.version>
         <lombok.version>1.16.18</lombok.version>
-        <jts.version>1.13</jts.version>
         <mapstruct.version>1.2.0.Final</mapstruct.version>
         <uvms.test.version>0.0.4</uvms.test.version>
         <uvms.commons.version>3.0.6-SNAPSHOT</uvms.commons.version>
@@ -118,13 +117,6 @@
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct-processor</artifactId>
                 <version>${mapstruct.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.vividsolutions</groupId>
-                <artifactId>jts</artifactId>
-                <version>${jts.version}</version>
-                <scope>provided</scope>
             </dependency>
 
             <dependency>
