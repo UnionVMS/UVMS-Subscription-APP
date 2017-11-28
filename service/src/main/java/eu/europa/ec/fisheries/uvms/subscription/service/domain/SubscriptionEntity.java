@@ -57,8 +57,9 @@ import lombok.ToString;
                         "((:active is null AND :active IS NOT NULL or :active IS NULL) or s.active = :active) AND" +
                         "((:name is null AND :name IS NOT NULL or :active IS NULL) or s.name = :name) AND" +
                         "((:description is null AND :description IS NOT NULL or :description IS NULL) or s.description = :description) AND" +
-                        "(:cfrListHasItems = 0) or (a.idType = 'CFR' AND a.value in (:cfrValues))"
-                    ) // TODO add st_within() on areaIdentifier
+                        "(:cfrListHasItems = 0) or (a.idType = 'CFR' AND a.value in (:cfrValues)) AND" +
+                        "(:systemAreaListHasItems = 0)"
+                    )
 })
 @EqualsAndHashCode(exclude = {"assets", "areas"})
 @ToString(exclude = {"assets", "areas"})

@@ -53,7 +53,7 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
                 DELETE_ALL,
                 INSERT_SUBSCRIPTION_REFERENCE_DATA,
                 INSERT_ASSET_IDENTIFIER_REFERENCE_DATA,
-                INSERT_ASSET_AREA_REFERENCE_DATA
+                INSERT_AREA_REFERENCE_DATA
         );
         DbSetup dbSetup = new DbSetup(new DataSourceDestination(ds), operation);
         dbSetupTracker.launchIfNecessary(dbSetup);
@@ -102,6 +102,18 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
 
         List<SubscriptionEntity> subscriptionEntities = dao.listSubscriptions(query);
         assertEquals(2, subscriptionEntities.size());
+    }
+
+    @Test
+    @SneakyThrows
+    public void testFindWithArea(){
+
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setChannel("channel1");
+        query.setActive(true);
+
+        //List<SubscriptionEntity> subscriptionEntities = dao.listSubscriptions(query);
+        //assertEquals(2, subscriptionEntities.size());
     }
 
     @Test

@@ -11,7 +11,6 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
-import static eu.europa.ec.fisheries.wsdl.subscription.module.AssetType.AIR;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.AssetType.VESSEL;
 
 import javax.persistence.EntityManager;
@@ -29,6 +28,7 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.AssetType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionQuery;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.NotImplementedException;
 
 @Slf4j
 public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
@@ -58,6 +58,7 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
                 .and("active", query != null ? query.isActive() : null)
                 .and("cfrListHasItems", 0)
                 .and("cfrValues", new ArrayList<>())
+                .and("systemAreaListHasItems", 0)
                 .parameters();
 
         if (query != null && query.getAssetId() != null){
@@ -75,8 +76,8 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
             if (VESSEL.equals(assetType)) {
                 getVesselIdentifierParameters(parameters, assetId);
             }
-            if (AIR.equals(assetType)){
-                log.debug("Yeah right :-)");
+            else {
+                throw new NotImplementedException();
             }
         }
     }

@@ -10,23 +10,21 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.PostLoad;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.WKTWriter;
-import lombok.AccessLevel;
+import eu.europa.ec.fisheries.wsdl.subscription.module.AreaIdType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import lombok.Data;
-import lombok.Setter;
-import org.hibernate.annotations.Type;
 
 @Entity
 @Table(name = "area_identifier")
@@ -37,21 +35,18 @@ public class AreaIdentifierEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Type(type = "org.hibernate.spatial.GeometryType")
-    private Geometry geom;
-
-    @Setter(AccessLevel.NONE)
-    @Transient
-    private String wkt;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subscription_id")
     private SubscriptionEntity subscription;
 
-    @PostLoad
-    private void onLoad() {
-        if(this.geom != null){
-            this.wkt = new WKTWriter().write(geom);
-        }
-    }
+    @Column(name = "id_type")
+    @Enumerated(EnumType.STRING)
+    private AreaIdType idType;
+
+    @Column(name = "area_type")
+    @Enumerated(EnumType.STRING)
+    private AreaType areaType;
+
+    private String value;
+
 }

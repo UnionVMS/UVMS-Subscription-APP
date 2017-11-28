@@ -54,4 +54,5 @@ public class AssetIdentifierEntity implements Serializable {
     @JoinColumn(name = "subscription_id")
     private SubscriptionEntity subscription;
 
+
 }

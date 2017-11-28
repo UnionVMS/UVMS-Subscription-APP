@@ -54,10 +54,10 @@ public abstract class BaseSubscriptionDaoTest extends BaseDAOTest {
                     .build()
     );
 
-    static final Operation INSERT_ASSET_AREA_REFERENCE_DATA = sequenceOf(
+    static final Operation INSERT_AREA_REFERENCE_DATA = sequenceOf(
             insertInto("subscription.area_identifier")
-                    .columns("ID", "GEOM", "SUBSCRIPTION_ID")
-                    .values(1L, "MULTIPOLYGON(((-8.72722170899993 40.722410075, -12.211019511 34.9460901480001,-13.3017399999999 41.46626, -8.72722170899993 40.722410075)))", 1L)
+                    .columns("ID", "SUBSCRIPTION_ID")
+                    .values(1L, 1L)
                     .build()
     );
 
