@@ -10,9 +10,7 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
-import static eu.europa.ec.fisheries.uvms.subscription.service.domain.StateType.INACTIVE;
 import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
-import static eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType.MANUAL;
 import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.EnumType.STRING;
 import static javax.persistence.GenerationType.AUTO;
@@ -101,12 +99,12 @@ public class SubscriptionEntity implements Serializable {
     private String channel;
 
     @Enumerated(STRING)
-    private TriggerType trigger = MANUAL;
+    private TriggerType trigger = TriggerType.UNKNOWN;
 
     private String delay;
 
     @Enumerated(STRING)
-    private StateType state = INACTIVE;
+    private StateType state = StateType.UNKNOWN;
 
     @PrePersist
     private void prepersist() {

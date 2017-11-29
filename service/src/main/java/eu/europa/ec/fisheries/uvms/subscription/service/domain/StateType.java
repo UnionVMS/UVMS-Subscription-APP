@@ -12,6 +12,6 @@ package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
 public enum StateType {
 
-    ACTIVE, INACTIVE, STAND_BY, EXECUTING, NONE
+    ACTIVE, INACTIVE, STAND_BY, EXECUTING, UNKNOWN
 
 }
