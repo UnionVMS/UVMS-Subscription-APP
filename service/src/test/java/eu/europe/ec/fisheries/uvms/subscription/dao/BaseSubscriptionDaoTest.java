@@ -20,7 +20,6 @@
 
 package eu.europe.ec.fisheries.uvms.subscription.dao;
 
-
 import static com.ninja_squad.dbsetup.Operations.deleteAllFrom;
 import static com.ninja_squad.dbsetup.Operations.insertInto;
 import static com.ninja_squad.dbsetup.operation.CompositeOperation.sequenceOf;
@@ -31,38 +30,26 @@ import eu.europa.ec.fisheries.uvms.BaseDAOTest;
 public abstract class BaseSubscriptionDaoTest extends BaseDAOTest {
 
      static final Operation DELETE_ALL = sequenceOf(
-            deleteAllFrom("subscription.subscription"),
-            deleteAllFrom("subscription.asset_identifier"),
-             deleteAllFrom("subscription.area_identifier")
-
+            deleteAllFrom("subscription.subscription")
      );
 
-    static final Operation INSERT_SUBSCRIPTION_REFERENCE_DATA = sequenceOf(
+    static final Operation INSERT_SUBSCRIPTION_DATA = sequenceOf(
             insertInto("subscription.subscription")
-                    .columns("ID", "NAME", "CHANNEL", "ORGANISATION", "MESSAGETYPE", "ACTIVE")
-                    .values(1L, "subscription1", "channel1", "org1", "FLUX_FA_QUERY", "1")
-                    .values(2L, "subscription2", "channel1", "org2", "FLUX_FA_QUERY", "1")
-                    .values(3L, "subscription3", "channel1", "org3", "FLUX_FA_QUERY", "1")
-                    .values(4L, "subscription4", "channel1", "org4", "FLUX_FA_QUERY", "0")
+                    .columns("ID", "NAME", "ENABLED")
+                    .values(1L, "subscription1", "1")
+                    .values(2L, "subscription2", "1")
+                    .values(3L, "subscription3", "1")
+                    .values(4L, "subscription4", "0")
                     .build()
     );
 
-    static final Operation INSERT_ASSET_IDENTIFIER_REFERENCE_DATA = sequenceOf(
-            insertInto("subscription.asset_identifier")
-                    .columns("ID", "SUBSCRIPTION_ID", "ASSET_TYPE", "ID_TYPE", "VALUE")
-                    .values(1L, 1L, "VESSEL", "CFR", "cfr1")
-                    .values(2L, 1L, "VESSEL", "CFR", "cfr2")
-
+    static final Operation INSERT_CONDITION_DATA = sequenceOf(
+            insertInto("subscription.condition")
+                    .columns("ID", "SUBSCRIPTION_ID", "conditionType", "dataType", "criteriaType", "subCriteriaType", "valueType", "value")
+                    .values(1L, 1L, "START", "FISHING_ACTIVITY", "SENDER", "ORGANISATION", "NONE", "BEL")
+                    .values(2L, 1L, "START", "FISHING_ACTIVITY", "FAReportDocument", "PurposeCode", "FLUX_GP_PURPOSE", "9")
                     .build()
     );
-
-    static final Operation INSERT_AREA_REFERENCE_DATA = sequenceOf(
-            insertInto("subscription.area_identifier")
-                    .columns("ID", "SUBSCRIPTION_ID")
-                    .values(1L, 1L)
-                    .build()
-    );
-
 
     @Override
     protected String getSchema() {

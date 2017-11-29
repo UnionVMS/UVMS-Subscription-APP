@@ -10,18 +10,18 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
-import static eu.europa.ec.fisheries.uvms.subscription.service.domain.StateType.*;
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.StateType.INACTIVE;
 import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
 import static eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType.MANUAL;
+import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.EnumType.STRING;
+import static javax.persistence.GenerationType.AUTO;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -32,12 +32,10 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
-import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
@@ -49,31 +47,32 @@ import lombok.ToString;
 @Table(name = "subscription")
 @NamedQueries({
         @NamedQuery(name = LIST_SUBSCRIPTION, query =
-                "SELECT s FROM SubscriptionEntity s LEFT JOIN FETCH s.assets a LEFT JOIN FETCH s.areas area WHERE " +
-                        "((:channel is null AND :channel IS NOT NULL or :channel IS NULL) or s.channel = :channel) AND" +
-                        "((:organisation is null AND :organisation IS NOT NULL or :organisation IS NULL) or s.organisation = :organisation) AND" +
-                        "((:endPoint is null AND :endPoint IS NOT NULL or :endPoint IS NULL) or s.endPoint = :endPoint) AND" +
-                        "((:messageType is null AND :messageType IS NOT NULL or :messageType IS NULL) or s.messageType = :messageType) AND" +
-                        "((:active is null AND :active IS NOT NULL or :active IS NULL) or s.active = :active) AND" +
-                        "((:name is null AND :name IS NOT NULL or :active IS NULL) or s.name = :name) AND" +
-                        "((:description is null AND :description IS NOT NULL or :description IS NULL) or s.description = :description) AND" +
-                        "(:cfrListHasItems = 0) or (a.idType = 'CFR' AND a.value in (:cfrValues)) AND" +
-                        "(:systemAreaListHasItems = 0)"
+                "SELECT s FROM SubscriptionEntity s LEFT JOIN FETCH s.conditions c WHERE " +
+                        "((:channel is null AND s.channel IS NOT NULL or s.channel IS NULL) or s.channel = :channel) AND" +
+                        "((:organisation is null AND s.organisation IS NOT NULL or s.organisation IS NULL) or s.organisation = :organisation) AND" +
+                        "((:endPoint is null AND s.endPoint IS NOT NULL or s.endPoint IS NULL) or s.endPoint = :endPoint) AND" +
+                        "((:enabled is null AND s.enabled IS NOT NULL or s.enabled IS NULL) or s.enabled = :enabled) AND" +
+                        "((:name is null AND s.name IS NOT NULL or s.name IS NULL) or s.name = :name) AND" +
+                        //"((:description is null AND :description IS NOT NULL or :description IS NULL) or s.description = :description) AND" +
+                        "((:criteriaType is null AND c.criteriaType IS NOT NULL or c.criteriaType IS NULL) or c.criteriaType = :criteriaType) AND " +
+                        "((:subCriteriaType is null AND c.subCriteriaType IS NOT NULL or c.subCriteriaType IS NULL) or c.subCriteriaType = :subCriteriaType) AND " +
+                        "((:valueType is null AND c.valueType IS NOT NULL or c.valueType IS NULL) or c.valueType = :valueType) AND " +
+                        "((:value is null AND c.value IS NOT NULL or c.value IS NULL) or c.value = :value) AND " +
+                        "((:dataType is null AND c.dataType IS NOT NULL or c.dataType IS NULL) or c.dataType = :dataType)"
                     )
 })
-@EqualsAndHashCode(exclude = {"assets", "areas"})
-@ToString(exclude = {"assets", "areas"})
+@EqualsAndHashCode(exclude = "conditions")
+@ToString(exclude = "conditions")
 public class SubscriptionEntity implements Serializable {
 
     public static final String LIST_SUBSCRIPTION = "subscription.list";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = AUTO)
     private Long id;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    private MessageType messageType;
+    @OneToMany(mappedBy = "subscription", cascade = ALL, orphanRemoval = true)
+    private List<ConditionEntity> conditions;
 
     @Column(unique = true)
     @NotNull
@@ -86,7 +85,7 @@ public class SubscriptionEntity implements Serializable {
     private String description;
 
     @NotNull
-    private boolean active = true;
+    private boolean enabled = true;
 
     @Embedded
     @NotNull
@@ -101,43 +100,13 @@ public class SubscriptionEntity implements Serializable {
     @NotNull
     private String channel;
 
-    private String startCondition;
-
-    private String endCondition;
-
-    @Enumerated(EnumType.STRING)
+    @Enumerated(STRING)
     private TriggerType trigger = MANUAL;
 
     private String delay;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(STRING)
     private StateType state = INACTIVE;
-
-    @OneToMany(mappedBy = "subscription",cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<AssetIdentifierEntity> assets = new HashSet<>();
-
-    @OneToMany(mappedBy = "subscription",cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<AreaIdentifierEntity> areas = new HashSet<>();
-
-    public void addAsset(AssetIdentifierEntity asset) {
-        assets.add(asset);
-        asset.setSubscription(this);
-    }
-
-    public void removeAsset(AssetIdentifierEntity asset) {
-        assets.remove(asset);
-        asset.setSubscription(this);
-    }
-
-    public void addArea(AreaIdentifierEntity area) {
-        areas.add(area);
-        area.setSubscription(this);
-    }
-
-    public void removeArea(AreaIdentifierEntity area) {
-        areas.remove(area);
-        area.setSubscription(this);
-    }
 
     @PrePersist
     private void prepersist() {

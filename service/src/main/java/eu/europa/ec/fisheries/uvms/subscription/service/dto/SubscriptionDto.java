@@ -24,14 +24,10 @@ import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import lombok.Data;
 
 @Data
 public class SubscriptionDto {
-
-    @JsonProperty("message_type")
-    private MessageType messageType;
 
     @JsonProperty("name")
     private String name;
