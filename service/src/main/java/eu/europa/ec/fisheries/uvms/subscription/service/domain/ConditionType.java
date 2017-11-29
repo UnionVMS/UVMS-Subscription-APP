@@ -15,5 +15,5 @@ package eu.europa.ec.fisheries.uvms.subscription.service.domain;
  */
 public enum ConditionType {
 
-    START, STOP;
+    START, STOP, UNKNOWN
 }

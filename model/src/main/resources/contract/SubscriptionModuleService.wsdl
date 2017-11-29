@@ -89,6 +89,7 @@
                     <xsd:enumeration value="VESSEL_POSITION"/>
                     <xsd:enumeration value="SALES_NOTE"/>
                     <xsd:enumeration value="FISHING_ACTIVITY"/>
+                    <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
 
@@ -97,6 +98,7 @@
                     <xsd:enumeration value="SENDER"/>
                     <xsd:enumeration value="FLUXFAReportMessage"/>
                     <xsd:enumeration value="FLUXReportDocument"/>
+                    <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
 
@@ -106,6 +108,7 @@
                     <xsd:enumeration value="ENDPOINT"/>
                     <xsd:enumeration value="CHANNEL"/>
                     <xsd:enumeration value="PLUGIN"/>
+                    <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
 
@@ -116,6 +119,7 @@
                     <xsd:enumeration value="FLUX_GP_PURPOSE"/>
                     <xsd:enumeration value="YYYY-MM-DD"/>
                     <xsd:enumeration value="YYYY-MM-DDTHH:mm:ss"/>
+                    <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
 

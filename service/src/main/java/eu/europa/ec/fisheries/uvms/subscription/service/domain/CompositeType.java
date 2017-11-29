@@ -12,5 +12,5 @@ package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
 public enum CompositeType {
 
-    NONE, AND, OR
+    NONE, AND, OR, UNKNOWN
 }

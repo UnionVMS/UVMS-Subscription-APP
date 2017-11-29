@@ -54,11 +54,11 @@ import lombok.ToString;
                         "((:enabled is null AND s.enabled IS NOT NULL or s.enabled IS NULL) or s.enabled = :enabled) AND" +
                         "((:name is null AND s.name IS NOT NULL or s.name IS NULL) or s.name = :name) AND" +
                         //"((:description is null AND :description IS NOT NULL or :description IS NULL) or s.description = :description) AND" +
-                        "((:criteriaType is null AND c.criteriaType IS NOT NULL or c.criteriaType IS NULL) or c.criteriaType = :criteriaType) AND " +
-                        "((:subCriteriaType is null AND c.subCriteriaType IS NOT NULL or c.subCriteriaType IS NULL) or c.subCriteriaType = :subCriteriaType) AND " +
-                        "((:valueType is null AND c.valueType IS NOT NULL or c.valueType IS NULL) or c.valueType = :valueType) AND " +
+                        "((:criteriaType is null AND c.criteriaType IS NOT NULL or c.criteriaType = 'UNKNOWN') or c.criteriaType = :criteriaType) AND " +
+                        "((:subCriteriaType is null AND c.subCriteriaType IS NOT NULL or c.subCriteriaType = 'UNKNOWN') or c.subCriteriaType = :subCriteriaType) AND " +
+                        "((:valueType is null AND c.valueType IS NOT NULL or c.valueType = 'UNKNOWN') or c.valueType = :valueType) AND " +
                         "((:value is null AND c.value IS NOT NULL or c.value IS NULL) or c.value = :value) AND " +
-                        "((:dataType is null AND c.dataType IS NOT NULL or c.dataType IS NULL) or c.dataType = :dataType)"
+                        "((:dataType is null AND c.dataType IS NOT NULL or c.dataType = 'UNKNOWN') or c.dataType = :dataType)"
                     )
 })
 @EqualsAndHashCode(exclude = "conditions")

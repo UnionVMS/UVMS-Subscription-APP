@@ -42,23 +42,23 @@ public class ConditionEntity implements Serializable {
     private SubscriptionEntity subscription;
 
     @Enumerated(STRING)
-    private ConditionType conditionType;
+    private ConditionType conditionType = ConditionType.UNKNOWN;
 
     @Enumerated(STRING)
-    private DataType dataType;
+    private DataType dataType = DataType.UNKNOWN;
 
     @Enumerated(STRING)
-    private CriteriaType criteriaType;
+    private CriteriaType criteriaType = CriteriaType.UNKNOWN;
 
     @Enumerated(STRING)
-    private SubCriteriaType subCriteriaType;
+    private SubCriteriaType subCriteriaType = SubCriteriaType.UNKNOWN;
 
     @Enumerated(STRING)
-    private ValueType valueType;
+    private ValueType valueType = ValueType.UNKNOWN;
 
     private String value;
 
     @Enumerated(STRING)
-    private CompositeType compositeType;
+    private CompositeType compositeType = CompositeType.UNKNOWN;
 
 }
