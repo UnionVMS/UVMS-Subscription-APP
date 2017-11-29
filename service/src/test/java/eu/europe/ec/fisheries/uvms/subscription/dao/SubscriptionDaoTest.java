@@ -21,7 +21,7 @@
 package eu.europe.ec.fisheries.uvms.subscription.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
-import static eu.europa.ec.fisheries.uvms.subscription.service.type.TriggerType.MANUAL;
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType.MANUAL;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

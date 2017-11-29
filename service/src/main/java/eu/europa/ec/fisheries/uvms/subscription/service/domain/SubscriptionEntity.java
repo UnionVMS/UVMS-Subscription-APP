@@ -10,8 +10,9 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.StateType.*;
 import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
-import static eu.europa.ec.fisheries.uvms.subscription.service.type.TriggerType.MANUAL;
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType.MANUAL;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -36,7 +37,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
-import eu.europa.ec.fisheries.uvms.subscription.service.type.TriggerType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -109,6 +109,9 @@ public class SubscriptionEntity implements Serializable {
     private TriggerType trigger = MANUAL;
 
     private String delay;
+
+    @Enumerated(EnumType.STRING)
+    private StateType state = IDLE;
 
     @OneToMany(mappedBy = "subscription",cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AssetIdentifierEntity> assets = new HashSet<>();

@@ -23,7 +23,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import eu.europa.ec.fisheries.uvms.subscription.service.type.TriggerType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import lombok.Data;
 

@@ -21,9 +21,8 @@ import java.util.Map;
 import eu.europa.ec.fisheries.uvms.commons.service.dao.AbstractDAO;
 import eu.europa.ec.fisheries.uvms.commons.service.dao.QueryParameter;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionQueryMapper;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AssetId;
-import eu.europa.ec.fisheries.wsdl.subscription.module.AssetIdList;
-import eu.europa.ec.fisheries.wsdl.subscription.module.AssetIdType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AssetType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionQuery;
 import lombok.SneakyThrows;
@@ -32,6 +31,17 @@ import org.apache.commons.lang.NotImplementedException;
 
 @Slf4j
 public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
+
+    private static final String CFR_VALUES = "cfrValues";
+    private static final String ORGANISATION = "organisation";
+    private static final String CHANNEL = "channel";
+    private static final String END_POINT = "endPoint";
+    private static final String MESSAGE_TYPE = "messageType";
+    private static final String DESCRIPTION = "description";
+    private static final String NAME = "name";
+    private static final String ACTIVE = "active";
+    private static final String CFR_LIST_HAS_ITEMS = "cfrListHasItems";
+    private static final String SYSTEM_AREA_LIST_HAS_ITEMS = "systemAreaListHasItems";
 
     private EntityManager em;
 
@@ -49,16 +59,16 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
     public List<SubscriptionEntity> listSubscriptions(SubscriptionQuery query) {
 
         Map parameters = QueryParameter
-                .with("organisation", query != null ? query.getOrganisation() : null)
-                .and("channel", query != null ? query.getChannel() : null)
-                .and("endPoint", query != null ? query.getEndPoint() : null)
-                .and("messageType", query != null ? query.getMessageType() : null)
-                .and("description", query != null ? query.getDescription() : null)
-                .and("name", query != null ? query.getName() : null)
-                .and("active", query != null ? query.isActive() : null)
-                .and("cfrListHasItems", 0)
-                .and("cfrValues", new ArrayList<>())
-                .and("systemAreaListHasItems", 0)
+                .with(ORGANISATION, query != null ? query.getOrganisation() : null)
+                .and(CHANNEL, query != null ? query.getChannel() : null)
+                .and(END_POINT, query != null ? query.getEndPoint() : null)
+                .and(MESSAGE_TYPE, query != null ? query.getMessageType() : null)
+                .and(DESCRIPTION, query != null ? query.getDescription() : null)
+                .and(NAME, query != null ? query.getName() : null)
+                .and(ACTIVE, query != null ? query.isActive() : null)
+                .and(CFR_LIST_HAS_ITEMS, 0)
+                .and(CFR_VALUES, new ArrayList<>())
+                .and(SYSTEM_AREA_LIST_HAS_ITEMS, 0)
                 .parameters();
 
         if (query != null && query.getAssetId() != null){
@@ -70,49 +80,17 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
 
     private void getAssetIdentifiers(SubscriptionQuery query, Map<String, Object> parameters) {
         AssetId assetId = query.getAssetId();
-
         if (assetId != null){
             AssetType assetType = assetId.getAssetType();
             if (VESSEL.equals(assetType)) {
-                getVesselIdentifierParameters(parameters, assetId);
+                Map<String, Object> stringObjectMap = SubscriptionQueryMapper.mapAssetIdToMap(assetId);
+                List<String> cfrValues = (List<String>) stringObjectMap.get(CFR_VALUES);
+                parameters.put(CFR_LIST_HAS_ITEMS, cfrValues.size());
+                parameters.put(CFR_VALUES, cfrValues);
             }
             else {
                 throw new NotImplementedException();
             }
         }
-    }
-
-    private void getVesselIdentifierParameters(Map<String, Object> parameters, AssetId assetId) {
-
-        List<AssetIdList> assetIdList = assetId.getAssetIdList();
-        List<String> cfrValues = new ArrayList<>();
-        Integer cfrListHasItems = cfrValues.size();
-
-        for (AssetIdList idList : assetIdList){
-
-            AssetIdType idType = idList.getIdType();
-
-            switch (idType){
-                case CFR:
-                    cfrValues.add(idList.getValue());
-                    cfrListHasItems++;
-                    break;
-                case ID:
-                    break;
-                case GUID:
-                    break;
-                case IMO:
-                    break;
-                case IRCS:
-                    break;
-                case MMSI:
-                    break;
-                default:
-            }
-
-        }
-        parameters.put("cfrValues", cfrValues);
-        parameters.put("cfrListHasItems", cfrListHasItems);
-
     }
 }

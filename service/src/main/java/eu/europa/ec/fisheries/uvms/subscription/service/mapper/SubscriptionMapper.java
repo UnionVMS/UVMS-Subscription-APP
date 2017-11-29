@@ -31,4 +31,5 @@ public interface SubscriptionMapper {
 
     @InheritInverseConfiguration
     SubscriptionEntity mapDtoToEntity(SubscriptionDto subscription);
+
 }
