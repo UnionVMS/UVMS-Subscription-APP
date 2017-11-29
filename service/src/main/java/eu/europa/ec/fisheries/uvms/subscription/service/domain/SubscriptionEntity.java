@@ -111,7 +111,7 @@ public class SubscriptionEntity implements Serializable {
     private String delay;
 
     @Enumerated(EnumType.STRING)
-    private StateType state = IDLE;
+    private StateType state = INACTIVE;
 
     @OneToMany(mappedBy = "subscription",cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AssetIdentifierEntity> assets = new HashSet<>();
