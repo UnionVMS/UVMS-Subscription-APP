@@ -44,19 +44,18 @@ import lombok.ToString;
 @RequiredArgsConstructor
 @Table(name = "subscription")
 @NamedQueries({
-        @NamedQuery(name = LIST_SUBSCRIPTION, query =
-                "SELECT s FROM SubscriptionEntity s LEFT JOIN FETCH s.conditions c WHERE " +
-                        "((:channel is null AND s.channel IS NOT NULL or s.channel IS NULL) or s.channel = :channel) AND" +
+        @NamedQuery(name = LIST_SUBSCRIPTION, query = "SELECT s FROM SubscriptionEntity s LEFT JOIN FETCH s.conditions c WHERE " +
+                        //"((:channel is null AND s.channel IS NOT NULL or s.channel IS NULL) or s.channel = :channel) AND" +
                         "((:organisation is null AND s.organisation IS NOT NULL or s.organisation IS NULL) or s.organisation = :organisation) AND" +
-                        "((:endPoint is null AND s.endPoint IS NOT NULL or s.endPoint IS NULL) or s.endPoint = :endPoint) AND" +
-                        "((:enabled is null AND s.enabled IS NOT NULL or s.enabled IS NULL) or s.enabled = :enabled) AND" +
-                        "((:name is null AND s.name IS NOT NULL or s.name IS NULL) or s.name = :name) AND" +
+                        //"((:endPoint is null AND s.endPoint IS NOT NULL or s.endPoint IS NULL) or s.endPoint = :endPoint) AND" +
+                        //"((:enabled is null AND s.enabled IS NOT NULL or s.enabled IS NULL) or s.enabled = :enabled) AND" +
+                        "((:name is null AND s.name IS NOT NULL or s.name IS NULL) or s.name = :name)"
                         //"((:description is null AND :description IS NOT NULL or :description IS NULL) or s.description = :description) AND" +
-                        "((:criteriaType is null AND c.criteriaType IS NOT NULL or c.criteriaType = 'UNKNOWN') or c.criteriaType = :criteriaType) AND " +
-                        "((:subCriteriaType is null AND c.subCriteriaType IS NOT NULL or c.subCriteriaType = 'UNKNOWN') or c.subCriteriaType = :subCriteriaType) AND " +
-                        "((:valueType is null AND c.valueType IS NOT NULL or c.valueType = 'UNKNOWN') or c.valueType = :valueType) AND " +
-                        "((:value is null AND c.value IS NOT NULL or c.value IS NULL) or c.value = :value) AND " +
-                        "((:dataType is null AND c.dataType IS NOT NULL or c.dataType = 'UNKNOWN') or c.dataType = :dataType)"
+                        //"((:criteriaType is null AND c.criteriaType IS NOT NULL or c.criteriaType = 'UNKNOWN') or c.criteriaType = :criteriaType) AND " +
+                        //"((:subCriteriaType is null AND c.subCriteriaType IS NOT NULL or c.subCriteriaType = 'UNKNOWN') or c.subCriteriaType = :subCriteriaType) AND " +
+                        //"((:valueType is null AND c.valueType IS NOT NULL or c.valueType = 'UNKNOWN') or c.valueType = :valueType) AND " +
+                        //"((:value is null AND c.value IS NOT NULL or c.value IS NULL) or c.value = :value) AND " +
+                        //"((:dataType is null AND c.dataType IS NOT NULL or c.dataType = 'UNKNOWN') or c.dataType = :dataType)"
                     )
 })
 @EqualsAndHashCode(exclude = "conditions")

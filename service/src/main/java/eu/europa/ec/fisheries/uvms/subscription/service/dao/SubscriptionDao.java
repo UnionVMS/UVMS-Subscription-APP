@@ -10,12 +10,16 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.*;
+
 import javax.persistence.EntityManager;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import eu.europa.ec.fisheries.uvms.commons.service.dao.AbstractDAO;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,24 +39,18 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
 
     @SuppressWarnings("unchecked")
     @SneakyThrows
-    public List<SubscriptionEntity> listSubscriptions(SubscriptionDataQuery query) {
+    public List<SubscriptionEntity> listSubscriptions(SubscriptionQueryDto query) {
 
-        /*
-        Map parameters = QueryParameter
-                .with(ORGANISATION, query != null ? query.getOrganisation() : null)
-                .and(CHANNEL, query != null ? query.getChannel() : null)
-                .and(END_POINT, query != null ? query.getEndPoint() : null)
-                .and(MESSAGE_TYPE, query != null ? query.getMessageType() : null)
-                .and(DESCRIPTION, query != null ? query.getDescription() : null)
-                .and(NAME, query != null ? query.getName() : null)
-                .and(ACTIVE, query != null ? query.isEnabled() : null)
-                .and(CFR_LIST_HAS_ITEMS, 0)
-                .and(CFR_VALUES, new ArrayList<>())
-                .and(SYSTEM_AREA_LIST_HAS_ITEMS, 0)
-                .parameters();
-*/
 
-        return null;
+        Map<String, String> parameters = new HashMap<>();
+
+        if (query != null){
+            parameters.put("name", query.getName());
+            parameters.put("organisation", query.getOrganisation());
+        }
+
+        return findEntityByNamedQuery(SubscriptionEntity.class, LIST_SUBSCRIPTION, parameters);
+
     }
 
 }

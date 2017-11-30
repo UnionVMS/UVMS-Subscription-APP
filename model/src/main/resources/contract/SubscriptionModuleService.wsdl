@@ -43,10 +43,16 @@
 
             <xsd:complexType name="SubscriptionDataQuery">
                 <xsd:sequence>
-                    <xsd:element name="dataType" type="v:DataType" />
-                    <xsd:element name="criteria" type="v:CriteriaType" />
-                    <xsd:element name="subCriteria" type="v:SubCriteriaType" />
-                    <xsd:element name="valueType" type="v:ValueType" />
+                    <xsd:element name="criteria" type="v:SubscriptionDataCriteria" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:complexType name="SubscriptionDataCriteria">
+                <xsd:sequence>
+                    <xsd:element name="dataType" type="v:DataType" default="UNKNOWN"/>
+                    <xsd:element name="criteria" type="v:CriteriaType" default="UNKNOWN"/>
+                    <xsd:element name="subCriteria" type="v:SubCriteriaType" default="UNKNOWN"/>
+                    <xsd:element name="valueType" type="v:ValueType" default="UNKNOWN"/>
                     <xsd:element name="value" type="xsd:string" />
                 </xsd:sequence>
             </xsd:complexType>

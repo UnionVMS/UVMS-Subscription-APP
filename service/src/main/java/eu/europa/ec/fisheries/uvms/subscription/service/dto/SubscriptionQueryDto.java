@@ -30,7 +30,12 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
+import lombok.Data;
+
+@Data
 public class SubscriptionQueryDto {
 
+    private String name;
+    private String organisation;
 
 }

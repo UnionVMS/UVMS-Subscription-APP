@@ -21,15 +21,16 @@
 package eu.europe.ec.fisheries.uvms.subscription.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
-import static eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType.MANUAL;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+
+import java.util.List;
 
 import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,14 +53,17 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
 
     @Test
     @SneakyThrows
-    public void testCreate(){
-        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
-        SubscriptionEntity entity = dao.createEntity(subscriptionEntity);
-        assertNotNull(entity.getId());
-        assertNotNull(entity.getGuid());
-        assertNotNull(entity.getValidityPeriod().getStartDate());
-        assertNotNull(entity.getValidityPeriod().getEndDate());
-        assertEquals(MANUAL, entity.getTrigger());
+    public void testListSubscription(){
+        SubscriptionQueryDto query = new SubscriptionQueryDto();
+        query.setName("mySubscription1");
+        query.setOrganisation("org1");
+        List<SubscriptionEntity> subscriptionEntities = dao.listSubscriptions(query);
+        assertEquals(1, subscriptionEntities.size());
     }
 
+    @Test
+    @SneakyThrows
+    public void testCreate(){
+
+    }
 }

@@ -53,14 +53,7 @@ public class SubscriptionServiceBean {
      */
     @SuppressWarnings("unchecked")
     public SubscriptionDataResponse triggerSubscriptions(SubscriptionDataQuery query) {
-
-        List<SubscriptionEntity> subscriptions =
-                subscriptionDAO.listSubscriptions(query);
-
-        for (SubscriptionEntity subscription: subscriptions) {
-
-
-        }
+        
 
         return new SubscriptionDataResponse();
     }

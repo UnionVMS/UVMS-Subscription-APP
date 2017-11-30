@@ -35,19 +35,19 @@ public abstract class BaseSubscriptionDaoTest extends BaseDAOTest {
 
     static final Operation INSERT_SUBSCRIPTION_DATA = sequenceOf(
             insertInto("subscription.subscription")
-                    .columns("ID", "NAME", "ENABLED")
-                    .values(1L, "subscription1", "1")
-                    .values(2L, "subscription2", "1")
-                    .values(3L, "subscription3", "1")
-                    .values(4L, "subscription4", "0")
+                    .columns("ID", "NAME", "ENABLED", "ORGANISATION")
+                    .values(1L, "mySubscription1", "1", "org1")
+                    .values(2L, "subscription2", "1", "org1")
+                    .values(3L, "subscription3", "1", "org1")
+                    .values(4L, "subscription4", "0", "org1")
                     .build()
     );
 
     static final Operation INSERT_CONDITION_DATA = sequenceOf(
             insertInto("subscription.condition")
                     .columns("ID", "SUBSCRIPTION_ID", "conditionType", "dataType", "criteriaType", "subCriteriaType", "valueType", "value")
-                    .values(1L, 1L, "START", "FISHING_ACTIVITY", "SENDER", "ORGANISATION", "NONE", "BEL")
-                    .values(2L, 1L, "START", "FISHING_ACTIVITY", "FAReportDocument", "PurposeCode", "FLUX_GP_PURPOSE", "9")
+                    //.values(1L, 1L, "START", "FISHING_ACTIVITY", "SENDER", "ORGANISATION", "UNKNOWN", "BEL")
+                    //.values(2L, 1L, "START", "FISHING_ACTIVITY", "FAReportDocument", "PurposeCode", "FLUX_GP_PURPOSE", "9")
                     .build()
     );
 
