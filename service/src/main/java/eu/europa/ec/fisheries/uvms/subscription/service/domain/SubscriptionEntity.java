@@ -126,7 +126,7 @@ public class SubscriptionEntity implements Serializable {
         area.setSubscription(this);
     }
 
-    public void removeComment(ConditionEntity condition) {
+    public void removeCondition(ConditionEntity condition) {
         conditions.remove(condition);
         condition.setSubscription(null);
     }
