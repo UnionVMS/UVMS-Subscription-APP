@@ -30,7 +30,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
@@ -44,22 +44,22 @@ import lombok.ToString;
 @RequiredArgsConstructor
 @Table(name = "subscription")
 @NamedQueries({
-        @NamedQuery(name = LIST_SUBSCRIPTION, query = "SELECT s FROM SubscriptionEntity s LEFT JOIN FETCH s.conditions c WHERE " +
-                        //"((:channel is null AND s.channel IS NOT NULL or s.channel IS NULL) or s.channel = :channel) AND" +
-                        "((:organisation is null AND s.organisation IS NOT NULL or s.organisation IS NULL) or s.organisation = :organisation) AND" +
-                        //"((:endPoint is null AND s.endPoint IS NOT NULL or s.endPoint IS NULL) or s.endPoint = :endPoint) AND" +
-                        //"((:enabled is null AND s.enabled IS NOT NULL or s.enabled IS NULL) or s.enabled = :enabled) AND" +
-                        "((:name is null AND s.name IS NOT NULL or s.name IS NULL) or s.name = :name)"
-                        //"((:description is null AND :description IS NOT NULL or :description IS NULL) or s.description = :description) AND" +
-                        //"((:criteriaType is null AND c.criteriaType IS NOT NULL or c.criteriaType = 'UNKNOWN') or c.criteriaType = :criteriaType) AND " +
-                        //"((:subCriteriaType is null AND c.subCriteriaType IS NOT NULL or c.subCriteriaType = 'UNKNOWN') or c.subCriteriaType = :subCriteriaType) AND " +
-                        //"((:valueType is null AND c.valueType IS NOT NULL or c.valueType = 'UNKNOWN') or c.valueType = :valueType) AND " +
-                        //"((:value is null AND c.value IS NOT NULL or c.value IS NULL) or c.value = :value) AND " +
-                        //"((:dataType is null AND c.dataType IS NOT NULL or c.dataType = 'UNKNOWN') or c.dataType = :dataType)"
-                    )
+        @NamedQuery(name = LIST_SUBSCRIPTION, query =
+                "SELECT DISTINCT s FROM SubscriptionEntity s " +
+                "LEFT JOIN FETCH s.conditions c " +
+                "LEFT JOIN FETCH s.areas a " +
+                "WHERE " +
+                "((:channel is NULL AND :isEmpty = false) OR s.channel = :channel) AND" +
+                "((:organisation is NULL AND :isEmpty = false) OR s.organisation = :organisation) AND" +
+                "((:endPoint is NULL AND :isEmpty = false) OR s.endPoint = :endPoint) AND" +
+                "((:enabled is NULL AND :isEmpty = false) OR s.enabled = :enabled) AND" +
+                "((:name is NULL AND :isEmpty = false) OR s.name = :name) AND" +
+                "((:subscriptionType is NULL AND :isEmpty = false) OR s.subscriptionType = :subscriptionType) AND" +
+                "((:messageType is NULL AND :isEmpty = false) OR s.messageType = :messageType)"
+        )
 })
-@EqualsAndHashCode(exclude = "conditions")
-@ToString(exclude = "conditions")
+@EqualsAndHashCode(exclude = {"conditions", "areas"})
+@ToString(exclude = {"conditions", "areas"})
 public class SubscriptionEntity implements Serializable {
 
     public static final String LIST_SUBSCRIPTION = "subscription.list";
@@ -68,8 +68,19 @@ public class SubscriptionEntity implements Serializable {
     @GeneratedValue(strategy = AUTO)
     private Long id;
 
+    @NotNull
+    @Enumerated(STRING)
+    private SubscriptionType subscriptionType = SubscriptionType.UNKNOWN;
+
+    @NotNull
+    @Enumerated(STRING)
+    private MessageType messageType = MessageType.UNKNOWN;
+
     @OneToMany(mappedBy = "subscription", cascade = ALL, orphanRemoval = true)
-    private List<ConditionEntity> conditions;
+    private Set<ConditionEntity> conditions;
+
+    @OneToMany(mappedBy = "subscription", cascade = ALL, orphanRemoval = true)
+    private Set<AreaEntity> areas;
 
     @Column(unique = true)
     @NotNull
@@ -104,6 +115,26 @@ public class SubscriptionEntity implements Serializable {
 
     @Enumerated(STRING)
     private StateType state = StateType.UNKNOWN;
+
+    public void addCondition(ConditionEntity condition) {
+        conditions.add(condition);
+        condition.setSubscription(this);
+    }
+
+    public void addArea(AreaEntity area) {
+        areas.add(area);
+        area.setSubscription(this);
+    }
+
+    public void removeComment(ConditionEntity condition) {
+        conditions.remove(condition);
+        condition.setSubscription(null);
+    }
+
+    public void removeArea(AreaEntity area) {
+        areas.remove(area);
+        area.setSubscription(null);
+    }
 
     @PrePersist
     private void prepersist() {

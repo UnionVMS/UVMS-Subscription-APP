@@ -33,21 +33,29 @@ public abstract class BaseSubscriptionDaoTest extends BaseDAOTest {
             deleteAllFrom("subscription.subscription")
      );
 
-    static final Operation INSERT_SUBSCRIPTION_DATA = sequenceOf(
+    static final Operation INSERT_SUBSCRIPTION = sequenceOf(
             insertInto("subscription.subscription")
-                    .columns("ID", "NAME", "ENABLED", "ORGANISATION")
-                    .values(1L, "mySubscription1", "1", "org1")
-                    .values(2L, "subscription2", "1", "org1")
-                    .values(3L, "subscription3", "1", "org1")
-                    .values(4L, "subscription4", "0", "org1")
+                    .columns("ID", "NAME", "ENABLED", "ORGANISATION", "CHANNEL")
+                    .values(1L, "name1", "1", "organisation1", "channel2")
+                    .values(2L, "subscription2", "1", "org1", "channel2")
+                    .values(3L, "subscription3", "1", "org1", "channel3")
+                    .values(4L, "subscription4", "0", "org1", "channel4")
                     .build()
     );
 
-    static final Operation INSERT_CONDITION_DATA = sequenceOf(
+    static final Operation INSERT_CONDITION = sequenceOf(
             insertInto("subscription.condition")
-                    .columns("ID", "SUBSCRIPTION_ID", "conditionType", "dataType", "criteriaType", "subCriteriaType", "valueType", "value")
-                    //.values(1L, 1L, "START", "FISHING_ACTIVITY", "SENDER", "ORGANISATION", "UNKNOWN", "BEL")
-                    //.values(2L, 1L, "START", "FISHING_ACTIVITY", "FAReportDocument", "PurposeCode", "FLUX_GP_PURPOSE", "9")
+                    .columns("ID", "SUBSCRIPTION_ID", "dataType", "criteriaType", "subCriteriaType", "valueType", "value")
+                    .values(1L, 1L, "FISHING_ACTIVITY", "SENDER", "ORGANISATION", "UNKNOWN", "BEL")
+                    .build()
+    );
+
+    static final Operation INSERT_AREA = sequenceOf(
+            insertInto("subscription.area")
+                    .columns("ID", "SUBSCRIPTION_ID", "AREA_TYPE", "AREA_VALUE_TYPE", "VALUE")
+                    .values(1L, 1L, "EEZ", "AREA_GUID", "182022980198")
+                    .values(2L, 1L, "USERAREA", "AREA_NAME", "myArea")
+                    .values(3L, 1L, "USERAREA", "AREA_NAME", "myArea")
                     .build()
     );
 

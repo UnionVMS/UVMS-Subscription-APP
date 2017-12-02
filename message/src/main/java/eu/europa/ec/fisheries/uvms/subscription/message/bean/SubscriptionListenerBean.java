@@ -72,7 +72,7 @@ public class SubscriptionListenerBean implements MessageListener {
                     break;
                 case SUBSCRIPTION_DATA:
                     SubscriptionDataRequest request = unMarshallMessage(textMessage.getText(), SubscriptionDataRequest.class);
-                    SubscriptionDataResponse subscriptionDataResponse = service.triggerSubscriptions(request.getQuery());
+                    SubscriptionDataResponse subscriptionDataResponse = service.isValid(request.getQuery());
                     break;
                 default:
                     producer.sendMessage(messageID, jmsReplyTo, "[ Not implemented method consumed: {} ]");

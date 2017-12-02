@@ -21,6 +21,8 @@
 package eu.europe.ec.fisheries.uvms.subscription.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
+import static eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto.*;
+import static junitparams.JUnitParamsRunner.$;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
@@ -31,20 +33,22 @@ import com.ninja_squad.dbsetup.operation.Operation;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+@RunWith(JUnitParamsRunner.class)
 public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
 
-    private SubscriptionDao dao = new SubscriptionDao(em);
+    private SubscriptionDao daoUnderTest = new SubscriptionDao(em);
 
     @Before
     public void prepare(){
         Operation operation = sequenceOf(
-                DELETE_ALL,
-                INSERT_SUBSCRIPTION_DATA,
-                INSERT_CONDITION_DATA
+                DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_CONDITION, INSERT_AREA
                 );
 
         DbSetup dbSetup = new DbSetup(new DataSourceDestination(ds), operation);
@@ -52,18 +56,27 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testListSubscription(){
-        SubscriptionQueryDto query = new SubscriptionQueryDto();
-        query.setName("mySubscription1");
-        query.setOrganisation("org1");
-        List<SubscriptionEntity> subscriptionEntities = dao.listSubscriptions(query);
-        assertEquals(1, subscriptionEntities.size());
+    @Parameters(method = "subscriptionQueryParameters")
+    public void testListSubscription(SubscriptionQueryDto query, int expected){
+        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(query);
+        assertEquals(expected, subscriptionEntities.size());
     }
 
     @Test
     @SneakyThrows
     public void testCreate(){
 
+    }
+
+    protected Object[] subscriptionQueryParameters(){
+        return $(
+                $(builder().channel("channel1").build(), 0),
+                $(builder().channel("channel2").build(), 2),
+                $(builder().channel("channel3").build(), 1),
+                $(builder().build(), 0),
+                $(null, 0),
+                $(builder().enabled(true).build(), 3),
+                $(builder().organisation("org1").name("subscription4").channel("channel4").build(), 1)
+        );
     }
 }

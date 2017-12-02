@@ -47,12 +47,12 @@ public class SubscriptionServiceBean {
     }
 
     /**
-     * Search and trigger subscriptions asynchronously. Used over JMS service.
+     * Check if the incoming message has a valid subscription
      * @param query filter criteria to retrieve subscriptions to be triggered
      * @return ?
      */
     @SuppressWarnings("unchecked")
-    public SubscriptionDataResponse triggerSubscriptions(SubscriptionDataQuery query) {
+    public SubscriptionDataResponse isValid(SubscriptionDataQuery query) {
         
 
         return new SubscriptionDataResponse();

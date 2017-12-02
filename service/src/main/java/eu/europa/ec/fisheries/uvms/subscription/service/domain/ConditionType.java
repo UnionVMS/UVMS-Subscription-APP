@@ -10,10 +10,7 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
-/**
- * TODO create test
- */
 public enum ConditionType {
 
-    START, STOP, UNKNOWN
+    START, END, UNKNOWN
 }

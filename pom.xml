@@ -21,6 +21,7 @@
         <usm4uvms.version>4.0.2</usm4uvms.version>
         <uvms.config.version>4.0.0</uvms.config.version>
         <audit.model.version>4.0.0</audit.model.version>
+        <spatial.model.version>1.0.6-SNAPSHOT</spatial.model.version>
         <lombok.version>1.16.18</lombok.version>
         <mapstruct.version>1.2.0.Final</mapstruct.version>
         <uvms.test.version>0.0.4</uvms.test.version>
@@ -47,6 +48,11 @@
                 <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
                 <artifactId>subscription-model</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>eu.europa.ec.fisheries.uvms.spatial</groupId>
+                <artifactId>spatial-model</artifactId>
+                <version>${spatial.model.version}</version>
             </dependency>
             <dependency>
                 <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>

@@ -12,6 +12,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
 import static javax.persistence.EnumType.STRING;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
@@ -20,6 +21,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 import eu.europa.ec.fisheries.wsdl.subscription.module.CriteriaType;
@@ -27,10 +29,14 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.DataType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubCriteriaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.ValueType;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Entity
 @Data
 @Table(name = "condition")
+@EqualsAndHashCode(exclude = {"id", "subscription", "position"})
+@ToString(exclude = "subscription")
 public class ConditionEntity implements Serializable {
 
     @Id
@@ -41,11 +47,15 @@ public class ConditionEntity implements Serializable {
     @JoinColumn(name="subscription_id")
     private SubscriptionEntity subscription;
 
+    @NotNull
     @Enumerated(STRING)
     private ConditionType conditionType = ConditionType.UNKNOWN;
 
-    @Enumerated(STRING)
-    private DataType dataType = DataType.UNKNOWN;
+    @NotNull
+    private Integer position = 0;
+
+    @Column(name = "start_operator")
+    private String startOperator;
 
     @Enumerated(STRING)
     private CriteriaType criteriaType = CriteriaType.UNKNOWN;
@@ -54,9 +64,18 @@ public class ConditionEntity implements Serializable {
     private SubCriteriaType subCriteriaType = SubCriteriaType.UNKNOWN;
 
     @Enumerated(STRING)
+    protected RelationalOperatorType condition = RelationalOperatorType.UNKNOWN;
+
+    @Enumerated(STRING)
+    private DataType dataType = DataType.UNKNOWN;
+
+    @Enumerated(STRING)
     private ValueType valueType = ValueType.UNKNOWN;
 
     private String value;
+
+    @Column(name = "end_operator")
+    private String endOperator;
 
     @Enumerated(STRING)
     private CompositeType compositeType = CompositeType.UNKNOWN;

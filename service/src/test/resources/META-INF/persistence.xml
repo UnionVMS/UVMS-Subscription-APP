@@ -8,6 +8,7 @@
 
         <class>eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity</class>
 		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.ConditionEntity</class>
+		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity</class>
 
 		<properties>
 			<property name="hibernate.default_schema" value="subscription" />

@@ -29,7 +29,6 @@ import lombok.Data;
 @Data
 public class SubscriptionDto {
 
-    @JsonProperty("name")
     private String name;
 
     private String description;
@@ -42,9 +41,7 @@ public class SubscriptionDto {
 
     private String channel;
 
-    private String startCondition;
-
-    private String endCondition;
+    private String conditions;
 
     private TriggerType trigger;
 

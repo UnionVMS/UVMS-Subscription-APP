@@ -12,7 +12,6 @@ package eu.europa.ec.fisheries.uvms.subsription.rest.resource;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.inject.Inject;
 import javax.interceptor.Interceptors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -27,13 +26,10 @@ import eu.europa.ec.fisheries.uvms.commons.rest.resource.UnionVMSResource;
 import eu.europa.ec.fisheries.uvms.rest.security.RequiresFeature;
 import eu.europa.ec.fisheries.uvms.rest.security.UnionVMSFeature;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionServiceBean;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subsription.rest.filter.SubscriptionServiceExceptionHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.NotImplementedException;
 
 @Path("/subscription")
 @Stateless
@@ -71,7 +67,6 @@ public class SubscriptionResource extends UnionVMSResource {
     @POST
     @Consumes(value = {MediaType.APPLICATION_JSON})
     @Produces(value = {MediaType.APPLICATION_JSON})
-    @Path("search")
     @RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals)
     public Response create(final SubscriptionDto subscription) {
         return createSuccessResponse(service.create(subscription));

@@ -25,11 +25,15 @@ public interface SubscriptionMapper {
 
     @Mappings({
             @Mapping(target = "startDate", source = "validityPeriod.startDate"),
-            @Mapping(target = "endDate", source = "validityPeriod.endDate")
+            @Mapping(target = "endDate", source = "validityPeriod.endDate"),
+            @Mapping(ignore = true, target = "conditions")
     })
     SubscriptionDto mapEntityToDto(SubscriptionEntity subscription);
 
     @InheritInverseConfiguration
+    @Mappings({
+            @Mapping(ignore = true, target = "conditions")
+    })
     SubscriptionEntity mapDtoToEntity(SubscriptionDto subscription);
 
 }

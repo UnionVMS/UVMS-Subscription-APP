@@ -30,12 +30,33 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class SubscriptionQueryDto {
+
+    private static SubscriptionQueryDto empty = new SubscriptionQueryDto();
 
     private String name;
     private String organisation;
+    private Boolean enabled;
+    private String channel;
+    private String endPoint;
+    private String accessibility;
+    private String messageType;
+    private String subscriptionType;
+    private String from;
+    private String to;
 
+    @JsonIgnore
+    public boolean isEmpty() {
+        return this.equals(empty);
+    }
 }

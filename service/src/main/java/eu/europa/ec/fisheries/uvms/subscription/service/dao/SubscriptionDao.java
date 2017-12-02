@@ -10,7 +10,7 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
-import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.*;
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
 
 import javax.persistence.EntityManager;
 import java.util.HashMap;
@@ -37,17 +37,18 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
         return em;
     }
 
-    @SuppressWarnings("unchecked")
     @SneakyThrows
     public List<SubscriptionEntity> listSubscriptions(SubscriptionQueryDto query) {
 
-
-        Map<String, String> parameters = new HashMap<>();
-
-        if (query != null){
-            parameters.put("name", query.getName());
-            parameters.put("organisation", query.getOrganisation());
-        }
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("isEmpty", query != null ? query.isEmpty() : null);
+        parameters.put("name", query != null ? query.getName() : null);
+        parameters.put("organisation", query != null ? query.getOrganisation() : null);
+        parameters.put("enabled", query != null ? query.getEnabled() : null);
+        parameters.put("channel", query != null ? query.getChannel() : null);
+        parameters.put("endPoint", query != null ? query.getEndPoint() : null);
+        parameters.put("messageType", query != null ? query.getMessageType() : null);
+        parameters.put("subscriptionType", query != null ? query.getSubscriptionType() : null);
 
         return findEntityByNamedQuery(SubscriptionEntity.class, LIST_SUBSCRIPTION, parameters);
 
