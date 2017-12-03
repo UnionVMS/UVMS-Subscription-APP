@@ -21,16 +21,19 @@
 package eu.europe.ec.fisheries.uvms.subscription.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
-import static eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto.*;
+import static eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto.builder;
 import static junitparams.JUnitParamsRunner.$;
+import static org.jsoup.helper.Validate.fail;
 import static org.junit.Assert.assertEquals;
 
+import javax.persistence.EntityTransaction;
 import java.util.List;
 
 import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.MessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto;
 import junitparams.JUnitParamsRunner;
@@ -52,7 +55,7 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
                 );
 
         DbSetup dbSetup = new DbSetup(new DataSourceDestination(ds), operation);
-        dbSetupTracker.launchIfNecessary(dbSetup);
+        dbSetup.launch();
     }
 
     @Test
@@ -64,8 +67,29 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
 
     @Test
     @SneakyThrows
-    public void testCreate(){
+    @Parameters(method = "subscriptionCreateWithConstraintViolationExceptionParameters")
+    public void testCreateWithMissingMandatoryValuesShouldThrowException(SubscriptionEntity subscription){
 
+        try {
+            EntityTransaction tx = em.getTransaction();
+            tx.begin();
+            daoUnderTest.createEntity(subscription);
+            em.flush();
+            fail("should throw javax.validation.ConstraintViolationException");
+        } catch (javax.validation.ConstraintViolationException e){
+            e.printStackTrace();
+        }
+    }
+
+    protected Object[] subscriptionCreateWithConstraintViolationExceptionParameters(){
+        return $(
+                $(SubscriptionEntity.builder().channel("channel100").build(),
+                        SubscriptionEntity.builder().name("name1").channel("channel4").build(),
+                        SubscriptionEntity.builder().name("name1").channel("channel4").endPoint("endpoint2").build(),
+                        SubscriptionEntity.builder().name("name1").channel("channel4").endPoint("endpoint2").organisation("org4").build(),
+                        SubscriptionEntity.builder().name("name1").channel("channel4").endPoint("endpoint2").organisation("org4").enabled(true).build(),
+                        SubscriptionEntity.builder().name("name1").channel("channel4").endPoint("endpoint2").organisation("org4").enabled(true).messageType(MessageType.FLUXFAReportMessage).build())
+        );
     }
 
     protected Object[] subscriptionQueryParameters(){

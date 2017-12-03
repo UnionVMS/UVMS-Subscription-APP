@@ -30,11 +30,13 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.SubCriteriaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.ValueType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Entity
 @Data
 @Table(name = "condition")
+@NoArgsConstructor
 @EqualsAndHashCode(exclude = {"id", "subscription", "position"})
 @ToString(exclude = "subscription")
 public class ConditionEntity implements Serializable {
@@ -49,7 +51,8 @@ public class ConditionEntity implements Serializable {
 
     @NotNull
     @Enumerated(STRING)
-    private ConditionType conditionType = ConditionType.UNKNOWN;
+    @Column(name = "condition_type")
+    private ConditionType conditionType;
 
     @NotNull
     private Integer position = 0;
@@ -58,19 +61,23 @@ public class ConditionEntity implements Serializable {
     private String startOperator;
 
     @Enumerated(STRING)
-    private CriteriaType criteriaType = CriteriaType.UNKNOWN;
+    @Column(name = "criteria_type")
+    private CriteriaType criteriaType;
 
     @Enumerated(STRING)
-    private SubCriteriaType subCriteriaType = SubCriteriaType.UNKNOWN;
+    @Column(name = "sub_criteria_type")
+    private SubCriteriaType subCriteriaType;
 
     @Enumerated(STRING)
-    protected RelationalOperatorType condition = RelationalOperatorType.UNKNOWN;
+    protected RelationalOperatorType condition;
 
     @Enumerated(STRING)
-    private DataType dataType = DataType.UNKNOWN;
+    @Column(name = "data_type")
+    private DataType dataType;
 
     @Enumerated(STRING)
-    private ValueType valueType = ValueType.UNKNOWN;
+    @Column(name = "value_type")
+    private ValueType valueType;
 
     private String value;
 
@@ -78,6 +85,7 @@ public class ConditionEntity implements Serializable {
     private String endOperator;
 
     @Enumerated(STRING)
-    private CompositeType compositeType = CompositeType.UNKNOWN;
+    @Column(name = "composite_type")
+    private CompositeType compositeType;
 
 }

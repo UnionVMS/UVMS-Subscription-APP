@@ -27,11 +27,13 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Table(name = "area")
 @Entity
 @Data
+@NoArgsConstructor
 @EqualsAndHashCode(exclude = {"subscription"})
 @ToString(exclude = {"subscription"})
 public class AreaEntity {

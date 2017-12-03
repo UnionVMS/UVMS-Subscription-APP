@@ -34,14 +34,18 @@ import java.util.Set;
 import java.util.UUID;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Entity
 @Data
-@RequiredArgsConstructor
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "subscription")
 @NamedQueries({
         @NamedQuery(name = LIST_SUBSCRIPTION, query =
@@ -70,11 +74,13 @@ public class SubscriptionEntity implements Serializable {
 
     @NotNull
     @Enumerated(STRING)
-    private SubscriptionType subscriptionType = SubscriptionType.UNKNOWN;
+    @Column(name = "subscription_type")
+    private SubscriptionType subscriptionType;
 
     @NotNull
     @Enumerated(STRING)
-    private MessageType messageType = MessageType.UNKNOWN;
+    @Column(name = "message_type")
+    private MessageType messageType;
 
     @OneToMany(mappedBy = "subscription", cascade = ALL, orphanRemoval = true)
     private Set<ConditionEntity> conditions;
@@ -93,16 +99,16 @@ public class SubscriptionEntity implements Serializable {
     private String description;
 
     @NotNull
-    private boolean enabled = true;
+    private boolean enabled;
 
     @Embedded
-    @NotNull
     private DateRange validityPeriod = new DateRange(new Date(), new Date(Long.MAX_VALUE));
 
     @NotNull
     private String organisation;
 
     @NotNull
+    @Column(name = "end_point")
     private String endPoint;
 
     @NotNull
