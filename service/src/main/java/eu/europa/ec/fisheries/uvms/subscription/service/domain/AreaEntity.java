@@ -21,20 +21,31 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import java.util.Random;
+import java.util.UUID;
 
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.lang.RandomStringUtils;
 
 @Table(name = "area")
 @Entity
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = {"subscription"})
+@EqualsAndHashCode(exclude = {"id", "subscription"})
 @ToString(exclude = {"subscription"})
 public class AreaEntity {
 
@@ -42,18 +53,41 @@ public class AreaEntity {
     @GeneratedValue(strategy = AUTO)
     private Long id;
 
+    @Size(min = 36, max = 36)
+    @Column(name = "area_guid", unique = true)
+    @NotNull
+    private String guid;
+
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "subscription_id")
+    @Valid
+    @Setter(AccessLevel.MODULE)
+    @Getter(AccessLevel.NONE)
     private SubscriptionEntity subscription;
 
     @Column(name = "area_type")
     @Enumerated(STRING)
-    private AreaType areaType = AreaType.UNKNOWN;
+    @NotNull
+    private AreaType areaType;
 
     @Column(name = "area_value_type")
     @Enumerated(STRING)
-    private AreaValueType areaValueType = AreaValueType.UNKNOWN;
+    @NotNull
+    private AreaValueType areaValueType;
 
+    @NotNull
     private String value;
 
+    @PrePersist
+    private void prepersist() {
+        setGuid(UUID.randomUUID().toString());
+    }
+
+    public static AreaEntity random(){
+        AreaEntity areaEntity = new AreaEntity();
+        areaEntity.setValue(RandomStringUtils.randomAlphabetic(100));
+        areaEntity.setAreaValueType(AreaValueType.values()[new Random().nextInt(AreaValueType.values().length)]);
+        areaEntity.setAreaType(AreaType.values()[new Random().nextInt(AreaType.values().length)]);
+        return areaEntity;
+    }
 }

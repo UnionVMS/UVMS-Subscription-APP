@@ -12,8 +12,10 @@ package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
 import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
 import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.EnumType.STRING;
 import static javax.persistence.GenerationType.AUTO;
+import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
 
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -26,20 +28,23 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
+import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionParser;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Entity
 @Data
@@ -62,8 +67,7 @@ import lombok.ToString;
                 "((:messageType is NULL AND :isEmpty = false) OR s.messageType = :messageType)"
         )
 })
-@EqualsAndHashCode(exclude = {"conditions", "areas"})
-@ToString(exclude = {"conditions", "areas"})
+@EqualsAndHashCode(exclude = {"id"})
 public class SubscriptionEntity implements Serializable {
 
     public static final String LIST_SUBSCRIPTION = "subscription.list";
@@ -83,10 +87,12 @@ public class SubscriptionEntity implements Serializable {
     private MessageType messageType;
 
     @OneToMany(mappedBy = "subscription", cascade = ALL, orphanRemoval = true)
-    private Set<ConditionEntity> conditions;
+    @Valid
+    private Set<ConditionEntity> conditions = new HashSet<>();
 
-    @OneToMany(mappedBy = "subscription", cascade = ALL, orphanRemoval = true)
-    private Set<AreaEntity> areas;
+    @OneToMany(mappedBy = "subscription", cascade = MERGE, orphanRemoval = true)
+    @Valid
+    private Set<AreaEntity> areas = new HashSet<>();
 
     @Column(unique = true)
     @NotNull
@@ -94,6 +100,7 @@ public class SubscriptionEntity implements Serializable {
 
     @Size(min = 36, max = 36)
     @Column(name = "subscription_guid", unique = true)
+    @NotNull
     private String guid;
 
     private String description;
@@ -102,6 +109,7 @@ public class SubscriptionEntity implements Serializable {
     private boolean enabled;
 
     @Embedded
+    @Valid
     private DateRange validityPeriod = new DateRange(new Date(), new Date(Long.MAX_VALUE));
 
     @NotNull
@@ -115,12 +123,16 @@ public class SubscriptionEntity implements Serializable {
     private String channel;
 
     @Enumerated(STRING)
-    private TriggerType trigger = TriggerType.UNKNOWN;
+    @NotNull
+    @Column(name = "trigger_type")
+    private TriggerType triggerType;
 
     private String delay;
 
     @Enumerated(STRING)
-    private StateType state = StateType.UNKNOWN;
+    @NotNull
+    @Column(name = "state_type")
+    private StateType stateType;
 
     public void addCondition(ConditionEntity condition) {
         conditions.add(condition);
@@ -145,5 +157,24 @@ public class SubscriptionEntity implements Serializable {
     @PrePersist
     private void prepersist() {
         setGuid(UUID.randomUUID().toString());
+    }
+
+    public static SubscriptionEntity random(){
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setChannel(randomAlphabetic(100));
+        subscriptionEntity.setDescription(randomAlphabetic(200));
+        subscriptionEntity.setEndPoint(randomAlphabetic(100));
+        subscriptionEntity.setName(randomAlphabetic(40));
+        subscriptionEntity.setOrganisation(randomAlphabetic(40));
+        subscriptionEntity.setEnabled(new Random().nextBoolean());
+        subscriptionEntity.setMessageType(MessageType.values()[new Random().nextInt(MessageType.values().length)]);
+        subscriptionEntity.setStateType(StateType.values()[new Random().nextInt(StateType.values().length)]);
+        subscriptionEntity.setTriggerType(TriggerType.values()[new Random().nextInt(TriggerType.values().length)]);
+        subscriptionEntity.setSubscriptionType(SubscriptionType.values()[new Random().nextInt(SubscriptionType.values().length)]);
+        return subscriptionEntity;
+    }
+
+    public String toExpression(ConditionType type){
+        return SubscriptionParser.parseCondition(type, this);
     }
 }

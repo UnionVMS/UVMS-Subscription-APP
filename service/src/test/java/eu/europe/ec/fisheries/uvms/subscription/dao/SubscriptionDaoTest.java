@@ -33,9 +33,12 @@ import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.MessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto;
+import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import lombok.SneakyThrows;
@@ -51,8 +54,7 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
     @Before
     public void prepare(){
         Operation operation = sequenceOf(
-                DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_CONDITION, INSERT_AREA
-                );
+                DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_CONDITION, INSERT_AREA);
 
         DbSetup dbSetup = new DbSetup(new DataSourceDestination(ds), operation);
         dbSetup.launch();
@@ -63,6 +65,70 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
     public void testListSubscription(SubscriptionQueryDto query, int expected){
         List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(query);
         assertEquals(expected, subscriptionEntities.size());
+    }
+
+    @Test
+    @SneakyThrows
+    public void testCreateSubscriptionWithArea(){
+
+        int sizeBefore = daoUnderTest.findAllEntity(SubscriptionEntity.class).size();
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        SubscriptionEntity subscription = SubscriptionEntity.random();
+        subscription.addArea(AreaEntity.random());
+
+        Long id = daoUnderTest.createEntity(subscription).getId();
+
+        em.flush();
+
+        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.findAllEntity(SubscriptionEntity.class);
+        assertEquals(sizeBefore + 1, subscriptionEntities.size());
+
+        SubscriptionEntity entityById = daoUnderTest.findEntityById(SubscriptionEntity.class, id);
+
+        assertEquals(subscription, entityById);
+    }
+
+    @Test
+    @SneakyThrows
+    public void testAddAreaToSubscription(){
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        SubscriptionEntity subscription = daoUnderTest.findEntityById(SubscriptionEntity.class, 1L);
+        assertEquals(3, subscription.getAreas().size());
+
+        AreaEntity area = new AreaEntity();
+        area.setAreaType(AreaType.COUNTRY);
+        area.setAreaValueType(AreaValueType.AREA_CODE);
+        area.setValue("BEL");
+        subscription.addArea(area);
+
+        em.flush();
+
+        daoUnderTest.findEntityById(SubscriptionEntity.class, 1L);
+        assertEquals(4, subscription.getAreas().size());
+
+    }
+
+    @Test
+    @SneakyThrows
+    public void testRemoveAreaToSubscription(){
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        SubscriptionEntity subscription = daoUnderTest.findEntityById(SubscriptionEntity.class, 1L);
+        assertEquals(3, subscription.getAreas().size());
+
+        AreaEntity next = subscription.getAreas().iterator().next();
+        subscription.removeArea(next);
+
+        em.flush();
+
+        daoUnderTest.findEntityById(SubscriptionEntity.class, 1L);
+        assertEquals(2, subscription.getAreas().size());
+
     }
 
     @Test

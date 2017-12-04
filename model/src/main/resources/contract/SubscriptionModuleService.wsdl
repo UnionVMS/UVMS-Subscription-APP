@@ -111,6 +111,7 @@
             <xsd:simpleType name="SubCriteriaType">
                 <xsd:restriction base="xsd:string">
                     <xsd:enumeration value="ORGANISATION"/>
+                    <xsd:enumeration value="OwnerParty"/>
                     <xsd:enumeration value="ENDPOINT"/>
                     <xsd:enumeration value="CHANNEL"/>
                     <xsd:enumeration value="PLUGIN"/>
