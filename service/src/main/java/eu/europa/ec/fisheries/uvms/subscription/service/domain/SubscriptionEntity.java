@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionParser;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -172,6 +173,15 @@ public class SubscriptionEntity implements Serializable {
         subscriptionEntity.setTriggerType(TriggerType.values()[new Random().nextInt(TriggerType.values().length)]);
         subscriptionEntity.setSubscriptionType(SubscriptionType.values()[new Random().nextInt(SubscriptionType.values().length)]);
         return subscriptionEntity;
+    }
+
+    public void merge(SubscriptionDto dto){
+        setChannel(dto.getChannel());
+        setDelay(dto.getDelay());
+        setDescription(dto.getDescription());
+        setEndPoint(dto.getEndPoint());
+        setName(dto.getName());
+        setTriggerType(dto.getTrigger());
     }
 
     public String toExpression(ConditionType type){

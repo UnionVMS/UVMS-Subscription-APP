@@ -35,5 +35,4 @@ public interface SubscriptionMapper {
             @Mapping(ignore = true, target = "conditions")
     })
     SubscriptionEntity mapDtoToEntity(SubscriptionDto subscription);
-
 }

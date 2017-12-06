@@ -16,6 +16,7 @@ import javax.interceptor.Interceptors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -53,7 +54,7 @@ public class SubscriptionResource extends UnionVMSResource {
     @Consumes(value = {MediaType.APPLICATION_JSON})
     @Produces(value = {MediaType.APPLICATION_JSON})
     @Path("search")
-    @RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals)
+    @RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals) // TODO change permissions
     public Response search(final SubscriptionQueryDto filters) {
         return createSuccessResponse(service.search(filters));
     }
@@ -67,9 +68,23 @@ public class SubscriptionResource extends UnionVMSResource {
     @POST
     @Consumes(value = {MediaType.APPLICATION_JSON})
     @Produces(value = {MediaType.APPLICATION_JSON})
-    @RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals)
+    @RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals) // TODO change permissions
     public Response create(final SubscriptionDto subscription) {
         return createSuccessResponse(service.create(subscription));
+    }
+
+    /**
+     * Update subscription.
+     *
+     * @param subscription subscription to update
+     * @return updated subscription
+     */
+    @PUT
+    @Consumes(value = {MediaType.APPLICATION_JSON})
+    @Produces(value = {MediaType.APPLICATION_JSON})
+    @RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals) // TODO change permissions
+    public Response update(final SubscriptionDto subscription) {
+        return createSuccessResponse(service.update(subscription));
     }
 
 }

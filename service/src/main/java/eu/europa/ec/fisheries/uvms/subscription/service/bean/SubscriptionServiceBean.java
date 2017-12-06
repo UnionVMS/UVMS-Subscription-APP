@@ -77,4 +77,11 @@ public class SubscriptionServiceBean {
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
         return mapper.mapEntityToDto(saved);
     }
+
+    @SneakyThrows
+    public SubscriptionDto update(SubscriptionDto subscription) {
+        SubscriptionEntity entityById = subscriptionDAO.findEntityById(SubscriptionEntity.class, subscription.getId());
+        entityById.merge(subscription);
+        return mapper.mapEntityToDto(entityById);
+    }
 }
