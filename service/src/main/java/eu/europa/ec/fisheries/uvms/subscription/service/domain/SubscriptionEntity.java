@@ -10,6 +10,7 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.COUNT_SUBSCRIPTION;
 import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
 import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.CascadeType.MERGE;
@@ -54,6 +55,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Table(name = "subscription")
 @NamedQueries({
+        @NamedQuery(name = COUNT_SUBSCRIPTION, query =
+                "SELECT COUNT(*) FROM SubscriptionEntity s"
+        ),
         @NamedQuery(name = LIST_SUBSCRIPTION, query =
                 "SELECT DISTINCT s FROM SubscriptionEntity s " +
                 "LEFT JOIN FETCH s.conditions c " +
@@ -72,6 +76,7 @@ import lombok.NoArgsConstructor;
 public class SubscriptionEntity implements Serializable {
 
     public static final String LIST_SUBSCRIPTION = "subscription.list";
+    public static final String COUNT_SUBSCRIPTION = "subscription.count";
 
     @Id
     @GeneratedValue(strategy = AUTO)

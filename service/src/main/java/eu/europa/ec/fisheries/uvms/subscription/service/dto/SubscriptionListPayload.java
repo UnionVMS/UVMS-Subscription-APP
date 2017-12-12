@@ -30,6 +30,9 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,9 +43,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubscriptionQueryDto {
+public class SubscriptionListPayload {
 
-    private static SubscriptionQueryDto empty = new SubscriptionQueryDto();
+    private static SubscriptionListPayload empty = new SubscriptionListPayload();
+
+    @NotNull
+    @Min(5)
+    @Builder.Default private Long pageSize = 1L;
 
     private String name;
     private String organisation;

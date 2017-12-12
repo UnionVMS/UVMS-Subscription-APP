@@ -15,6 +15,7 @@ import javax.ejb.Stateless;
 import javax.interceptor.Interceptors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -24,39 +25,51 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import eu.europa.ec.fisheries.uvms.commons.rest.resource.UnionVMSResource;
-import eu.europa.ec.fisheries.uvms.rest.security.RequiresFeature;
-import eu.europa.ec.fisheries.uvms.rest.security.UnionVMSFeature;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionServiceBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListPayload;
 import eu.europa.ec.fisheries.uvms.subsription.rest.filter.SubscriptionServiceExceptionHandler;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * @implicitParam roleName|string|header|true||||||
+ * @implicitParam scopeName|string|header|true|EC|||||
+ * @implicitParam authorization|string|header|true||||||jwt token
+ */
 @Path("/subscription")
 @Stateless
 @Slf4j
 @Interceptors(SubscriptionServiceExceptionHandler.class)
 public class SubscriptionResource extends UnionVMSResource {
 
-    @EJB
-    private SubscriptionServiceBean service;
+    @HeaderParam("authorization")
+    private String authorization;
+
+    @HeaderParam("scopeName")
+    private String scopeName;
+
+    @HeaderParam("roleName")
+    private String roleName;
 
     @Context
     private HttpServletRequest servletRequest;
 
+    @EJB
+    private SubscriptionServiceBean service;
+
     /**
      * Search for subscription matching the given criteria.
      *
-     * @param filters criteria to search on
+     * @param filters criteria to list on
      * @return found subscription. An empty list when nothing found.
      */
     @POST
     @Consumes(value = {MediaType.APPLICATION_JSON})
     @Produces(value = {MediaType.APPLICATION_JSON})
-    @Path("search")
-    @RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals) // TODO change permissions
-    public Response search(final SubscriptionQueryDto filters) {
-        return createSuccessResponse(service.search(filters));
+    @Path("list")
+   // @RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals) // TODO change permissions
+    public Response list(final SubscriptionListPayload filters) {
+        return createSuccessResponse(service.list(filters));
     }
 
     /**
@@ -68,7 +81,7 @@ public class SubscriptionResource extends UnionVMSResource {
     @POST
     @Consumes(value = {MediaType.APPLICATION_JSON})
     @Produces(value = {MediaType.APPLICATION_JSON})
-    @RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals) // TODO change permissions
+    //@RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals) // TODO change permissions
     public Response create(final SubscriptionDto subscription) {
         return createSuccessResponse(service.create(subscription));
     }
@@ -82,7 +95,7 @@ public class SubscriptionResource extends UnionVMSResource {
     @PUT
     @Consumes(value = {MediaType.APPLICATION_JSON})
     @Produces(value = {MediaType.APPLICATION_JSON})
-    @RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals) // TODO change permissions
+    //@RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals) // TODO change permissions
     public Response update(final SubscriptionDto subscription) {
         return createSuccessResponse(service.update(subscription));
     }

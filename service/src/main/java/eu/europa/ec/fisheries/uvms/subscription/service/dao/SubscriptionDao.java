@@ -10,16 +10,18 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
-import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
-
+import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import eu.europa.ec.fisheries.uvms.commons.service.dao.AbstractDAO;
+import eu.europa.ec.fisheries.uvms.commons.service.interceptor.ValidationInterceptor;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListPayload;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,21 +39,39 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
         return em;
     }
 
+    public Long count(){
+        Query namedQuery = getEntityManager().createNamedQuery(SubscriptionEntity.COUNT_SUBSCRIPTION);
+        return (Long) namedQuery.getSingleResult();
+    }
+
     @SneakyThrows
-    public List<SubscriptionEntity> listSubscriptions(SubscriptionQueryDto query) {
+    @Interceptors(ValidationInterceptor.class)
+    public List<SubscriptionEntity> listSubscriptions(@Valid SubscriptionListPayload payload) {
+
+        Integer pageSize = payload.getPageSize().intValue();
+        Long countResults = count();
+        int lastPageNumber = countResults.intValue() / pageSize;
 
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put("isEmpty", query != null ? query.isEmpty() : null);
-        parameters.put("name", query != null ? query.getName() : null);
-        parameters.put("organisation", query != null ? query.getOrganisation() : null);
-        parameters.put("enabled", query != null ? query.getEnabled() : null);
-        parameters.put("channel", query != null ? query.getChannel() : null);
-        parameters.put("endPoint", query != null ? query.getEndPoint() : null);
-        parameters.put("messageType", query != null ? query.getMessageType() : null);
-        parameters.put("subscriptionType", query != null ? query.getSubscriptionType() : null);
+        parameters.put("isEmpty", payload.isEmpty());
+        parameters.put("name", payload.getName());
+        parameters.put("organisation", payload.getOrganisation());
+        parameters.put("enabled", payload.getEnabled());
+        parameters.put("channel", payload.getChannel());
+        parameters.put("endPoint", payload.getEndPoint());
+        parameters.put("messageType", payload.getMessageType());
+        parameters.put("subscriptionType", payload.getSubscriptionType());
 
-        return findEntityByNamedQuery(SubscriptionEntity.class, LIST_SUBSCRIPTION, parameters);
+        Query selectQuery = getEntityManager().createNamedQuery(SubscriptionEntity.LIST_SUBSCRIPTION);
 
+        for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+            selectQuery.setParameter(entry.getKey(), entry.getValue());
+        }
+
+        selectQuery.setFirstResult((lastPageNumber - 1) * pageSize);
+        selectQuery.setMaxResults(pageSize);
+
+        return selectQuery.getResultList();
     }
 
 }

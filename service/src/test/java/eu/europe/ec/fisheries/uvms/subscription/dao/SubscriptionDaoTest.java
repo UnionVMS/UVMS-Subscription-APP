@@ -8,20 +8,10 @@
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2016.
-
- This file is part of the Integrated Fisheries Data Management (IFDM) Suite. The IFDM Suite is free software: you can redistribute it
- and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of
- the License, or any later version. The IFDM Suite is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
- details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
- */
-
 package eu.europe.ec.fisheries.uvms.subscription.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
-import static eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto.builder;
+import static eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListPayload.builder;
 import static junitparams.JUnitParamsRunner.$;
 import static org.jsoup.helper.Validate.fail;
 import static org.junit.Assert.assertEquals;
@@ -36,7 +26,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.MessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListPayload;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
 import junitparams.JUnitParamsRunner;
@@ -61,8 +51,16 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
     }
 
     @Test
+    public void testCount(){
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+        Long count = daoUnderTest.count();
+        assertEquals(4, count, 0.0);
+    }
+
+    @Test
     @Parameters(method = "subscriptionQueryParameters")
-    public void testListSubscription(SubscriptionQueryDto query, int expected){
+    public void testListSubscription(SubscriptionListPayload query, int expected){
         List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(query);
         assertEquals(expected, subscriptionEntities.size());
     }
@@ -160,13 +158,13 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
 
     protected Object[] subscriptionQueryParameters(){
         return $(
-                $(builder().channel("channel1").build(), 0),
-                $(builder().channel("channel2").build(), 2),
-                $(builder().channel("channel3").build(), 1),
-                $(builder().build(), 0),
-                $(null, 0),
-                $(builder().enabled(true).build(), 3),
-                $(builder().organisation("org1").name("subscription4").channel("channel4").build(), 1)
+                $(builder().pageSize(3L).channel("channel1").build(), 0),
+                $(builder().pageSize(3L).channel("channel2").build(), 2),
+                $(builder().pageSize(3L).channel("channel3").build(), 1),
+                $(builder().pageSize(4L).build(), 4),
+                $(builder().build(), 1),
+                $(builder().pageSize(3L).enabled(true).build(), 3),
+                $(builder().pageSize(3L).organisation("org1").name("subscription4").channel("channel4").build(), 1)
         );
     }
 }

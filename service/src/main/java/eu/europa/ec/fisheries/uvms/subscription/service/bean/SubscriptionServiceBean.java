@@ -21,7 +21,7 @@ import java.util.List;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionQueryDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListPayload;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataResponse;
@@ -60,15 +60,11 @@ public class SubscriptionServiceBean {
 
     /**
      * Search for subscriptions synchronously. Used over REST service.
-     * @param reportParam filter criteria
-     * @return page of search results
+     * @param payload filter criteria
+     * @return page of list results
      */
-    public List<SubscriptionEntity> search(SubscriptionQueryDto reportParam) {
-
-
-        // TODO map dto to SubscriptionQuery request
-
-        return null;
+    public List<SubscriptionEntity> list(SubscriptionListPayload payload) {
+        return subscriptionDAO.listSubscriptions(payload);
     }
 
     @SneakyThrows
