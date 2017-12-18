@@ -11,21 +11,19 @@
         <groupId>fish.focus.uvms.maven</groupId>
         <artifactId>uvms-pom</artifactId>
         <relativePath />
-        <version>1.14</version>
+        <version>1.15</version>
     </parent>
 
     <properties>
         <maven.ejb.plugin.ejb.version>3.1</maven.ejb.plugin.ejb.version>
         <subscription.api.check.against.version>4.0.0</subscription.api.check.against.version>
     	<docker.dev.version>3.17.0</docker.dev.version>    	
-        <usm4uvms.version>4.0.2</usm4uvms.version>
-        <uvms.config.version>4.0.0</uvms.config.version>
-        <audit.model.version>4.0.0</audit.model.version>
+        <usm4uvms.version>4.0.6-SNAPSHOT</usm4uvms.version>
         <spatial.model.version>1.0.6-SNAPSHOT</spatial.model.version>
         <lombok.version>1.16.18</lombok.version>
         <mapstruct.version>1.2.0.Final</mapstruct.version>
         <uvms.test.version>0.0.4</uvms.test.version>
-        <uvms.commons.version>3.0.6-SNAPSHOT</uvms.commons.version>
+        <uvms.commons.version>3.0.7-SNAPSHOT</uvms.commons.version>
         <project.scm.id>github</project.scm.id>
     </properties>
 

@@ -3,9 +3,16 @@
     <persistence-unit name="subscriptionPU" transaction-type="JTA">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <jta-data-source>jdbc/uvms_subscription</jta-data-source>
-        <class>eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity</class>
+        <exclude-unlisted-classes>false</exclude-unlisted-classes>
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.spatial.dialect.postgis.PostgisDialect"/>
+            <property name="hibernate.hbm2ddl.auto" value="update" />
+            <property name="hibernate.default_schema" value="subscription"/>
+            <property name="show_sql" value="false"/>
+            <property name="format_sql" value="true"/>
+            <property name="use_sql_comments" value="false"/>
+            <property name="hibernate.cache.use_second_level_cache" value="true"/>
+            <property name="hibernate.generate_statistics" value="true"/>
         </properties>
     </persistence-unit>
 </persistence>
