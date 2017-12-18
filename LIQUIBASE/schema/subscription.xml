@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
+
+    <changeSet author="emrinalgr (generated)" id="1513597247428-3">
+        <createTable tableName="subscription">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="channel" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="delay" type="VARCHAR(255)"/>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_point" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subscription_guid" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organisation" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subscription_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="trigger_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_date" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+            <column name="start_date" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="emrinalgr (generated)" id="1513597247428-6">
+        <addPrimaryKey columnNames="id" constraintName="subscription_pkey" tableName="subscription"/>
+    </changeSet>
+    <changeSet author="emrinalgr (generated)" id="1513597247428-7">
+        <addUniqueConstraint columnNames="subscription_guid" constraintName="uk_4olkrsd7yct4foeqt404bgr0f" tableName="subscription"/>
+    </changeSet>
+    <changeSet author="emrinalgr (generated)" id="1513597247428-8">
+        <addUniqueConstraint columnNames="name" constraintName="uk_by8678y0av8o0t5xtgg1gak2w" tableName="subscription"/>
+    </changeSet>
+
+    <changeSet author="emrinalgr (generated)" id="1513597247428-10">
+        <addForeignKeyConstraint baseColumnNames="subscription_id" baseTableName="area" constraintName="fk_kslfqcm0wbsu2jj7c4x5jatks" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="subscription"/>
+    </changeSet>
+    <changeSet author="emrinalgr (generated)" id="1513597247428-11">
+        <addForeignKeyConstraint baseColumnNames="subscription_id" baseTableName="condition" constraintName="fk_om5bdiadsxse0i02kiyleyy7k" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="subscription"/>
+    </changeSet>
+
+</databaseChangeLog>

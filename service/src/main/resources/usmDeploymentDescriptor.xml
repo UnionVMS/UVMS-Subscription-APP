@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:deployApplicationRequest  xmlns:ns2="module.user.wsdl.fisheries.ec.europa.eu">
+    <method>DEPLOY_APPLICATION</method>
+    <application>
+        <name>Subscription</name>
+        <description>Deployment descriptor of module "Subscription" version "@application.version@".</description>
+        <parent>Union VMS</parent>
+
+        <feature>
+            <name>viewSubscriptions</name>
+            <description>Allows user to see the Subscriptions tab</description>
+            <group>Subscription</group>
+        </feature>
+        <feature>
+            <name>manageSubscriptionReports</name>
+            <description>Allows user to create and delete Subscrriptions</description>
+            <group>Subscription</group>
+        </feature>
+
+        <!--<option>-->
+            <!--<name>DEFAULT_REPORT_ID</name>-->
+            <!--<description>Default user report id</description>-->
+            <!--<dataType>STRING</dataType>-->
+            <!--<defaultValue></defaultValue>-->
+        <!--</option>-->
+
+    </application>
+</ns2:deployApplicationRequest>

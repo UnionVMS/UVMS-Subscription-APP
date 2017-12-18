@@ -102,6 +102,11 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>eu.europa.ec.fisheries.uvms</groupId>
+            <artifactId>usm4uvms</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

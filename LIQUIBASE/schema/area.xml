@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
+
+    <changeSet author="emrinalgr (generated)" id="1513597247428-1">
+        <createTable tableName="area">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="area_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="area_value_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="area_guid" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subscription_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="emrinalgr (generated)" id="1513597247428-4">
+        <addPrimaryKey columnNames="id" constraintName="area_pkey" tableName="area"/>
+    </changeSet>
+
+    <changeSet author="emrinalgr (generated)" id="1513597247428-9">
+        <addUniqueConstraint columnNames="area_guid" constraintName="uk_n3fgvldvqelt8pepgfl85gtuv" tableName="area"/>
+    </changeSet>
+
+</databaseChangeLog>
