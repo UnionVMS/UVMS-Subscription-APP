@@ -10,10 +10,14 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.COUNT_SUBSCRIPTION;
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
+
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,17 +44,13 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
     }
 
     public Long count(){
-        Query namedQuery = getEntityManager().createNamedQuery(SubscriptionEntity.COUNT_SUBSCRIPTION);
+        Query namedQuery = getEntityManager().createNamedQuery(COUNT_SUBSCRIPTION);
         return (Long) namedQuery.getSingleResult();
     }
 
     @SneakyThrows
     @Interceptors(ValidationInterceptor.class)
-    public List<SubscriptionEntity> listSubscriptions(@Valid SubscriptionListPayload payload) {
-
-        Integer pageSize = payload.getPageSize().intValue();
-        Long countResults = count();
-        int lastPageNumber = countResults.intValue() / pageSize;
+    public List<SubscriptionEntity> listSubscriptions(@Valid SubscriptionListPayload payload, @NotNull Integer firstResult, @NotNull Integer maxResult) {
 
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("isEmpty", payload.isEmpty());
@@ -62,14 +62,16 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
         parameters.put("messageType", payload.getMessageType());
         parameters.put("subscriptionType", payload.getSubscriptionType());
 
-        Query selectQuery = getEntityManager().createNamedQuery(SubscriptionEntity.LIST_SUBSCRIPTION);
+        Query selectQuery = getEntityManager().createNamedQuery(LIST_SUBSCRIPTION);
 
         for (Map.Entry<String, Object> entry : parameters.entrySet()) {
             selectQuery.setParameter(entry.getKey(), entry.getValue());
         }
 
-        selectQuery.setFirstResult((lastPageNumber - 1) * pageSize);
-        selectQuery.setMaxResults(pageSize);
+        if (firstResult > 0 && maxResult > 0){
+            selectQuery.setFirstResult(firstResult);
+            selectQuery.setMaxResults(maxResult);
+        }
 
         return selectQuery.getResultList();
     }

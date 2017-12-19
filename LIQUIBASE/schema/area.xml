@@ -32,4 +32,10 @@
         <addUniqueConstraint columnNames="area_guid" constraintName="uk_n3fgvldvqelt8pepgfl85gtuv" tableName="area"/>
     </changeSet>
 
+    <changeSet author="emrinalgr" id="Add hibernate seq">
+        <createSequence sequenceName="HIBERNATE_SEQUENCE" startValue="100"/>
+        <rollback>
+            <dropSequence schemaName="subscription" sequenceName="HIBERNATE_SEQUENCE"/>
+        </rollback>
+    </changeSet>
 </databaseChangeLog>

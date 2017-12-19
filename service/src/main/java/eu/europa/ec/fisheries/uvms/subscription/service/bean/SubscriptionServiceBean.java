@@ -16,12 +16,14 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+
 import java.util.List;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListPayload;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListResponseDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataResponse;
@@ -53,18 +55,31 @@ public class SubscriptionServiceBean {
      */
     @SuppressWarnings("unchecked")
     public SubscriptionDataResponse isValid(SubscriptionDataQuery query) {
-        
 
         return new SubscriptionDataResponse();
     }
 
     /**
-     * Search for subscriptions synchronously. Used over REST service.
+     * List subscriptions. Used over REST service.
      * @param payload filter criteria
      * @return page of list results
      */
-    public List<SubscriptionEntity> list(SubscriptionListPayload payload) {
-        return subscriptionDAO.listSubscriptions(payload);
+    public SubscriptionListResponseDto list(SubscriptionListPayload payload) {
+
+        SubscriptionListResponseDto responseDto = new SubscriptionListResponseDto();
+
+        Integer pageSize = payload.getPagination().getPageSize();
+        Integer page = payload.getPagination().getOffset();
+        Long countResults = subscriptionDAO.count();
+
+        List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(payload,(page + 1) * pageSize , pageSize);
+
+        responseDto.setList(subscriptionEntities);
+        responseDto.setCurrentPage(page);
+        int totalNumberOfPages = (int) (countResults / pageSize);
+        responseDto.setTotalNumberOfPages(totalNumberOfPages - 1);
+
+        return responseDto;
     }
 
     @SneakyThrows
@@ -77,7 +92,12 @@ public class SubscriptionServiceBean {
     @SneakyThrows
     public SubscriptionDto update(SubscriptionDto subscription) {
         SubscriptionEntity entityById = subscriptionDAO.findEntityById(SubscriptionEntity.class, subscription.getId());
-        entityById.merge(subscription);
-        return mapper.mapEntityToDto(entityById);
+        mapper.updateEntity(subscription, entityById);
+        SubscriptionEntity subscriptionEntity = subscriptionDAO.updateEntity(entityById);
+        return mapper.mapEntityToDto(subscriptionEntity);
+    }
+
+    public void delete(Long id) {
+        subscriptionDAO.deleteEntity(SubscriptionEntity.class, id);
     }
 }

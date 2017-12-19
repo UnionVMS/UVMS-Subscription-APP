@@ -22,6 +22,7 @@ import java.util.List;
 import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
+import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.MessageType;
@@ -61,7 +62,7 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
     @Test
     @Parameters(method = "subscriptionQueryParameters")
     public void testListSubscription(SubscriptionListPayload query, int expected){
-        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(query);
+        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(query,-1, -1);
         assertEquals(expected, subscriptionEntities.size());
     }
 
@@ -158,13 +159,13 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
 
     protected Object[] subscriptionQueryParameters(){
         return $(
-                $(builder().pageSize(3L).channel("channel1").build(), 0),
-                $(builder().pageSize(3L).channel("channel2").build(), 2),
-                $(builder().pageSize(3L).channel("channel3").build(), 1),
-                $(builder().pageSize(4L).build(), 4),
+                $(builder().pagination(PaginationDto.builder().pageSize(3).build()).channel("channel1").build(), 0),
+                $(builder().pagination(PaginationDto.builder().pageSize(3).build()).channel("channel2").build(), 2),
+                $(builder().pagination(PaginationDto.builder().pageSize(3).build()).channel("channel3").build(), 1),
+                $(builder().pagination(PaginationDto.builder().pageSize(4).build()).build(), 4),
                 $(builder().build(), 1),
-                $(builder().pageSize(3L).enabled(true).build(), 3),
-                $(builder().pageSize(3L).organisation("org1").name("subscription4").channel("channel4").build(), 1)
+                $(builder().pagination(PaginationDto.builder().pageSize(3).build()).enabled(true).build(), 3),
+                $(builder().pagination(PaginationDto.builder().pageSize(3).build())  .organisation("org1").name("subscription4").channel("channel4").build(), 1)
         );
     }
 }

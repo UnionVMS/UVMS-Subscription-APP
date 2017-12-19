@@ -20,9 +20,15 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
+import javax.validation.constraints.NotNull;
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AccessibilityType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.MessageType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.StateType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType;
 import lombok.Data;
 
@@ -31,28 +37,48 @@ public class SubscriptionDto {
 
     private Long id;
 
+    @NotNull
     private String name;
 
-    private String description;
+    private String guid;
 
+    @NotNull
+    private AccessibilityType accessibility;
+
+    private String description;
+    @NotNull
+    @JsonProperty("isActive")
     private Boolean active;
 
+    @NotNull
     private String organisation;
-
+    @NotNull
     private String endPoint;
 
+    @NotNull
+    @JsonProperty("communicationChannel")
     private String channel;
 
-    private String conditions;
+    private List<Object> conditions;
 
-    private TriggerType trigger;
+    private List<Object> areas;
+
+    @NotNull
+    private TriggerType triggerType;
+
+    private StateType stateType;
+
+    @NotNull
+    private MessageType messageType;
 
     private String delay;
 
-    @JsonProperty("start")
+    @NotNull
+    private SubscriptionType subscriptionType;
+
+    @NotNull
     public Date startDate;
 
-    @JsonProperty("end")
     public Date endDate;
 
 }
