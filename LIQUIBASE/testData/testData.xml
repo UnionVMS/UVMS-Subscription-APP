@@ -18,7 +18,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -35,7 +35,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -52,7 +52,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -69,7 +69,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -86,7 +86,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -103,7 +103,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -120,7 +120,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -137,7 +137,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -154,7 +154,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -171,7 +171,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -188,7 +188,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -205,7 +205,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -222,7 +222,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -239,7 +239,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -256,7 +256,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -273,7 +273,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -290,7 +290,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -307,7 +307,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -324,7 +324,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -341,7 +341,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -358,7 +358,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -375,7 +375,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -392,7 +392,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -409,7 +409,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -426,7 +426,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -443,7 +443,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -460,7 +460,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -477,7 +477,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -494,7 +494,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -511,7 +511,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
         <insert tableName="subscription">
@@ -528,7 +528,7 @@
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
-            <column name="end_date" valueDate="﻿9999-01-01 00:00:00"/>
+            <column name="end_date" valueDate="9999-01-01 00:00:00"/>
             <column name="start_date" valueDate="2016-08-01 11:50:16.0"/>
         </insert>
     </changeSet>
