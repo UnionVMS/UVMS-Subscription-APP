@@ -10,35 +10,51 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
+import static eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper.mapToAuditLog;
+
 import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-
+import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
+import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
+import eu.europa.ec.fisheries.uvms.commons.service.interceptor.ValidationInterceptor;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.QueryParameterDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListPayload;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListResponseDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataResponse;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 
 @Stateless
 @LocalBean
 @Slf4j
 public class SubscriptionServiceBean {
 
+    private static final String SUBSCRIPTION = "SUBSCRIPTION";
     private SubscriptionDao subscriptionDAO;
+
+    @EJB
+    private SubscriptionProducerBean producer;
 
     @Inject
     private SubscriptionMapper mapper;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @PersistenceContext(unitName = "subscriptionPU")
     private EntityManager em;
@@ -61,43 +77,69 @@ public class SubscriptionServiceBean {
 
     /**
      * List subscriptions. Used over REST service.
-     * @param payload filter criteria
+     * @param parameters the query parameters
+     * @param pagination the pagination parameters
      * @return page of list results
      */
-    public SubscriptionListResponseDto list(SubscriptionListPayload payload) {
+    @SneakyThrows
+    @Interceptors(ValidationInterceptor.class)
+    public SubscriptionListResponseDto list(@NotNull QueryParameterDto parameters, @NotNull PaginationDto pagination) {
 
         SubscriptionListResponseDto responseDto = new SubscriptionListResponseDto();
 
-        Integer pageSize = payload.getPagination().getPageSize();
-        Integer page = payload.getPagination().getOffset();
-        Long countResults = subscriptionDAO.count();
+        Integer pageSize = pagination.getPageSize();
+        Integer page = pagination.getOffset();
 
-        List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(payload,(page + 1) * pageSize , pageSize);
+        Map<String, Object> map = objectMapper.convertValue(parameters, Map.class);
 
+        List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(map, -1 , -1);
+
+        Integer countResults = 0;
+
+        if (CollectionUtils.isNotEmpty(subscriptionEntities)){
+            countResults = subscriptionEntities.size();
+        }
+
+        int firstResult = (page - 1) * pageSize;
+        subscriptionEntities = subscriptionDAO.listSubscriptions(map, firstResult , pageSize);
         responseDto.setList(subscriptionEntities);
-        responseDto.setCurrentPage(page);
-        int totalNumberOfPages = (int) (countResults / pageSize);
-        responseDto.setTotalNumberOfPages(totalNumberOfPages - 1);
+
+        if (firstResult >= 0) {
+            responseDto.setCurrentPage(page);
+            int totalNumberOfPages = (countResults / pageSize);
+            responseDto.setTotalNumberOfPages(totalNumberOfPages + 1);
+        }
 
         return responseDto;
     }
 
     @SneakyThrows
-    public SubscriptionDto create(SubscriptionDto subscription) {
+    @Interceptors(ValidationInterceptor.class)
+    public SubscriptionDto create(@NotNull SubscriptionDto subscription, @NotNull String currentUser) {
         SubscriptionEntity entity = mapper.mapDtoToEntity(subscription);
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
+        String log = mapToAuditLog(SUBSCRIPTION, AuditActionEnum.CREATE.name(), saved.getId().toString(), currentUser);
+        producer.sendMessage(producer.getAuditEventQueue(), producer.getSubscriptionEvenetQueue(), log);
         return mapper.mapEntityToDto(saved);
     }
 
     @SneakyThrows
-    public SubscriptionDto update(SubscriptionDto subscription) {
+    @Interceptors(ValidationInterceptor.class)
+    public SubscriptionDto update(@NotNull SubscriptionDto subscription, @NotNull String currentUser) {
         SubscriptionEntity entityById = subscriptionDAO.findEntityById(SubscriptionEntity.class, subscription.getId());
         mapper.updateEntity(subscription, entityById);
         SubscriptionEntity subscriptionEntity = subscriptionDAO.updateEntity(entityById);
+        String log = mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), subscriptionEntity.getId().toString(), currentUser);
+        producer.sendMessage(producer.getAuditEventQueue(), producer.getSubscriptionEvenetQueue(), log);
         return mapper.mapEntityToDto(subscriptionEntity);
     }
 
-    public void delete(Long id) {
+    @SneakyThrows
+    @Interceptors(ValidationInterceptor.class)
+    public void delete(@NotNull Long id, @NotNull String currentUser) {
         subscriptionDAO.deleteEntity(SubscriptionEntity.class, id);
+        String log = mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), String.valueOf(id), currentUser);
+        producer.sendMessage(producer.getAuditEventQueue(), producer.getSubscriptionEvenetQueue(), log);
+
     }
 }

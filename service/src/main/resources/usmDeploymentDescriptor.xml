@@ -7,22 +7,15 @@
         <parent>Union VMS</parent>
 
         <feature>
-            <name>viewSubscriptions</name>
+            <name>VIEW_SUBSCRIPTION</name>
             <description>Allows user to see the Subscriptions tab</description>
             <group>Subscription</group>
         </feature>
         <feature>
-            <name>manageSubscriptionReports</name>
-            <description>Allows user to create and delete Subscrriptions</description>
+            <name>MANAGE_SUBSCRIPTION</name>
+            <description>Allows user to create and delete and update Subscriptions</description>
             <group>Subscription</group>
         </feature>
-
-        <!--<option>-->
-            <!--<name>DEFAULT_REPORT_ID</name>-->
-            <!--<description>Default user report id</description>-->
-            <!--<dataType>STRING</dataType>-->
-            <!--<defaultValue></defaultValue>-->
-        <!--</option>-->
 
     </application>
 </ns2:deployApplicationRequest>

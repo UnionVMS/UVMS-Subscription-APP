@@ -10,10 +10,16 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
-import javax.validation.Valid;
+import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
+import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.DATE_TIME_UI_FORMAT;
+import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.END_OF_TIME;
+import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.START_OF_TIME;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
+import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.MessageType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,26 +29,19 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubscriptionListPayload {
-
-    private static SubscriptionListPayload empty = new SubscriptionListPayload();
-
-    @Valid
-    private PaginationDto pagination;
+public class QueryParameterDto {
 
     private String name;
     private String organisation;
     private Boolean enabled;
     private String channel;
     private String endPoint;
-    private String accessibility;
-    private String messageType;
-    private String subscriptionType;
-    private String from;
-    private String to;
+    private MessageType messageType;
+    private SubscriptionType subscriptionType;
+    private String description;
 
-    @JsonIgnore
-    public boolean isEmpty() {
-        return this.equals(empty);
-    }
+   @JsonFormat(shape = STRING, pattern = DATE_TIME_UI_FORMAT)
+   private Date startDate = START_OF_TIME.toDate();
+   @JsonFormat(shape = STRING, pattern = DATE_TIME_UI_FORMAT)
+   private Date endDate = END_OF_TIME.toDate();
 }

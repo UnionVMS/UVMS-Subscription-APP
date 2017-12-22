@@ -20,10 +20,15 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
+import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
+import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.DATE_TIME_UI_FORMAT;
+
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AccessibilityType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.MessageType;
@@ -59,9 +64,9 @@ public class SubscriptionDto {
     @JsonProperty("communicationChannel")
     private String channel;
 
-    private List<Object> conditions;
+    private List<Object> conditions = new ArrayList<>();
 
-    private List<Object> areas;
+    private List<Object> areas = new ArrayList<>();
 
     @NotNull
     private TriggerType triggerType;
@@ -77,8 +82,10 @@ public class SubscriptionDto {
     private SubscriptionType subscriptionType;
 
     @NotNull
+    @JsonFormat(shape = STRING, pattern = DATE_TIME_UI_FORMAT)
     public Date startDate;
 
+    @JsonFormat(shape = STRING, pattern = DATE_TIME_UI_FORMAT)
     public Date endDate;
 
 }

@@ -7,3 +7,4 @@ logging.properties
 target/*
 container-conf/lib/*
 .DS_Store
+rest/src/main/webapp/apidocs/*

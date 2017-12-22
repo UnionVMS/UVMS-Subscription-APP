@@ -10,22 +10,18 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
-import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.COUNT_SUBSCRIPTION;
 import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
 
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import eu.europa.ec.fisheries.uvms.commons.service.dao.AbstractDAO;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.ValidationInterceptor;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListPayload;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,32 +39,22 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
         return em;
     }
 
-    public Long count(){
-        Query namedQuery = getEntityManager().createNamedQuery(COUNT_SUBSCRIPTION);
-        return (Long) namedQuery.getSingleResult();
-    }
-
     @SneakyThrows
     @Interceptors(ValidationInterceptor.class)
-    public List<SubscriptionEntity> listSubscriptions(@Valid SubscriptionListPayload payload, @NotNull Integer firstResult, @NotNull Integer maxResult) {
+    public List<SubscriptionEntity> listSubscriptions(@NotNull Map<String, Object> queryParameters, @NotNull Integer firstResult, @NotNull Integer maxResult) {
 
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("isEmpty", payload.isEmpty());
-        parameters.put("name", payload.getName());
-        parameters.put("organisation", payload.getOrganisation());
-        parameters.put("enabled", payload.getEnabled());
-        parameters.put("channel", payload.getChannel());
-        parameters.put("endPoint", payload.getEndPoint());
-        parameters.put("messageType", payload.getMessageType());
-        parameters.put("subscriptionType", payload.getSubscriptionType());
+        String queryString = em.createNamedQuery(LIST_SUBSCRIPTION).unwrap(org.hibernate.Query.class).getQueryString();
 
-        Query selectQuery = getEntityManager().createNamedQuery(LIST_SUBSCRIPTION);
+        StringBuilder builder = new StringBuilder(queryString);
+        builder.append(" ORDER BY s.id");
 
-        for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+        Query selectQuery = getEntityManager().createQuery(builder.toString());
+
+        for (Map.Entry<String, Object> entry : queryParameters.entrySet()){
             selectQuery.setParameter(entry.getKey(), entry.getValue());
         }
 
-        if (firstResult > 0 && maxResult > 0){
+        if (firstResult >= 0 && maxResult > 0){
             selectQuery.setFirstResult(firstResult);
             selectQuery.setMaxResults(maxResult);
         }

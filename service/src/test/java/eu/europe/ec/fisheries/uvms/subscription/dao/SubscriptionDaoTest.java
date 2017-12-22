@@ -11,23 +11,23 @@
 package eu.europe.ec.fisheries.uvms.subscription.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
-import static eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListPayload.builder;
 import static junitparams.JUnitParamsRunner.$;
 import static org.jsoup.helper.Validate.fail;
 import static org.junit.Assert.assertEquals;
 
 import javax.persistence.EntityTransaction;
 import java.util.List;
+import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
-import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.MessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListPayload;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.QueryParameterDto;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
 import junitparams.JUnitParamsRunner;
@@ -42,6 +42,8 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
 
     private SubscriptionDao daoUnderTest = new SubscriptionDao(em);
 
+    private ObjectMapper objectMapper = new ObjectMapper();
+
     @Before
     public void prepare(){
         Operation operation = sequenceOf(
@@ -52,17 +54,14 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
     }
 
     @Test
-    public void testCount(){
-        EntityTransaction tx = em.getTransaction();
-        tx.begin();
-        Long count = daoUnderTest.count();
-        assertEquals(4, count, 0.0);
-    }
+    @Parameters(method = "queryParameters")
+    public void testListSubscription(QueryParameterDto queryParameters, int expected){
 
-    @Test
-    @Parameters(method = "subscriptionQueryParameters")
-    public void testListSubscription(SubscriptionListPayload query, int expected){
-        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(query,-1, -1);
+        Map<String, Object> map = objectMapper.convertValue(queryParameters, Map.class);
+        //map.put("startDate", queryParameters.getStartDate());
+        //map.put("endDate", queryParameters.getEndDate());
+
+        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(map,-1, -1);
         assertEquals(expected, subscriptionEntities.size());
     }
 
@@ -156,16 +155,15 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
                         SubscriptionEntity.builder().name("name1").channel("channel4").endPoint("endpoint2").organisation("org4").enabled(true).messageType(MessageType.FLUXFAReportMessage).build())
         );
     }
-
-    protected Object[] subscriptionQueryParameters(){
+    protected Object[] queryParameters(){
         return $(
-                $(builder().pagination(PaginationDto.builder().pageSize(3).build()).channel("channel1").build(), 0),
-                $(builder().pagination(PaginationDto.builder().pageSize(3).build()).channel("channel2").build(), 2),
-                $(builder().pagination(PaginationDto.builder().pageSize(3).build()).channel("channel3").build(), 1),
-                $(builder().pagination(PaginationDto.builder().pageSize(4).build()).build(), 4),
-                $(builder().build(), 1),
-                $(builder().pagination(PaginationDto.builder().pageSize(3).build()).enabled(true).build(), 3),
-                $(builder().pagination(PaginationDto.builder().pageSize(3).build())  .organisation("org1").name("subscription4").channel("channel4").build(), 1)
+                $(QueryParameterDto.builder().channel("channel1").build(), 0)//,
+               // $(QueryParameterDto.builder().channel("channel2").build(), 2),
+               // $(QueryParameterDto.builder().channel("channel3").build(), 1),
+               // $(QueryParameterDto.builder().build(), 4),
+               // $(QueryParameterDto.builder().enabled(true).build(), 3),
+               // $(QueryParameterDto.builder().channel("channel4").organisation("org1").name("subscription4").build(), 1),
+               // $(QueryParameterDto.builder().name("sub").enabled(true).build(), 2)
         );
     }
 }

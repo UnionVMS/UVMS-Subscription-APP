@@ -26,26 +26,27 @@ public interface SubscriptionMapper {
             @Mapping(target = "endDate", source = "validityPeriod.endDate"),
             @Mapping(target = "active", source = "enabled"),
             @Mapping(ignore = true, target = "conditions"),
-            @Mapping(ignore = true, target = "areas"),
-            @Mapping(ignore = true, target = "guid")
+            @Mapping(ignore = true, target = "areas")
     })
     SubscriptionDto mapEntityToDto(SubscriptionEntity subscription);
 
     @InheritInverseConfiguration
     @Mappings({
+            @Mapping(target = "stateType", constant = "INACTIVE"),
             @Mapping(ignore = true, target = "conditions"),
             @Mapping(ignore = true, target = "areas"),
-            @Mapping(target = "stateType", constant = "INACTIVE"),
     })
     SubscriptionEntity mapDtoToEntity(SubscriptionDto subscription);
 
     @Mappings({
             @Mapping(source = "startDate", target = "validityPeriod.startDate"),
             @Mapping(source = "endDate", target = "validityPeriod.endDate"),
+            @Mapping(source = "active", target = "enabled"),
             @Mapping(ignore = true, target = "conditions"),
             @Mapping(ignore = true, target = "guid"),
-            @Mapping(source = "active", target = "enabled"),
-            @Mapping(ignore = true, target = "areas")
+            @Mapping(ignore = true, target = "areas"),
+            @Mapping(ignore = true, target = "stateType"),
+
     })
     void updateEntity(SubscriptionDto dto, @MappingTarget SubscriptionEntity entity);
 

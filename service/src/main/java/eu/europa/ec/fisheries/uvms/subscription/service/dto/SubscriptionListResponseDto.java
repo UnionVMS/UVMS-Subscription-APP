@@ -10,17 +10,21 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import lombok.Data;
 
 @Data
+@JsonInclude(NON_NULL)
 public class SubscriptionListResponseDto {
 
-    private Integer currentPage;
-    private Integer totalNumberOfPages;
+    private Integer currentPage = null;
+    private Integer totalNumberOfPages = null;
 
     @JsonProperty("subscriptionList")
     private List<SubscriptionEntity> list;

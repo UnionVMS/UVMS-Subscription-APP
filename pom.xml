@@ -18,8 +18,10 @@
         <maven.ejb.plugin.ejb.version>3.1</maven.ejb.plugin.ejb.version>
         <subscription.api.check.against.version>4.0.0</subscription.api.check.against.version>
     	<docker.dev.version>3.17.0</docker.dev.version>    	
-        <usm4uvms.version>4.0.6-SNAPSHOT</usm4uvms.version>
-        <spatial.model.version>1.0.6-SNAPSHOT</spatial.model.version>
+        <usm4uvms.version>4.0.7-SNAPSHOT</usm4uvms.version>
+        <spatial.model.version>1.0.10-SNAPSHOT</spatial.model.version>
+        <audit.model.version>4.0.6</audit.model.version>
+        <hibernate.version>4.3.11.Final</hibernate.version>
         <lombok.version>1.16.18</lombok.version>
         <mapstruct.version>1.2.0.Final</mapstruct.version>
         <uvms.test.version>0.0.4</uvms.test.version>
@@ -51,6 +53,11 @@
                 <groupId>eu.europa.ec.fisheries.uvms.spatial</groupId>
                 <artifactId>spatial-model</artifactId>
                 <version>${spatial.model.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>eu.europa.ec.fisheries.uvms.audit</groupId>
+                <artifactId>audit-model</artifactId>
+                <version>${audit.model.version}</version>
             </dependency>
             <dependency>
                 <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
@@ -124,6 +131,18 @@
             </dependency>
 
             <dependency>
+                <groupId>org.hibernate</groupId>
+                <version>6.0.7.Final</version>
+                <artifactId>hibernate-validator</artifactId>
+            </dependency>
+
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <version>${hibernate.version}</version>
+                <artifactId>hibernate-core</artifactId>
+            </dependency>
+
+            <dependency>
                 <groupId>eu.europa.ec.fisheries.uvms</groupId>
                 <artifactId>uvms-test</artifactId>
                 <version>${uvms.test.version}</version>
@@ -186,7 +205,6 @@
         <module>LIQUIBASE</module>
         <module>rest</module>
         <module>service</module>
-        <module>message</module>
         <module>module</module>
     </modules>
 

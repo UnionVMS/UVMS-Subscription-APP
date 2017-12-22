@@ -31,9 +31,11 @@ import javax.ws.rs.core.Response;
 
 import eu.europa.ec.fisheries.uvms.commons.rest.resource.UnionVMSResource;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.ValidationInterceptor;
+import eu.europa.ec.fisheries.uvms.rest.security.RequiresFeature;
+import eu.europa.ec.fisheries.uvms.rest.security.UnionVMSFeature;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionServiceBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListPayload;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListQueryDto;
 import eu.europa.ec.fisheries.uvms.subsription.rest.filter.SubscriptionServiceExceptionHandler;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,6 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 @Stateless
 @Slf4j
 @Interceptors(SubscriptionServiceExceptionHandler.class)
+@SuppressWarnings("javadoc")
 public class SubscriptionResource extends UnionVMSResource {
 
     @HeaderParam("authorization")
@@ -66,16 +69,17 @@ public class SubscriptionResource extends UnionVMSResource {
     /**
      * Search for subscription matching the given criteria.
      *
-     * @param filters criteria to list on
-     * @return found subscription. An empty list when nothing found.
+     * @param dto criteria to list on
+     * @return @responseType eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListResponseDto
      */
     @POST
     @Consumes(value = {MediaType.APPLICATION_JSON})
     @Produces(value = {MediaType.APPLICATION_JSON})
     @Path("list")
-   // @RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals) // TODO change permissions
-    public Response list(final SubscriptionListPayload filters) {
-        return createSuccessResponse(service.list(filters));
+    @Interceptors(ValidationInterceptor.class)
+    @RequiresFeature(UnionVMSFeature.VIEW_SUBSCRIPTION)
+    public Response list(@NotNull SubscriptionListQueryDto dto) {
+        return createSuccessResponse(service.list(dto.getQueryParameters(), dto.getPagination()));
     }
 
     /**
@@ -87,10 +91,10 @@ public class SubscriptionResource extends UnionVMSResource {
     @POST
     @Consumes(value = {MediaType.APPLICATION_JSON})
     @Produces(value = {MediaType.APPLICATION_JSON})
-    //@RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals) // TODO change permissions
+    @RequiresFeature(UnionVMSFeature.MANAGE_SUBSCRIPTION)
     @Interceptors(ValidationInterceptor.class)
-    public Response create(final SubscriptionDto subscription) {
-        return createSuccessResponse(service.create(subscription));
+    public Response create(@NotNull SubscriptionDto subscription) {
+        return createSuccessResponse(service.create(subscription, servletRequest.getRemoteUser()));
     }
 
     /**
@@ -102,18 +106,25 @@ public class SubscriptionResource extends UnionVMSResource {
     @PUT
     @Consumes(value = {MediaType.APPLICATION_JSON})
     @Produces(value = {MediaType.APPLICATION_JSON})
-    //@RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals) // TODO change permissions
-    public Response update(final SubscriptionDto subscription) {
-        return createSuccessResponse(service.update(subscription));
+    @RequiresFeature(UnionVMSFeature.MANAGE_SUBSCRIPTION)
+    @Interceptors(ValidationInterceptor.class)
+    public Response update(@NotNull SubscriptionDto subscription) {
+        return createSuccessResponse(service.update(subscription, servletRequest.getRemoteUser()));
     }
 
+    /**
+     * Delete subscription.
+     *
+     * @param id the subscription id
+     *
+     */
     @DELETE
     @Path("/{id}")
     @Produces(APPLICATION_JSON)
-    //@RequiresFeature(UnionVMSFeature.viewVesselsAndMobileTerminals) // TODO change permissions
+    @RequiresFeature(UnionVMSFeature.MANAGE_SUBSCRIPTION)
     @Interceptors(ValidationInterceptor.class)
-    public Response deleteSubscription(@PathParam("id") @NotNull Long id) {
-        service.delete(id);
+    public Response deleteSubscription(@NotNull @PathParam("id") Long id) {
+        service.delete(id, servletRequest.getRemoteUser());
         return createSuccessResponse();
     }
 }

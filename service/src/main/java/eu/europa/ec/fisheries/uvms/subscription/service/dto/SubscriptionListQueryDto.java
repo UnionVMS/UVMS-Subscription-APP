@@ -8,27 +8,32 @@
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.europa.ec.fisheries.uvms.subscription.service.bean;
+package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
-import javax.ejb.EJB;
-import javax.ejb.Singleton;
-import java.io.InputStream;
+import javax.validation.Valid;
 
-import eu.europa.ec.fisheries.uvms.init.AbstractModuleInitializerBean;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Singleton
-public class SubscriptionApplication extends AbstractModuleInitializerBean {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SubscriptionListQueryDto {
 
-    @EJB
-    private PropertiesBean properties;
+    private static SubscriptionListQueryDto empty = new SubscriptionListQueryDto();
 
-    @Override
-    protected InputStream getDeploymentDescriptorRequest() {
-        return this.getClass().getClassLoader().getResourceAsStream("usmDeploymentDescriptor.xml");
-    }
+    @Valid
+    private PaginationDto pagination;
 
-    @Override
-    protected boolean mustRedeploy() {
-        return Boolean.parseBoolean(properties.getProperty("usm_deployment_descriptor_force_update"));
+    private QueryParameterDto queryParameters;
+
+    @JsonIgnore
+    public boolean isEmpty() {
+        return this.equals(empty);
     }
 }

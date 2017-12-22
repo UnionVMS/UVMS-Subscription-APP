@@ -43,8 +43,12 @@
             <column name="accessibility" type="VARCHAR(255)" defaultValue="UNKNOWN">
                 <constraints nullable="false"/>
             </column>
-            <column name="end_date" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
-            <column name="start_date" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+            <column name="end_date" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_date" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 
