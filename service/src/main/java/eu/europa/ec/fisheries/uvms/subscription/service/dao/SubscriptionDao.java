@@ -22,8 +22,12 @@ import java.util.Map;
 import eu.europa.ec.fisheries.uvms.commons.service.dao.AbstractDAO;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.ValidationInterceptor;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.ColumnType;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.DirectionType;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 
 @Slf4j
 public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
@@ -41,12 +45,19 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
 
     @SneakyThrows
     @Interceptors(ValidationInterceptor.class)
-    public List<SubscriptionEntity> listSubscriptions(@NotNull Map<String, Object> queryParameters, @NotNull Integer firstResult, @NotNull Integer maxResult) {
+    public List<SubscriptionEntity> listSubscriptions(@NotNull Map<String, Object> queryParameters, @NotNull Map<ColumnType, DirectionType> orderBy, @NotNull Integer firstResult, @NotNull Integer maxResult) {
 
         String queryString = em.createNamedQuery(LIST_SUBSCRIPTION).unwrap(org.hibernate.Query.class).getQueryString();
 
-        StringBuilder builder = new StringBuilder(queryString);
-        builder.append(" ORDER BY s.id");
+        StringBuilder builder = new StringBuilder(queryString).append(" ORDER BY s.");
+
+        if (MapUtils.isNotEmpty(orderBy)){
+            Map.Entry<ColumnType, DirectionType> next = orderBy.entrySet().iterator().next();
+            builder.append(next.getKey().propertyName()).append(" ").append(next.getValue().name());
+        }
+        else {
+            builder.append("id ASC");
+        }
 
         Query selectQuery = getEntityManager().createQuery(builder.toString());
 
@@ -62,4 +73,16 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
         return selectQuery.getResultList();
     }
 
+    @SneakyThrows
+    public SubscriptionEntity byName(@NotNull Map<String, Object> queryParameters){
+
+        SubscriptionEntity entity = null;
+
+        List<SubscriptionEntity> entityByNamedQuery = findEntityByNamedQuery(SubscriptionEntity.class, SubscriptionEntity.BY_NAME, queryParameters, 1);
+        if (CollectionUtils.isNotEmpty(entityByNamedQuery)){
+            entity = entityByNamedQuery.get(0);
+        }
+        return entity;
+
+    }
 }

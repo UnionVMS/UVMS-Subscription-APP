@@ -10,33 +10,28 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
-import javax.validation.Valid;
+public enum ColumnType {
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+    NAME("name"),
+    DESCRIPTION("description"),
+    START_DATE("startDate"),
+    END_DATE("endDate"),
+    END_POINT("endPoint"),
+    CHANNEL("channel"),
+    ORGANISATION("organisation"),
+    ENABLED("enabled"),
+    MESSAGE_TYPE("messageType"),
+    SUBSCRIPTION_TYPE("subscriptionType"),
+    TRIGGER_TYPE("triggerType"),
+    SUB_ID("id");
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class SubscriptionListQueryDto {
+    private String propertyName;
 
-    private static SubscriptionListQueryDto empty = new SubscriptionListQueryDto();
-
-    @Valid
-    private PaginationDto pagination;
-
-    private QueryParameterDto queryParameters;
-
-    @JsonIgnore
-    public boolean isEmpty() {
-        return this.equals(empty);
+    ColumnType(String propertyName) {
+        this.propertyName = propertyName;
     }
 
-    @Valid
-    private OrderByDto orderBy = new OrderByDto();
+    public String propertyName() {
+        return propertyName;
+    }
 }

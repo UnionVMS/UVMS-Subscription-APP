@@ -99,7 +99,7 @@
                 <db.defaultSchema>subscription</db.defaultSchema>
                 <db.changeLogFile>changelog/db-changelog-master.xml</db.changeLogFile>
                 <db.outputFile>changelog/generatedChangelog.xml</db.outputFile>
-                <db.diffTypes>data</db.diffTypes>
+                <db.diffTypes/>
             </properties>
         </profile>
 

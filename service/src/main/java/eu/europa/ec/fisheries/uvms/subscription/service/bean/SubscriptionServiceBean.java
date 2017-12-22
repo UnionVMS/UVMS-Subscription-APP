@@ -21,6 +21,7 @@ import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +31,9 @@ import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.ValidationInterceptor;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.ColumnType;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.DirectionType;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.OrderByDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.QueryParameterDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListResponseDto;
@@ -79,20 +83,24 @@ public class SubscriptionServiceBean {
      * List subscriptions. Used over REST service.
      * @param parameters the query parameters
      * @param pagination the pagination parameters
-     * @return page of list results
+     * @return page of listSubscriptions results
      */
     @SneakyThrows
     @Interceptors(ValidationInterceptor.class)
-    public SubscriptionListResponseDto list(@NotNull QueryParameterDto parameters, @NotNull PaginationDto pagination) {
+    public SubscriptionListResponseDto listSubscriptions(@NotNull QueryParameterDto parameters, @NotNull PaginationDto pagination, @NotNull OrderByDto orderByDto) {
 
         SubscriptionListResponseDto responseDto = new SubscriptionListResponseDto();
 
         Integer pageSize = pagination.getPageSize();
         Integer page = pagination.getOffset();
 
+        @SuppressWarnings("unchecked")
         Map<String, Object> map = objectMapper.convertValue(parameters, Map.class);
+        @SuppressWarnings("unchecked")
+        Map<ColumnType, DirectionType> orderMap = new HashMap<>();
+        orderMap.put(orderByDto.getColumn(), orderByDto.getDirection());
 
-        List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(map, -1 , -1);
+        List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(map, orderMap,  -1 , -1);
 
         Integer countResults = 0;
 
@@ -101,7 +109,7 @@ public class SubscriptionServiceBean {
         }
 
         int firstResult = (page - 1) * pageSize;
-        subscriptionEntities = subscriptionDAO.listSubscriptions(map, firstResult , pageSize);
+        subscriptionEntities = subscriptionDAO.listSubscriptions(map, orderMap, firstResult , pageSize);
         responseDto.setList(subscriptionEntities);
 
         if (firstResult >= 0) {
@@ -140,6 +148,12 @@ public class SubscriptionServiceBean {
         subscriptionDAO.deleteEntity(SubscriptionEntity.class, id);
         String log = mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), String.valueOf(id), currentUser);
         producer.sendMessage(producer.getAuditEventQueue(), producer.getSubscriptionEvenetQueue(), log);
+    }
 
+    @Interceptors(ValidationInterceptor.class)
+    public SubscriptionEntity findSubscriptionByName(@NotNull final String name) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("name", name);
+        return subscriptionDAO.byName(parameters);
     }
 }

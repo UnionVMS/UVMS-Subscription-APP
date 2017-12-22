@@ -12,6 +12,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
 import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.END_OF_TIME;
 import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.nowUTC;
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.BY_NAME;
 import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
 import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.CascadeType.MERGE;
@@ -71,12 +72,17 @@ import lombok.NoArgsConstructor;
                 "((:description is NULL) OR (UPPER(cast(s.description as string)) LIKE CONCAT('%', UPPER(cast(:description as string)), '%'))) AND " +
                 "(cast(:startDate as timestamp) <= s.validityPeriod.startDate AND cast(:endDate as timestamp) >= s.validityPeriod.endDate) AND " +
                 "((:messageType is NULL) OR (UPPER(cast(s.messageType as string)) LIKE CONCAT('%', UPPER(cast(:messageType as string)), '%')))"
-        )
+        ),
+        @NamedQuery(name = BY_NAME, query = "SELECT s FROM SubscriptionEntity s " +
+                "LEFT JOIN FETCH s.conditions c " +
+                "LEFT JOIN FETCH s.areas a " +
+                "WHERE s.name = :name")
 })
 @EqualsAndHashCode(exclude = {"id"})
 public class SubscriptionEntity implements Serializable {
 
-    public static final String LIST_SUBSCRIPTION = "subscription.list";
+    public static final String LIST_SUBSCRIPTION = "subscription.listSubscriptions";
+    public static final String BY_NAME = "subscription.byName";
 
     @Id
     @GeneratedValue(strategy = AUTO)

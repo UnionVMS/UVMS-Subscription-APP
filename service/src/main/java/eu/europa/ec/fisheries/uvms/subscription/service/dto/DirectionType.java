@@ -10,33 +10,7 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
-import javax.validation.Valid;
+public enum DirectionType {
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class SubscriptionListQueryDto {
-
-    private static SubscriptionListQueryDto empty = new SubscriptionListQueryDto();
-
-    @Valid
-    private PaginationDto pagination;
-
-    private QueryParameterDto queryParameters;
-
-    @JsonIgnore
-    public boolean isEmpty() {
-        return this.equals(empty);
-    }
-
-    @Valid
-    private OrderByDto orderBy = new OrderByDto();
+    ASC, DESC
 }

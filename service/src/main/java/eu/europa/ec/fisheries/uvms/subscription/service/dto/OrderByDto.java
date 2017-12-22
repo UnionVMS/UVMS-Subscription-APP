@@ -10,33 +10,20 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
-import javax.validation.Valid;
+import static eu.europa.ec.fisheries.uvms.subscription.service.dto.ColumnType.*;
+import static eu.europa.ec.fisheries.uvms.subscription.service.dto.DirectionType.ASC;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import javax.validation.constraints.NotNull;
+
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class SubscriptionListQueryDto {
+public class OrderByDto {
 
-    private static SubscriptionListQueryDto empty = new SubscriptionListQueryDto();
+    @NotNull
+    private ColumnType column = SUB_ID;
 
-    @Valid
-    private PaginationDto pagination;
+    @NotNull
+    private DirectionType direction = ASC;
 
-    private QueryParameterDto queryParameters;
-
-    @JsonIgnore
-    public boolean isEmpty() {
-        return this.equals(empty);
-    }
-
-    @Valid
-    private OrderByDto orderBy = new OrderByDto();
 }

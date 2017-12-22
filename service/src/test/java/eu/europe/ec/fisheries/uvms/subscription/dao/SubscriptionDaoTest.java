@@ -16,6 +16,7 @@ import static org.jsoup.helper.Validate.fail;
 import static org.junit.Assert.assertEquals;
 
 import javax.persistence.EntityTransaction;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +28,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.MessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.ColumnType;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.DirectionType;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.QueryParameterDto;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
@@ -58,10 +61,7 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
     public void testListSubscription(QueryParameterDto queryParameters, int expected){
 
         Map<String, Object> map = objectMapper.convertValue(queryParameters, Map.class);
-        //map.put("startDate", queryParameters.getStartDate());
-        //map.put("endDate", queryParameters.getEndDate());
-
-        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(map,-1, -1);
+        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(map, new HashMap<ColumnType, DirectionType>(),-1, -1);
         assertEquals(expected, subscriptionEntities.size());
     }
 
