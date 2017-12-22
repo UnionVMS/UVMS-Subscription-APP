@@ -49,7 +49,7 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
 
         String queryString = em.createNamedQuery(LIST_SUBSCRIPTION).unwrap(org.hibernate.Query.class).getQueryString();
 
-        StringBuilder builder = new StringBuilder(queryString).append(" ORDER BY s.");//
+        StringBuilder builder = new StringBuilder(queryString).append(" ORDER BY s.");
 
         if (MapUtils.isNotEmpty(orderBy)){
             Map.Entry<ColumnType, DirectionType> next = orderBy.entrySet().iterator().next();
