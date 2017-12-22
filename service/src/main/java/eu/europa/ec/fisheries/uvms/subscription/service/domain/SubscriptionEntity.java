@@ -62,16 +62,17 @@ import lombok.NoArgsConstructor;
                 "SELECT DISTINCT s FROM SubscriptionEntity s " +
                 "LEFT JOIN FETCH s.conditions c " +
                 "LEFT JOIN FETCH s.areas a " +
-                "WHERE " +
+                " WHERE " +
                 "((:channel is NULL) OR (UPPER(cast(s.channel as string)) LIKE CONCAT('%', UPPER(cast(:channel as string)), '%'))) AND " +
                 "((:organisation is NULL) OR (UPPER(cast(s.organisation as string)) LIKE CONCAT('%', UPPER(cast(:organisation as string)), '%'))) AND " +
                 "((:endPoint is NULL) OR (UPPER(cast(s.endPoint as string)) LIKE CONCAT('%', UPPER(cast(:endPoint as string)), '%'))) AND " +
                 "((:enabled is NULL) OR s.enabled = :enabled) AND " +
                 "((:name is NULL) OR (UPPER(cast(s.name as string)) LIKE CONCAT('%', UPPER(cast(:name as string)), '%'))) AND " +
-                "((:subscriptionType is NULL) OR (UPPER(cast(s.subscriptionType as string)) LIKE CONCAT('%', UPPER(cast(:subscriptionType as string)), '%'))) AND " +
+                "((:subscriptionType is NULL) OR (UPPER(cast(s.subscriptionType as string)) = UPPER(cast(:subscriptionType as string)))) AND " +
+                "((:messageType is NULL) OR (UPPER(cast(s.messageType as string)) LIKE CONCAT('%', UPPER(cast(:messageType as string)), '%'))) AND " +
+                "((:accessibility is NULL) OR (UPPER(cast(s.accessibility as string)) = UPPER(cast(:accessibility as string)))) AND " +
                 "((:description is NULL) OR (UPPER(cast(s.description as string)) LIKE CONCAT('%', UPPER(cast(:description as string)), '%'))) AND " +
-                "(cast(:startDate as timestamp) <= s.validityPeriod.startDate AND cast(:endDate as timestamp) >= s.validityPeriod.endDate) AND " +
-                "((:messageType is NULL) OR (UPPER(cast(s.messageType as string)) LIKE CONCAT('%', UPPER(cast(:messageType as string)), '%')))"
+                "(cast(:startDate as timestamp) <= s.validityPeriod.startDate AND cast(:endDate as timestamp) >= s.validityPeriod.endDate) "
         ),
         @NamedQuery(name = BY_NAME, query = "SELECT s FROM SubscriptionEntity s " +
                 "LEFT JOIN FETCH s.conditions c " +
