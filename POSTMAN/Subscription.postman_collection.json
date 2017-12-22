@@ -1,0 +1,348 @@
+{
+	"info": {
+		"name": "Subscription",
+		"_postman_id": "afa9334b-1e57-9ead-fa9b-043a408d52dc",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1_Authenticate",
+			"description": "",
+			"item": [
+				{
+					"name": "authenticate",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var data = JSON.parse(responseBody);",
+									"",
+									"tests[\"authenticated is true\"] = data.authenticated === true;",
+									"",
+									"postman.setEnvironmentVariable(\"token\", data.jwtoken);",
+									"",
+									"tests[\"environment token is \" + environment.token] = environment.token === data.jwtoken;",
+									"",
+									"var jsonData = JSON.parse(responseBody);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n   \"userName\": \"rep_power\",\n   \"password\": \"abcd-1234\"\n}"
+						},
+						"url": {
+							"raw": "{{hostname}}:{{port}}/usm-administration/rest/authenticate",
+							"host": [
+								"{{hostname}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"usm-administration",
+								"rest",
+								"authenticate"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "list subscription",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"//tests[\"status code = 200\"] = responseCode.code === 200;",
+							"",
+							"//var jsonData = JSON.parse(responseBody);",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "scopeName",
+						"value": "EC"
+					},
+					{
+						"key": "roleName",
+						"value": "rep_power_role"
+					},
+					{
+						"key": "Authorization",
+						"value": "{{token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"pagination\": {\n        \"offset\": 1,\n        \"pageSize\": 5\n    },\n    \"queryParameters\" : {\n\t\t\"startDate\" : \"2016-08-01T11:50:16\",\n\t\t\"accessibility\" : \"PRIVATE\"\n    },\n    \"orderBy\" : {\n    \t\"column\" : \"NAME\",\n    \t\"direction\" : \"DESC\"\n    }\n}"
+				},
+				"url": {
+					"raw": "{{hostname}}:{{port}}/subscription/rest/subscription/list",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"subscription",
+						"rest",
+						"subscription",
+						"list"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "subscription by name",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"//tests[\"status code = 200\"] = responseCode.code === 200;",
+							"",
+							"//var jsonData = JSON.parse(responseBody);",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "scopeName",
+						"value": "EC"
+					},
+					{
+						"key": "roleName",
+						"value": "rep_power_role"
+					},
+					{
+						"key": "Authorization",
+						"value": "{{token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"pagination\": {\n        \"offset\": 7,\n        \"pageSize\": 5\n    },\n    \"queryParameters\" : {\n   \n    }\n}"
+				},
+				"url": {
+					"raw": "{{hostname}}:{{port}}/subscription/rest/subscription/name28729",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"subscription",
+						"rest",
+						"subscription",
+						"name28729"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "update  subscription",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"//tests[\"status code = 200\"] = responseCode.code === 200;",
+							"",
+							"//var jsonData = JSON.parse(responseBody);",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "scopeName",
+						"value": "EC"
+					},
+					{
+						"key": "roleName",
+						"value": "rep_power_role"
+					},
+					{
+						"key": "Authorization",
+						"value": "{{token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n        \"id\": 110,\n        \"name\": \"name4kkkkdddsddsse222e2\",\n        \"accessibility\": \"PRIVATE\",\n        \"description\": \"description\",\n        \"organisation\": \"organisatiotn\",\n        \"endPoint\": \"endPointt\",\n        \"conditions\": [],\n        \"areas\": [],\n        \"triggerType\": \"AUTO\",\n        \"stateType\": \"ACTIVE\",\n        \"messageType\": \"FLUXFAReportMessage\",\n        \"delay\": 1,\n        \"subscriptionType\": \"TX_PULL\",\n        \"isActive\": false,\n        \"communicationChannel\": \"channel\",\n        \"startDate\": \"2017-08-01T11:50:16\",\n        \"endDate\": \"9999-01-01T00:00:00\"\n    }"
+				},
+				"url": {
+					"raw": "{{hostname}}:{{port}}/subscription/rest/subscription",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"subscription",
+						"rest",
+						"subscription"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "create subscription",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"//tests[\"status code = 200\"] = responseCode.code === 200;",
+							"",
+							"//var jsonData = JSON.parse(responseBody);",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "scopeName",
+						"value": "EC"
+					},
+					{
+						"key": "roleName",
+						"value": "rep_power_role"
+					},
+					{
+						"key": "Authorization",
+						"value": "{{token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n                \"subscriptionType\": \"TX_PUSH\",\n                \"messageType\": \"FLUXFAReportMessage\",\n                \"conditions\": [],\n                \"areas\": [],\n                \"name\": \"name4ee\",\n                \"guid\": \"853d17a3-0a7d-40d4-9bf4-d565b005f726\",\n                \"accessibility\": \"UNKNOWN\",\n                \"description\": \"description\",\n                \"startDate\": \"2016-08-01T11:50:16\",\n                \"endDate\": null,\n                \"organisation\": \"organisation\",\n                \"endPoint\": \"endPoint\",\n                \"triggerType\": \"MANUAL\",\n                \"delay\": null,\n                \"stateType\": \"INACTIVE\",\n                \"isActive\": true,\n                \"communicationChannel\": \"channel\"\n            }"
+				},
+				"url": {
+					"raw": "{{hostname}}:{{port}}/subscription/rest/subscription",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"subscription",
+						"rest",
+						"subscription"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "delete subscription",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"//tests[\"status code = 200\"] = responseCode.code === 200;",
+							"",
+							"//var jsonData = JSON.parse(responseBody);",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "scopeName",
+						"value": "EC"
+					},
+					{
+						"key": "roleName",
+						"value": "rep_power_role"
+					},
+					{
+						"key": "Authorization",
+						"value": "{{token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"description\" : \"description\",\n    \"name\" :  \"name\",\n    \"active\" : true,\n    \"organisation\" : \"organisation\",\n    \"endPoint\" : \"endPoint\",\n    \"channel\" : \"channel\",\n    \"trigger\" : \"MANUAL\",\n    \"start\" : \"2016-08-01T11:50:16\",\n    \"messageType\" : \"FLUXFAReportMessage\",\n    \"subscriptionType\" :  \"TX_PULL\"\n}"
+				},
+				"url": {
+					"raw": "{{hostname}}:{{port}}/subscription/rest/subscription/106",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"subscription",
+						"rest",
+						"subscription",
+						"106"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}
