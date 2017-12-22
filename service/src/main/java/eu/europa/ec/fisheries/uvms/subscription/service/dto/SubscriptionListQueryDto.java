@@ -30,7 +30,7 @@ public class SubscriptionListQueryDto {
     @Valid
     private PaginationDto pagination;
 
-    private QueryParameterDto queryParameters;
+    private QueryParameterDto queryParameters = new QueryParameterDto();
 
     @JsonIgnore
     public boolean isEmpty() {
