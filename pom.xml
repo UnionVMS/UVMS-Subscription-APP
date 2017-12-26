@@ -25,7 +25,7 @@
         <lombok.version>1.16.18</lombok.version>
         <mapstruct.version>1.2.0.Final</mapstruct.version>
         <uvms.test.version>0.0.4</uvms.test.version>
-        <uvms.commons.version>3.0.7-SNAPSHOT</uvms.commons.version>
+        <uvms.commons.version>3.0.8-SNAPSHOT</uvms.commons.version>
         <project.scm.id>github</project.scm.id>
     </properties>
 
