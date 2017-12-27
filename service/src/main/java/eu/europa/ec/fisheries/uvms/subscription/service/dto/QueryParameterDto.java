@@ -43,7 +43,7 @@ public class QueryParameterDto {
     private AccessibilityType accessibility;
 
    @JsonFormat(shape = STRING, pattern = DATE_TIME_UI_FORMAT)
-   private Date startDate = START_OF_TIME.toDate();
+   @Builder.Default private Date startDate = START_OF_TIME.toDate();
    @JsonFormat(shape = STRING, pattern = DATE_TIME_UI_FORMAT)
-   private Date endDate = END_OF_TIME.toDate();
+   @Builder.Default private Date endDate = END_OF_TIME.toDate();
 }

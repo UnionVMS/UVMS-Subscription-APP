@@ -176,6 +176,9 @@ public class SubscriptionEntity implements Serializable {
 
     @PrePersist
     private void prepersist() {
+        if (validityPeriod == null){
+            validityPeriod = new DateRange(new Date(), new Date(Long.MAX_VALUE));
+        }
         if (validityPeriod.getStartDate() == null){
             validityPeriod.setStartDate(nowUTC().toDate());
         }
