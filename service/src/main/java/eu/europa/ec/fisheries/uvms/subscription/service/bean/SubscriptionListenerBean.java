@@ -38,10 +38,10 @@ import javax.jms.MessageListener;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
 
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionBaseRequest;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataRequest;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataResponse;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionMethod;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionRequest;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionModuleMethod;
 import lombok.extern.slf4j.Slf4j;
 
 @MessageDriven(mappedName = QUEUE_SUBSCRIPTION_EVENT, activationConfig = {
@@ -74,8 +74,8 @@ public class SubscriptionListenerBean implements MessageListener {
             textMessage = (TextMessage) message;
             messageID = textMessage.getJMSMessageID();
             destination = textMessage.getJMSReplyTo();
-            SubscriptionRequest moduleRequest = unMarshallMessage(textMessage.getText(), SubscriptionRequest.class);
-            SubscriptionMethod method = moduleRequest.getMethod();
+            SubscriptionBaseRequest moduleRequest = unMarshallMessage(textMessage.getText(), SubscriptionBaseRequest.class);
+            SubscriptionModuleMethod method = moduleRequest.getMethod();
 
             switch (method) {
                 case PING:
