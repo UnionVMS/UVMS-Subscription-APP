@@ -8,15 +8,16 @@
     <types>
         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="module.subscription.wsdl.fisheries.ec.europa.eu">
 
-            <xsd:complexType name="SubscriptionRequest" abstract="true">
+            <xsd:complexType name="SubscriptionBaseRequest" abstract="true">
                 <xsd:sequence>
-                    <xsd:element name="method" type="v:SubscriptionMethod"/>
+                    <xsd:element name="method" type="v:SubscriptionModuleMethod"/>
                 </xsd:sequence>
             </xsd:complexType>
 
-            <xsd:simpleType name="SubscriptionMethod">
+            <xsd:simpleType name="SubscriptionModuleMethod">
                 <xsd:restriction base="xsd:string">
                     <xsd:enumeration value="SUBSCRIPTION_DATA"/>
+                    <xsd:enumeration value="DATA_CHANGE"/>
                     <xsd:enumeration value="PING"/>
                 </xsd:restriction>
             </xsd:simpleType>
@@ -24,7 +25,7 @@
             <xsd:element name="SubscriptionDataRequest">
                 <xsd:complexType>
                     <xsd:complexContent>
-                        <xsd:extension base="v:SubscriptionRequest">
+                        <xsd:extension base="v:SubscriptionBaseRequest">
                             <xsd:sequence>
                                 <xsd:element name="query" type="v:SubscriptionDataQuery"/>
                             </xsd:sequence>
@@ -37,6 +38,14 @@
                 <xsd:complexType>
                     <xsd:sequence>
 
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="SubscriptionPermissionResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="subscriptionCheck" type="v:SubscriptionPermissionAnswer" />
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
@@ -57,18 +66,19 @@
                 </xsd:sequence>
             </xsd:complexType>
 
-            <xsd:complexType name="SubscriptionModuleResponse">
-                <xsd:sequence>
-
-                </xsd:sequence>
-            </xsd:complexType>
+            <xsd:simpleType name="SubscriptionPermissionAnswer">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="YES"/>
+                    <xsd:enumeration value="NO"/>
+                </xsd:restriction>
+            </xsd:simpleType>
 
             <!-- Ping request -->
 
             <xsd:element name="pingRequest">
                 <xsd:complexType>
                     <xsd:complexContent>
-                        <xsd:extension base="v:SubscriptionRequest"/>
+                        <xsd:extension base="v:SubscriptionBaseRequest"/>
                     </xsd:complexContent>
                 </xsd:complexType>
             </xsd:element>
