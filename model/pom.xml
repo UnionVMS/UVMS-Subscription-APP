@@ -22,6 +22,7 @@
 		<wsdl.source.name>AssetDataSourceService</wsdl.source.name>
 		<binding.xml>binding-date.xml</binding.xml>
 		<jaxb2-basics.version>0.9.5</jaxb2-basics.version>
+		<uvms.commons.version>3.0.8-SNAPSHOT</uvms.commons.version>
 	</properties>
 
 	<dependencies>
@@ -46,7 +47,12 @@
 		    <groupId>org.apache.commons</groupId>
 		    <artifactId>commons-lang3</artifactId>
 		    <version>3.6</version>
-		</dependency>		
+		</dependency>
+		<dependency>
+			<groupId>eu.europa.ec.fisheries.uvms.commons</groupId>
+			<artifactId>uvms-commons-message</artifactId>
+			<version>${uvms.commons.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
