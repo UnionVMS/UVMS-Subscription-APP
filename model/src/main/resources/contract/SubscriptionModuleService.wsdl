@@ -43,13 +43,13 @@
 
             <xsd:complexType name="SubscriptionDataQuery">
                 <xsd:sequence>
+                    <xsd:element name="messageType" type="v:MessageType"/>
                     <xsd:element name="criteria" type="v:SubscriptionDataCriteria" minOccurs="0" maxOccurs="unbounded" />
                 </xsd:sequence>
             </xsd:complexType>
 
             <xsd:complexType name="SubscriptionDataCriteria">
                 <xsd:sequence>
-                    <xsd:element name="dataType" type="v:DataType" default="UNKNOWN"/>
                     <xsd:element name="criteria" type="v:CriteriaType" default="UNKNOWN"/>
                     <xsd:element name="subCriteria" type="v:SubCriteriaType" default="UNKNOWN"/>
                     <xsd:element name="valueType" type="v:ValueType" default="UNKNOWN"/>
@@ -90,42 +90,61 @@
                 </xsd:complexType>
             </xsd:element>
 
-            <xsd:simpleType name="DataType">
+            <xsd:simpleType name="MessageType">
                 <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="VESSEL_POSITION"/>
-                    <xsd:enumeration value="SALES_NOTE"/>
-                    <xsd:enumeration value="FISHING_ACTIVITY"/>
+                    <xsd:enumeration value="FLUXVesselPositionMessage"/>
+                    <xsd:enumeration value="FLUXSalesQueryMessage"/>
+                    <xsd:enumeration value="FLUXSalesMessage"/>
+                    <xsd:enumeration value="FLUXFaQueryMessage"/>
+                    <xsd:enumeration value="FLUXFaReportMessage"/>
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
 
             <xsd:simpleType name="CriteriaType">
                 <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="SENDER"/>
-                    <xsd:enumeration value="FLUXFAReportMessage"/>
-                    <xsd:enumeration value="FLUXReportDocument"/>
+                    <xsd:enumeration value="Sender"/>
+                    <xsd:enumeration value="Vessel"/>
+                    <xsd:enumeration value="Area"/>
+                    <xsd:enumeration value="ValidityPeriod"/>
+                    <xsd:enumeration value="FluxFAReportMessage"/>
+                    <xsd:enumeration value="FluxFAQueryMessage"/>
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
 
             <xsd:simpleType name="SubCriteriaType">
                 <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="StartDateTime"/>
+                    <xsd:enumeration value="EndDateTime"/>
                     <xsd:enumeration value="ORGANISATION"/>
                     <xsd:enumeration value="OwnerParty"/>
-                    <xsd:enumeration value="ENDPOINT"/>
-                    <xsd:enumeration value="CHANNEL"/>
-                    <xsd:enumeration value="PLUGIN"/>
+                    <xsd:enumeration value="EndPoint"/>
+                    <xsd:enumeration value="Channel"/>
+                    <xsd:enumeration value="FAReportDocument"/>
+                    <xsd:enumeration value="AREA_CODE"/>
+                    <xsd:enumeration value="AREA_TYPE"/>
+                    <xsd:enumeration value="VESSELID"/>
+                    <xsd:enumeration value="TRIPID"/>
+                    <xsd:enumeration value="CONSOLIDATED"/>
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
 
             <xsd:simpleType name="ValueType">
                 <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="SchemeId"/>
+                    <xsd:enumeration value="ListId"/>
+                    <xsd:enumeration value="BOOLEAN_VALUE"/>
                     <xsd:enumeration value="FLUX_GP_PARTY"/>
+                    <xsd:enumeration value="CFR"/>
+                    <xsd:enumeration value="IRCS"/>
+                    <xsd:enumeration value="EU_TRIP_ID"/>
+                    <xsd:enumeration value="ICCAT"/>
                     <xsd:enumeration value="FLUX_FA_REPORT_TYPE"/>
                     <xsd:enumeration value="FLUX_GP_PURPOSE"/>
                     <xsd:enumeration value="YYYY-MM-DD"/>
-                    <xsd:enumeration value="YYYY-MM-DDTHH:mm:ss"/>
+                    <xsd:enumeration value="yyyy-MM-dd'T'HH:mm:ss.SSSZ"/>
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>

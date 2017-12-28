@@ -28,7 +28,7 @@ public abstract class BaseSubscriptionInMemoryTest extends BaseDAOTest {
             .values(3L, "4b25f95f-b3de-4d2e-ad99-dd2fe828a0f0", "subscription3", "1", "org1", "channel3", "endpoint3", "UNKNOWN", "UNKNOWN", "UNKNOWN", "AUTO", "UNKNOWN", "2000-12-10 16:02:59.047", "2020-12-10 16:02:59.047")
             .values(4L, "14f7dc3c-813e-45d5-8470-3e38192ea5f9", "subscription4", "0", "org1", "channel4", "endpoint4", "UNKNOWN", "UNKNOWN", "UNKNOWN", "AUTO", "UNKNOWN", "2000-12-10 16:02:59.047", "2020-12-10 16:02:59.047").build(), sql("alter sequence subscription.hibernate_sequence restart with 100000"));
 
-    static final Operation INSERT_CONDITION = sequenceOf(insertInto("subscription.condition").columns("id", "position", "subscription_id", "data_type", "criteria_type", "sub_criteria_type", "value_type", "value", "condition_type").values(1L, 1L, 1, "FISHING_ACTIVITY", "SENDER", "ORGANISATION", "UNKNOWN", "BEL", "START").build()
+    static final Operation INSERT_CONDITION = sequenceOf(insertInto("subscription.condition").columns("id", "position", "subscription_id", "message_type", "criteria_type", "sub_criteria_type", "value_type", "value", "condition_type").values(1L, 1L, 1, "FLUX_FA_QUERY_MESSAGE", "SENDER", "ORGANISATION", "UNKNOWN", "BEL", "START").build()
 
     );
 

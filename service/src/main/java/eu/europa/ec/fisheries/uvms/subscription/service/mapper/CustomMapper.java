@@ -10,10 +10,75 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.mapper;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import eu.europa.ec.fisheries.wsdl.subscription.module.CriteriaType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataCriteria;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
+import eu.europa.ec.fisheries.wsdl.subscription.module.ValueType;
+
 /**
  * TODO create test
  */
 public class CustomMapper {
 
+    public Map<String, Object> mapCriteriaToQueryParameters(SubscriptionDataQuery query){
+
+        Map<String, Object> queryParameters = new HashMap<>();
+
+        MessageType messageType = query.getMessageType();
+
+        createMessageTypeParameters(messageType, queryParameters);
+
+        List<SubscriptionDataCriteria> criteria = query.getCriteria();
+
+        for (SubscriptionDataCriteria criterion : criteria){
+
+            CriteriaType criteriaType = criterion.getCriteria();
+            switch (criteriaType){
+                case SENDER:
+                    createSenderParameters(criterion, queryParameters);
+                    break;
+                case VESSEL:
+                    createVesselParameters(criterion, queryParameters);
+                    break;
+                case VALIDITY_PERIOD:
+                    createValidityPeriodParameters(criterion, queryParameters);
+                    break;
+                case AREA:
+                    createAreaPeriodParameters(criterion, queryParameters);
+                    break;
+                    default:
+            }
+        }
+        return queryParameters;
+    }
+
+    private void createMessageTypeParameters(MessageType messageType, Map<String, Object> queryParameters) {
+        queryParameters.put("MESSAGE_TYPE", messageType.value());
+    }
+
+    private void createAreaPeriodParameters(SubscriptionDataCriteria criteria, Map<String, Object> queryParameters) {
+
+    }
+
+    private void createValidityPeriodParameters(SubscriptionDataCriteria criteria, Map<String, Object> queryParameters) {
+
+    }
+
+    private void createVesselParameters(SubscriptionDataCriteria criteria, Map<String, Object> queryParameters) {
+
+    }
+
+    private void createSenderParameters(SubscriptionDataCriteria criteria, Map<String, Object> queryParamers) {
+
+        CriteriaType criteriaType = criteria.getCriteria();
+        ValueType valueType = criteria.getValueType();
+        String value = criteria.getValue();
+        queryParamers.put("ORGANISATION", value);
+    }
 
 }

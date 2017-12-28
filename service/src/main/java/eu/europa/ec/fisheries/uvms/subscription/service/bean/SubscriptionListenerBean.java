@@ -82,6 +82,7 @@ public class SubscriptionListenerBean implements MessageListener {
                     break;
                 case SUBSCRIPTION_DATA:
                     SubscriptionDataRequest request = unMarshallMessage(textMessage.getText(), SubscriptionDataRequest.class);
+                    
                     SubscriptionDataResponse subscriptionDataResponse = service.isValid(request.getQuery());
                     break;
                 default:

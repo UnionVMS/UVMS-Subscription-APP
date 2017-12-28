@@ -25,7 +25,7 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 import eu.europa.ec.fisheries.wsdl.subscription.module.CriteriaType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.DataType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubCriteriaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.ValueType;
 import lombok.Data;
@@ -72,8 +72,8 @@ public class ConditionEntity implements Serializable {
     protected RelationalOperatorType condition;
 
     @Enumerated(STRING)
-    @Column(name = "data_type")
-    private DataType dataType;
+    @Column(name = "message_type")
+    private MessageType messageType;
 
     @Enumerated(STRING)
     @Column(name = "value_type")

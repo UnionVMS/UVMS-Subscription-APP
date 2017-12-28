@@ -38,8 +38,11 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.QueryParameterDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListResponseDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
+import eu.europa.ec.fisheries.wsdl.subscription.module.CriteriaType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataCriteria;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataResponse;
+import eu.europa.ec.fisheries.wsdl.subscription.module.ValueType;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -75,6 +78,8 @@ public class SubscriptionServiceBean {
      */
     @SuppressWarnings("unchecked")
     public SubscriptionDataResponse isValid(SubscriptionDataQuery query) {
+
+
 
         return new SubscriptionDataResponse();
     }
