@@ -45,6 +45,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionParser;
+import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

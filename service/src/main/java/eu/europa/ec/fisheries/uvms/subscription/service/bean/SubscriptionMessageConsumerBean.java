@@ -23,13 +23,11 @@ package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.CONNECTION_FACTORY;
 import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.CONNECTION_TYPE;
 import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.DESTINATION_TYPE_QUEUE;
+import static eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils.marshallJaxBObjectToString;
 import static eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils.unMarshallMessage;
 import static eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionMessageConsumerBean.QUEUE_NAME_SUBSCRIPTION_EVENT;
 import static eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionMessageConsumerBean.QUEUE_SUBSCRIPTION_EVENT;
 
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionBaseRequest;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataRequest;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataResponse;
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
@@ -38,6 +36,10 @@ import javax.ejb.TransactionAttributeType;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
+
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionBaseRequest;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataRequest;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @MessageDriven(mappedName = QUEUE_SUBSCRIPTION_EVENT, activationConfig = {
@@ -54,7 +56,7 @@ public class SubscriptionMessageConsumerBean implements MessageListener {
     static final String QUEUE_NAME_SUBSCRIPTION_EVENT = "UVMSSubscriptionEvent";
 
     @EJB
-    private SubscriptionProducerBean subscrProducerBean;
+    private SubscriptionProducerBean subscriptionProducerBean;
 
     @EJB
     private SubscriptionServiceBean service;
@@ -64,26 +66,29 @@ public class SubscriptionMessageConsumerBean implements MessageListener {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void onMessage(Message message) {
         TextMessage textMessage;
-        String msgCorrelId = null;
-        String msgId = null;
+        String jmsCorrelationID = null;
+        String jmsMessageID = null;
         try {
             textMessage = (TextMessage) message;
-            msgCorrelId = textMessage.getJMSCorrelationID();
+            jmsCorrelationID = textMessage.getJMSCorrelationID();
+            jmsMessageID = textMessage.getJMSMessageID();
             SubscriptionBaseRequest moduleRequest = unMarshallMessage(textMessage.getText(), SubscriptionBaseRequest.class);
             switch (moduleRequest.getMethod()) {
                 case PING:
                     break;
-                case SUBSCRIPTION_DATA:
+                case MODULE_ACCESS_PERMISSION_REQUEST:
                     SubscriptionDataRequest request = unMarshallMessage(textMessage.getText(), SubscriptionDataRequest.class);
-                    SubscriptionDataResponse subscriptionDataResponse = service.isValid(request.getQuery());
+                    SubscriptionPermissionResponse dataRequestAllowed = service.hasActiveSubscriptions(request.getQuery());
+                    String messageToSend = marshallJaxBObjectToString(dataRequestAllowed);
+                    subscriptionProducerBean.sendMessage(jmsMessageID, jmsCorrelationID, subscriptionProducerBean.getRulesQueue(), null, messageToSend);
                     break;
-                case DATA_CHANGE:
+                case DATA_CHANGE_REQUEST:
                     break;
                 default:
-                    subscrProducerBean.sendMessage(msgId, msgCorrelId, subscrProducerBean.getRulesQueue(), null, "[ Not implemented method consumed: {} ]");
+                    subscriptionProducerBean.sendMessage(jmsMessageID, jmsCorrelationID, subscriptionProducerBean.getRulesQueue(), null, "[ Not implemented method consumed: {} ]");
             }
         } catch (Exception e) {
-            subscrProducerBean.sendMessage(msgId, msgCorrelId, subscrProducerBean.getRulesQueue(),  subscrProducerBean.getSubscriptionEvenetQueue(), e.getLocalizedMessage());
+            subscriptionProducerBean.sendMessage(jmsMessageID, jmsCorrelationID, subscriptionProducerBean.getRulesQueue(), null, e.getLocalizedMessage());
         }
     }
 }

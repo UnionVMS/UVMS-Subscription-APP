@@ -31,10 +31,10 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AccessibilityType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.MessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.StateType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import lombok.Data;
 
 @Data

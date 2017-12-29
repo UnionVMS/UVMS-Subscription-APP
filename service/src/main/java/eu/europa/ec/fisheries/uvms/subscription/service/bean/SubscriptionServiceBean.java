@@ -11,6 +11,7 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
 import static eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper.mapToAuditLog;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.YES;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
@@ -39,7 +40,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListResponseDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataResponse;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -71,11 +72,15 @@ public class SubscriptionServiceBean {
     /**
      * Check if the incoming message has a valid subscription
      * @param query filter criteria to retrieve subscriptions to be triggered
-     * @return ?
+     * @return SubscriptionPermissionResponse
      */
     @SuppressWarnings("unchecked")
-    public SubscriptionDataResponse isValid(SubscriptionDataQuery query) {
-        return new SubscriptionDataResponse();
+    public SubscriptionPermissionResponse hasActiveSubscriptions(SubscriptionDataQuery query) {
+
+        SubscriptionPermissionResponse response = new SubscriptionPermissionResponse();
+        //TODO query subscritions
+        response.setSubscriptionCheck(YES);
+        return response;
     }
 
     /**
@@ -126,7 +131,7 @@ public class SubscriptionServiceBean {
         SubscriptionEntity entity = mapper.mapDtoToEntity(subscription);
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
         String log = mapToAuditLog(SUBSCRIPTION, AuditActionEnum.CREATE.name(), saved.getId().toString(), currentUser);
-        producer.sendMessage(producer.getAuditEventQueue(), producer.getSubscriptionEvenetQueue(), log);
+        producer.sendMessage(producer.getAuditEventQueue(), producer.getSubscriptionEventQueue(), log);
         return mapper.mapEntityToDto(saved);
     }
 
@@ -137,7 +142,7 @@ public class SubscriptionServiceBean {
         mapper.updateEntity(subscription, entityById);
         SubscriptionEntity subscriptionEntity = subscriptionDAO.updateEntity(entityById);
         String log = mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), subscriptionEntity.getId().toString(), currentUser);
-        producer.sendMessage(producer.getAuditEventQueue(), producer.getSubscriptionEvenetQueue(), log);
+        producer.sendMessage(producer.getAuditEventQueue(), producer.getSubscriptionEventQueue(), log);
         return mapper.mapEntityToDto(subscriptionEntity);
     }
 
@@ -146,7 +151,7 @@ public class SubscriptionServiceBean {
     public void delete(@NotNull Long id, @NotNull String currentUser) {
         subscriptionDAO.deleteEntity(SubscriptionEntity.class, id);
         String log = mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), String.valueOf(id), currentUser);
-        producer.sendMessage(producer.getAuditEventQueue(), producer.getSubscriptionEvenetQueue(), log);
+        producer.sendMessage(producer.getAuditEventQueue(), producer.getSubscriptionEventQueue(), log);
     }
 
     @Interceptors(ValidationInterceptor.class)

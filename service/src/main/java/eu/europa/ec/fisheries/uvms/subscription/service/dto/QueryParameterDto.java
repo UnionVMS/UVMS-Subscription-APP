@@ -19,8 +19,8 @@ import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AccessibilityType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.MessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

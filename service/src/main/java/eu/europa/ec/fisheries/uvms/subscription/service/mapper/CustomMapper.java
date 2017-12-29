@@ -10,10 +10,62 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.mapper;
 
-/**
- * TODO create test
- */
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import eu.europa.ec.fisheries.wsdl.subscription.module.CriteriaType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubCriteriaType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataCriteria;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
+
 public class CustomMapper {
 
+    private CustomMapper(){
+
+    }
+
+    public static Map<String, Object> mapCriteriaToQueryParameters(SubscriptionDataQuery query){
+
+        Map<String, Object> queryParameters = new HashMap<>();
+
+        MessageType messageType = query.getMessageType();
+
+        queryParameters.put("MESSAGE_TYPE", messageType.value());
+
+        List<SubscriptionDataCriteria> criteria = query.getCriteria();
+
+        for (SubscriptionDataCriteria criterion : criteria){
+
+            CriteriaType criteriaType = criterion.getCriteria();
+            String value = criterion.getValue();
+            switch (criteriaType){
+                case SENDER:
+
+                    queryParameters.put("ORGANISATION", value);
+                    break;
+
+                case VESSEL:
+
+                    break;
+
+                case VALIDITY_PERIOD:
+                    if (SubCriteriaType.START_DATE.equals(criterion.getSubCriteria())){
+                        queryParameters.put("START_DATE", value);
+                    }
+                    else if (SubCriteriaType.END_DATE.equals(criterion.getSubCriteria())){
+                        queryParameters.put("END_DATE", value);
+                    }
+                    break;
+
+                case AREA:
+
+                    break;
+                    default:
+            }
+        }
+        return queryParameters;
+    }
 
 }

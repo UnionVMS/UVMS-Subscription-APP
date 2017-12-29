@@ -52,11 +52,11 @@ public class SubscriptionParser {
                         sb.append("channel");
                         break;
 
-                    case PLUGIN:
+                    case ORGANISATION:
                         break;
 
                     // AREA
-                    case ENDPOINT:
+                    case END_POINT:
                         // If list and NE
                         if (condition.getCondition().equals(RelationalOperatorType.NE)) {
                             //sb.append("!");
