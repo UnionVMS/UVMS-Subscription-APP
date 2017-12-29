@@ -35,10 +35,8 @@ import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.jms.Destination;
 import javax.jms.Message;
 import javax.jms.MessageListener;
-import javax.jms.Queue;
 import javax.jms.TextMessage;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,21 +54,21 @@ public class SubscriptionMessageConsumerBean implements MessageListener {
     static final String QUEUE_NAME_SUBSCRIPTION_EVENT = "UVMSSubscriptionEvent";
 
     @EJB
-    private SubscriptionProducerBean producer;
+    private SubscriptionProducerBean subscrProducerBean;
 
     @EJB
     private SubscriptionServiceBean service;
 
+
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void onMessage(Message message) {
-        Destination destination = null;
         TextMessage textMessage;
-        String messageID = null;
+        String msgCorrelId = null;
+        String msgId = null;
         try {
             textMessage = (TextMessage) message;
-            messageID = textMessage.getJMSMessageID();
-            destination = textMessage.getJMSReplyTo();
+            msgCorrelId = textMessage.getJMSCorrelationID();
             SubscriptionBaseRequest moduleRequest = unMarshallMessage(textMessage.getText(), SubscriptionBaseRequest.class);
             switch (moduleRequest.getMethod()) {
                 case PING:
@@ -79,11 +77,13 @@ public class SubscriptionMessageConsumerBean implements MessageListener {
                     SubscriptionDataRequest request = unMarshallMessage(textMessage.getText(), SubscriptionDataRequest.class);
                     SubscriptionDataResponse subscriptionDataResponse = service.isValid(request.getQuery());
                     break;
+                case DATA_CHANGE:
+                    break;
                 default:
-                    producer.sendMessage(messageID, (Queue) destination, producer.getSubscriptionEvenetQueue(), "[ Not implemented method consumed: {} ]");
+                    subscrProducerBean.sendMessage(msgId, msgCorrelId, subscrProducerBean.getRulesQueue(), null, "[ Not implemented method consumed: {} ]");
             }
         } catch (Exception e) {
-            producer.sendMessage(messageID, (Queue) destination,  producer.getSubscriptionEvenetQueue(), e.getLocalizedMessage());
+            subscrProducerBean.sendMessage(msgId, msgCorrelId, subscrProducerBean.getRulesQueue(),  subscrProducerBean.getSubscriptionEvenetQueue(), e.getLocalizedMessage());
         }
     }
 }
