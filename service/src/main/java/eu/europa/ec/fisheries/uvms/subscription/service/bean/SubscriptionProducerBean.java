@@ -29,7 +29,7 @@ import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.Q
 import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.QUEUE_RULES;
 import static eu.europa.ec.fisheries.uvms.commons.message.impl.JMSUtils.lookupConnectionFactory;
 import static eu.europa.ec.fisheries.uvms.commons.message.impl.JMSUtils.lookupQueue;
-import static eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionListenerBean.QUEUE_SUBSCRIPTION_EVENT;
+import static eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionMessageConsumerBean.QUEUE_SUBSCRIPTION_EVENT;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;

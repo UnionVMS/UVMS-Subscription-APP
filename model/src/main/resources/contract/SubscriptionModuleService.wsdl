@@ -16,8 +16,8 @@
 
             <xsd:simpleType name="SubscriptionModuleMethod">
                 <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="SUBSCRIPTION_DATA"/>
-                    <xsd:enumeration value="DATA_CHANGE"/>
+                    <xsd:enumeration value="MODULE_ACCESS_PERMISSION_REQUEST"/>
+                    <xsd:enumeration value="DATA_CHANGE_REQUEST"/>
                     <xsd:enumeration value="PING"/>
                 </xsd:restriction>
             </xsd:simpleType>
