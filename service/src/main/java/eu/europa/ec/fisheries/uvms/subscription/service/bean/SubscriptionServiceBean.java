@@ -75,7 +75,6 @@ public class SubscriptionServiceBean {
      */
     @SuppressWarnings("unchecked")
     public SubscriptionDataResponse isValid(SubscriptionDataQuery query) {
-
         return new SubscriptionDataResponse();
     }
 
