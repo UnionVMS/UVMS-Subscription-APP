@@ -22,7 +22,7 @@ import org.junit.Test;
 
 public class CustomMapperTest {
 
-    @Test
+    @Test //TODO
     public void testMapCriteriaToQueryParameters(){
 
         SubscriptionDataQuery dataQuery = new SubscriptionDataQuery();
@@ -36,7 +36,7 @@ public class CustomMapperTest {
 
         SubscriptionDataCriteria criteria2 = new SubscriptionDataCriteria();
         criteria2.setCriteria(CriteriaType.VALIDITY_PERIOD);
-        criteria2.setSubCriteria(SubCriteriaType.START_DATE_TIME);
+        criteria2.setSubCriteria(SubCriteriaType.START_DATE);
         criteria2.setValue("222222");
 
         dataQuery.getCriteria().add(criteria);

@@ -16,8 +16,8 @@
 
             <xsd:simpleType name="SubscriptionModuleMethod">
                 <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="SUBSCRIPTION_DATA"/>
-                    <xsd:enumeration value="DATA_CHANGE"/>
+                    <xsd:enumeration value="MODULE_ACCESS_PERMISSION_REQUEST"/>
+                    <xsd:enumeration value="DATA_CHANGE_REQUEST"/>
                     <xsd:enumeration value="PING"/>
                 </xsd:restriction>
             </xsd:simpleType>
@@ -102,40 +102,40 @@
 
             <xsd:simpleType name="MessageType">
                 <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="FLUXVesselPositionMessage"/>
-                    <xsd:enumeration value="FLUXSalesQueryMessage"/>
-                    <xsd:enumeration value="FLUXSalesMessage"/>
-                    <xsd:enumeration value="FLUXFaQueryMessage"/>
-                    <xsd:enumeration value="FLUXFaReportMessage"/>
+                    <xsd:enumeration value="FLUX_VESSEL_POSITION_MESSAGE"/>
+                    <xsd:enumeration value="FLUX_SALES_QUERY_MESSAGE"/>
+                    <xsd:enumeration value="FLUX_SALES_MESSAGE"/>
+                    <xsd:enumeration value="FLUX_FA_QUERY_MESSAGE"/>
+                    <xsd:enumeration value="FLUX_FA_REPORT_MESSAGE"/>
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
 
             <xsd:simpleType name="CriteriaType">
                 <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="Sender"/>
-                    <xsd:enumeration value="Vessel"/>
-                    <xsd:enumeration value="Area"/>
-                    <xsd:enumeration value="ValidityPeriod"/>
-                    <xsd:enumeration value="FluxFAReportMessage"/>
-                    <xsd:enumeration value="FluxFAQueryMessage"/>
+                    <xsd:enumeration value="SENDER"/>
+                    <xsd:enumeration value="VESSEL"/>
+                    <xsd:enumeration value="AREA"/>
+                    <xsd:enumeration value="VALIDITY_PERIOD"/>
+                    <xsd:enumeration value="FLUX_FA_REPORT_MESSAGE"/>
+                    <xsd:enumeration value="FLUX_FA_QUERY_MESSAGE"/>
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
 
             <xsd:simpleType name="SubCriteriaType">
                 <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="StartDateTime"/>
-                    <xsd:enumeration value="EndDateTime"/>
+                    <xsd:enumeration value="START_DATE"/>
+                    <xsd:enumeration value="END_DATE"/>
                     <xsd:enumeration value="ORGANISATION"/>
-                    <xsd:enumeration value="OwnerParty"/>
-                    <xsd:enumeration value="EndPoint"/>
-                    <xsd:enumeration value="Channel"/>
-                    <xsd:enumeration value="FAReportDocument"/>
+                    <xsd:enumeration value="OWNER_PARTY"/>
+                    <xsd:enumeration value="END_POINT"/>
+                    <xsd:enumeration value="CHANNEL"/>
+                    <xsd:enumeration value="FA_REPORT_DOCUMENT"/>
                     <xsd:enumeration value="AREA_CODE"/>
                     <xsd:enumeration value="AREA_TYPE"/>
-                    <xsd:enumeration value="VESSELID"/>
-                    <xsd:enumeration value="TRIPID"/>
+                    <xsd:enumeration value="VESSEL_ID"/>
+                    <xsd:enumeration value="TRIP_ID"/>
                     <xsd:enumeration value="CONSOLIDATED"/>
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
@@ -143,8 +143,8 @@
 
             <xsd:simpleType name="ValueType">
                 <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="SchemeId"/>
-                    <xsd:enumeration value="ListId"/>
+                    <xsd:enumeration value="SCHEME_ID"/>
+                    <xsd:enumeration value="LIST_ID"/>
                     <xsd:enumeration value="BOOLEAN_VALUE"/>
                     <xsd:enumeration value="FLUX_GP_PARTY"/>
                     <xsd:enumeration value="CFR"/>

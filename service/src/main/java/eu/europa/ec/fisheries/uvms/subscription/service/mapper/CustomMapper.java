@@ -51,10 +51,10 @@ public class CustomMapper {
                     break;
 
                 case VALIDITY_PERIOD:
-                    if (SubCriteriaType.START_DATE_TIME.equals(criterion.getSubCriteria())){
+                    if (SubCriteriaType.START_DATE.equals(criterion.getSubCriteria())){
                         queryParameters.put("START_DATE", value);
                     }
-                    else if (SubCriteriaType.END_DATE_TIME.equals(criterion.getSubCriteria())){
+                    else if (SubCriteriaType.END_DATE.equals(criterion.getSubCriteria())){
                         queryParameters.put("END_DATE", value);
                     }
                     break;
