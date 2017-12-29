@@ -20,12 +20,7 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataCriteria;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import org.junit.Test;
 
-/**
- * TODO create test
- */
 public class CustomMapperTest {
-
-    private CustomMapper mapper = new CustomMapper();
 
     @Test
     public void testMapCriteriaToQueryParameters(){
@@ -33,15 +28,21 @@ public class CustomMapperTest {
         SubscriptionDataQuery dataQuery = new SubscriptionDataQuery();
 
         dataQuery.setMessageType(MessageType.FLUX_FA_QUERY_MESSAGE);
-        SubscriptionDataCriteria criteria = new SubscriptionDataCriteria();
 
+        SubscriptionDataCriteria criteria = new SubscriptionDataCriteria();
         criteria.setCriteria(CriteriaType.SENDER);
         criteria.setSubCriteria(SubCriteriaType.ORGANISATION);
         criteria.setValue("BEL");
 
-        dataQuery.getCriteria().add(criteria);
+        SubscriptionDataCriteria criteria2 = new SubscriptionDataCriteria();
+        criteria2.setCriteria(CriteriaType.VALIDITY_PERIOD);
+        criteria2.setSubCriteria(SubCriteriaType.START_DATE_TIME);
+        criteria2.setValue("222222");
 
-        Map<String, Object> stringObjectMap = mapper.mapCriteriaToQueryParameters(dataQuery);
+        dataQuery.getCriteria().add(criteria);
+        dataQuery.getCriteria().add(criteria2);
+
+        Map<String, Object> stringObjectMap = CustomMapper.mapCriteriaToQueryParameters(dataQuery);
 
         System.out.println(stringObjectMap);
     }
