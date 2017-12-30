@@ -19,6 +19,7 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
+import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
 import eu.europa.ec.fisheries.uvms.commons.service.dao.AbstractDAO;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.ValidationInterceptor;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
@@ -32,6 +33,8 @@ import org.apache.commons.collections.MapUtils;
 @Slf4j
 public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
 
+    private static final String START_DATE = "startDate";
+    private static final String END_DATE = "endDate";
     private EntityManager em;
 
     public SubscriptionDao(EntityManager em) {
@@ -49,6 +52,8 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
 
         String queryString = em.createNamedQuery(LIST_SUBSCRIPTION).unwrap(org.hibernate.Query.class).getQueryString();
 
+        List resultList = null;
+
         StringBuilder builder = new StringBuilder(queryString).append(" ORDER BY s.");//
 
         if (MapUtils.isNotEmpty(orderBy)){
@@ -61,6 +66,22 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
 
         Query selectQuery = getEntityManager().createQuery(builder.toString());
 
+        Object startDate = queryParameters.get(START_DATE);
+        Object endDate = queryParameters.get(END_DATE);
+
+        if (startDate != null && endDate == null) {
+            queryParameters.put(END_DATE, startDate);
+        }
+
+        if (endDate != null && startDate == null) {
+            queryParameters.put(START_DATE, endDate);
+        }
+
+        if (endDate == null && startDate == null){
+            queryParameters.put(END_DATE, DateUtils.START_OF_TIME.toDate());
+            queryParameters.put(START_DATE, DateUtils.END_OF_TIME.toDate());
+        }
+
         for (Map.Entry<String, Object> entry : queryParameters.entrySet()){
             selectQuery.setParameter(entry.getKey(), entry.getValue());
         }
@@ -70,7 +91,13 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
             selectQuery.setMaxResults(maxResult);
         }
 
-        return selectQuery.getResultList();
+        try {
+            resultList = selectQuery.getResultList();
+        }
+        catch (Exception e){
+            log.error(e.getLocalizedMessage(),e);
+        }
+        return resultList;
     }
 
     @SneakyThrows

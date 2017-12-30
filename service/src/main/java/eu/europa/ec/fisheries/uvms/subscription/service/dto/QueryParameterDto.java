@@ -12,8 +12,6 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
 import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.DATE_TIME_UI_FORMAT;
-import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.END_OF_TIME;
-import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.START_OF_TIME;
 
 import java.util.Date;
 
@@ -43,7 +41,7 @@ public class QueryParameterDto {
     private AccessibilityType accessibility;
 
    @JsonFormat(shape = STRING, pattern = DATE_TIME_UI_FORMAT)
-   @Builder.Default private Date startDate = START_OF_TIME.toDate();
+   private Date startDate;
    @JsonFormat(shape = STRING, pattern = DATE_TIME_UI_FORMAT)
-   @Builder.Default private Date endDate = END_OF_TIME.toDate();
+   private Date endDate;
 }

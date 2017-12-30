@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
 import eu.europa.ec.fisheries.wsdl.subscription.module.CriteriaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubCriteriaType;
@@ -26,24 +27,37 @@ public class CustomMapper {
 
     }
 
-    public static Map<String, Object> mapCriteriaToQueryParameters(SubscriptionDataQuery query){
+    public static Map<String, Object> mapCriteriaToQueryParameters(SubscriptionDataQuery query) {
 
         Map<String, Object> queryParameters = new HashMap<>();
 
-        MessageType messageType = query.getMessageType();
+        queryParameters.put("enabled", true);
+        queryParameters.put("endPoint", null);
+        queryParameters.put("subscriptionType", null);
+        queryParameters.put("accessibility", null);
+        queryParameters.put("startDate", null);
+        queryParameters.put("endDate", null);
+        queryParameters.put("channel", null);
+        queryParameters.put("name", null);
+        queryParameters.put("description", null);
+        queryParameters.put("organisation", null);
+        queryParameters.put("messageType", null);
 
-        queryParameters.put("MESSAGE_TYPE", messageType.value());
+        MessageType messageType = query.getMessageType();
+        if (messageType != null) {
+            queryParameters.put("messageType", messageType.value());
+        }
 
         List<SubscriptionDataCriteria> criteria = query.getCriteria();
 
-        for (SubscriptionDataCriteria criterion : criteria){
+        for (SubscriptionDataCriteria criterion : criteria) {
 
             CriteriaType criteriaType = criterion.getCriteria();
             String value = criterion.getValue();
-            switch (criteriaType){
+            switch (criteriaType) {
                 case SENDER:
 
-                    queryParameters.put("ORGANISATION", value);
+                    queryParameters.put("organisation", value);
                     break;
 
                 case VESSEL:
@@ -51,21 +65,22 @@ public class CustomMapper {
                     break;
 
                 case VALIDITY_PERIOD:
-                    if (SubCriteriaType.START_DATE.equals(criterion.getSubCriteria())){
-                        queryParameters.put("START_DATE", value);
-                    }
-                    else if (SubCriteriaType.END_DATE.equals(criterion.getSubCriteria())){
-                        queryParameters.put("END_DATE", value);
+                    if (SubCriteriaType.START_DATE.equals(criterion.getSubCriteria())) {
+                        queryParameters.put("startDate", DateUtils.parseToUTCDate(value, criterion.getValueType().value()));
+                    } else if (SubCriteriaType.END_DATE.equals(criterion.getSubCriteria())) {
+                        queryParameters.put("endDate", DateUtils.parseToUTCDate(value, criterion.getValueType().value()));
                     }
                     break;
 
                 case AREA:
 
                     break;
-                    default:
+                default:
             }
         }
+
         return queryParameters;
+
     }
 
 }

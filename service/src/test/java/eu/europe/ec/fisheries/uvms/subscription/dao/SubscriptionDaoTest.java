@@ -30,8 +30,12 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.ColumnType;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.DirectionType;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.QueryParameterDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
+import eu.europe.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import lombok.SneakyThrows;
@@ -56,10 +60,28 @@ public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
     }
 
     @Test
+    @Parameters(method = "dataQuery")
+    public void testListSubscriptionForModuleAuthorization(SubscriptionDataQuery dataQuery, int expected){
+        Map<String, Object> map = CustomMapper.mapCriteriaToQueryParameters(dataQuery);
+        map.put("strict", true);
+        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(map, new HashMap<ColumnType, DirectionType>(),-1, -1);
+        assertEquals(expected, subscriptionEntities.size());
+    }
+
+    protected Object[] dataQuery(){
+        return $(
+                $(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_1(), 1),
+                $(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_2(), 1),
+                $(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_3(), 0)
+        );
+    }
+
+    @Test
     @Parameters(method = "queryParameters")
     public void testListSubscription(QueryParameterDto queryParameters, int expected){
 
         Map<String, Object> map = objectMapper.convertValue(queryParameters, Map.class);
+        map.put("strict", false);
         List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(map, new HashMap<ColumnType, DirectionType>(),-1, -1);
         assertEquals(expected, subscriptionEntities.size());
     }
@@ -70,6 +92,7 @@ public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
                 $(QueryParameterDto.builder().channel("channel2").build(), 2),
                 $(QueryParameterDto.builder().channel("channel3").build(), 1),
                 $(QueryParameterDto.builder().build(), 4),
+                $(QueryParameterDto.builder().messageType(MessageType.FLUX_FA_QUERY_MESSAGE).organisation("organisation1").build(), 1),
                 $(QueryParameterDto.builder().enabled(true).build(), 3),
                 $(QueryParameterDto.builder().channel("channel4").organisation("org1").name("subscription4").build(), 1),
                 $(QueryParameterDto.builder().name("sub").enabled(true).build(), 2)
@@ -95,7 +118,6 @@ public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
         assertEquals(sizeBefore + 1, subscriptionEntities.size());
 
         SubscriptionEntity entityById = daoUnderTest.findEntityById(SubscriptionEntity.class, id);
-
         assertEquals(subscription, entityById);
     }
 
@@ -118,7 +140,6 @@ public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
 
         daoUnderTest.findEntityById(SubscriptionEntity.class, 1L);
         assertEquals(4, subscription.getAreas().size());
-
     }
 
     @Test
@@ -137,7 +158,6 @@ public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
 
         daoUnderTest.findEntityById(SubscriptionEntity.class, 1L);
         assertEquals(2, subscription.getAreas().size());
-
     }
 
 }
