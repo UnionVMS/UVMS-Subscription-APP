@@ -11,6 +11,7 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
 import static eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper.mapToAuditLog;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.NO;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.YES;
 
 import javax.annotation.PostConstruct;
@@ -38,6 +39,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.OrderByDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.QueryParameterDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListResponseDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
@@ -76,10 +78,16 @@ public class SubscriptionServiceBean {
      */
     @SuppressWarnings("unchecked")
     public SubscriptionPermissionResponse hasActiveSubscriptions(SubscriptionDataQuery query) {
-
         SubscriptionPermissionResponse response = new SubscriptionPermissionResponse();
-        //TODO query subscritions
-        response.setSubscriptionCheck(YES);
+        Map<String, Object> stringObjectMap = CustomMapper.mapCriteriaToQueryParameters(query);
+        stringObjectMap.put("strict", true); // only use exact match in query
+        List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(stringObjectMap, new HashMap<ColumnType, DirectionType>(),  -1 , -1);
+        boolean empty = CollectionUtils.isEmpty(subscriptionEntities);
+        if (empty){
+            response.setSubscriptionCheck(NO);
+        } else {
+            response.setSubscriptionCheck(YES);
+        }
         return response;
     }
 
@@ -100,6 +108,8 @@ public class SubscriptionServiceBean {
 
         @SuppressWarnings("unchecked")
         Map<String, Object> map = objectMapper.convertValue(parameters, Map.class);
+        map.put("strict", false); // only use LIKE query
+
         @SuppressWarnings("unchecked")
         Map<ColumnType, DirectionType> orderMap = new HashMap<>();
         orderMap.put(orderByDto.getColumn(), orderByDto.getDirection());

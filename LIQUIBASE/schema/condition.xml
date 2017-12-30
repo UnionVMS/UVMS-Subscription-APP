@@ -14,7 +14,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="criteria_type" type="VARCHAR(255)"/>
-            <column name="data_type" type="VARCHAR(255)"/>
+            <column name="message_type" type="VARCHAR(255)"/>
             <column name="end_operator" type="VARCHAR(255)"/>
             <column name="position" type="INT">
                 <constraints nullable="false"/>
