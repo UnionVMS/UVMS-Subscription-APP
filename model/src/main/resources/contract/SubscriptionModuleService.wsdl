@@ -135,11 +135,19 @@
                     <xsd:enumeration value="AREA_CODE"/>
                     <xsd:enumeration value="AREA_TYPE"/>
 
-                    <!-- FA Query Parameter -->
+                    <!-- Flux FA Query Parameter -->
                     <xsd:enumeration value="VESSELID"/>
                     <xsd:enumeration value="TRIPID"/>
                     <xsd:enumeration value="CONSOLIDATED"/>
 
+                    <!-- Flux Sales Query Parameter -->
+                    <xsd:enumeration value="VESSEL"/>
+                    <xsd:enumeration value="FLAG"/>
+                    <xsd:enumeration value="ROLE"/>
+                    <xsd:enumeration value="PLACE"/>
+                    <xsd:enumeration value="SALES_ID"/>
+                    <xsd:enumeration value="TRIP_ID"/>
+                    
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
