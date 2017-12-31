@@ -149,6 +149,10 @@ public class SubscriptionServiceBean {
     @Interceptors(ValidationInterceptor.class)
     public SubscriptionDto update(@NotNull SubscriptionDto subscription, @NotNull String currentUser) {
         SubscriptionEntity entityById = subscriptionDAO.findEntityById(SubscriptionEntity.class, subscription.getId());
+
+        if (entityById == null){
+            throw new IllegalArgumentException("Unable to update entity: not found");
+        }
         mapper.updateEntity(subscription, entityById);
         SubscriptionEntity subscriptionEntity = subscriptionDAO.updateEntity(entityById);
         String log = mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), subscriptionEntity.getId().toString(), currentUser);
