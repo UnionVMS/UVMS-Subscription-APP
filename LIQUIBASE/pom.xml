@@ -15,7 +15,7 @@
         <liquibase.core.version>3.4.2</liquibase.core.version>
         <liquibase.contexts>default</liquibase.contexts>
         <liquibase.update.phase>test</liquibase.update.phase>
-        <postgresql.version>9.4.1211</postgresql.version>
+        <postgresql.version>9.4-1201-jdbc41</postgresql.version>
         <ojdbc6.version>11.2.0.4</ojdbc6.version>
         <liquibase.spatial.version>1.2.1</liquibase.spatial.version>
     </properties>

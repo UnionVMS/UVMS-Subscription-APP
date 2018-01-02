@@ -99,7 +99,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"pagination\": {\n        \"offset\": 1,\n        \"pageSize\": 5\n    },\n    \"queryParameters\" : {\n\t\t\"startDate\" : \"2016-08-01T11:50:16\",\n\t\t\"accessibility\" : \"PRIVATE\"\n    },\n    \"orderBy\" : {\n    \t\"column\" : \"NAME\",\n    \t\"direction\" : \"DESC\"\n    }\n}"
+					"raw": "{\n    \"pagination\": {\n        \"offset\": 1,\n        \"pageSize\": 5\n    },\n    \"queryParameters\" : {\n\t\t\n\n    },\n    \"orderBy\" : {\n    \t\"column\" : \"ORGANISATION\",\n    \t\"direction\" : \"DESC\"\n    }\n}"
 				},
 				"url": {
 					"raw": "{{hostname}}:{{port}}/subscription/rest/subscription/list",
@@ -159,7 +159,7 @@
 					"raw": "{\n    \"pagination\": {\n        \"offset\": 7,\n        \"pageSize\": 5\n    },\n    \"queryParameters\" : {\n   \n    }\n}"
 				},
 				"url": {
-					"raw": "{{hostname}}:{{port}}/subscription/rest/subscription/name28729",
+					"raw": "{{hostname}}:{{port}}/subscription/rest/subscription/name4kkkksddsse222eEEE2",
 					"host": [
 						"{{hostname}}"
 					],
@@ -168,7 +168,7 @@
 						"subscription",
 						"rest",
 						"subscription",
-						"name28729"
+						"name4kkkksddsse222eEEE2"
 					]
 				},
 				"description": ""
@@ -213,7 +213,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n        \"id\": 110,\n        \"name\": \"name4kkkkdddsddsse222e2\",\n        \"accessibility\": \"PRIVATE\",\n        \"description\": \"description\",\n        \"organisation\": \"organisatiotn\",\n        \"endPoint\": \"endPointt\",\n        \"conditions\": [],\n        \"areas\": [],\n        \"triggerType\": \"AUTO\",\n        \"stateType\": \"ACTIVE\",\n        \"messageType\": \"FLUXFAReportMessage\",\n        \"delay\": 1,\n        \"subscriptionType\": \"TX_PULL\",\n        \"isActive\": false,\n        \"communicationChannel\": \"channel\",\n        \"startDate\": \"2017-08-01T11:50:16\",\n        \"endDate\": \"9999-01-01T00:00:00\"\n    }"
+					"raw": "{\n        \"id\": 110,\n        \"name\": \"name4kkkkdddsddsse222e2\",\n        \"accessibility\": \"PRIVATE\",\n        \"description\": \"description\",\n        \"organisation\": \"zorganisatiotn\",\n        \"endPoint\": \"endPointt\",\n        \"conditions\": [],\n        \"areas\": [],\n        \"triggerType\": \"AUTO\",\n        \"stateType\": \"ACTIVE\",\n        \"messageType\": \"FLUX_FA_REPORT_MESSAGE\",\n        \"delay\": 1,\n        \"subscriptionType\": \"TX_PULL\",\n        \"isActive\": false,\n        \"communicationChannel\": \"channel\",\n        \"startDate\": \"2017-08-01T11:50:16\",\n        \"endDate\": \"9999-01-01T00:00:00\"\n    }"
 				},
 				"url": {
 					"raw": "{{hostname}}:{{port}}/subscription/rest/subscription",
@@ -269,7 +269,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n                \"subscriptionType\": \"TX_PUSH\",\n                \"messageType\": \"FLUXFAReportMessage\",\n                \"conditions\": [],\n                \"areas\": [],\n                \"name\": \"name4ee\",\n                \"guid\": \"853d17a3-0a7d-40d4-9bf4-d565b005f726\",\n                \"accessibility\": \"UNKNOWN\",\n                \"description\": \"description\",\n                \"startDate\": \"2016-08-01T11:50:16\",\n                \"endDate\": null,\n                \"organisation\": \"organisation\",\n                \"endPoint\": \"endPoint\",\n                \"triggerType\": \"MANUAL\",\n                \"delay\": null,\n                \"stateType\": \"INACTIVE\",\n                \"isActive\": true,\n                \"communicationChannel\": \"channel\"\n            }"
+					"raw": "{\n                \"subscriptionType\": \"TX_PUSH\",\n                \"messageType\": \"FLUX_FA_REPORT_MESSAGE\",\n                \"conditions\": [],\n                \"areas\": [],\n                \"name\": \"name4kkkksddsse222eEEE2\",\n                \"guid\": \"853d17a3-0a7d-40d4-9bf4-d565b005f726\",\n                \"accessibility\": \"PUBLIC\",\n                \"description\": \"description\",\n                \"startDate\": \"2016-08-01T11:50:16\",\n                \"endDate\": null,\n                \"organisation\": \"organisation\",\n                \"endPoint\": \"endPoint\",\n                \"triggerType\": \"MANUAL\",\n                \"delay\": null,\n                \"stateType\": \"INACTIVE\",\n                \"isActive\": true,\n                \"communicationChannel\": \"channel\"\n            }"
 				},
 				"url": {
 					"raw": "{{hostname}}:{{port}}/subscription/rest/subscription",
@@ -325,10 +325,10 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"description\" : \"description\",\n    \"name\" :  \"name\",\n    \"active\" : true,\n    \"organisation\" : \"organisation\",\n    \"endPoint\" : \"endPoint\",\n    \"channel\" : \"channel\",\n    \"trigger\" : \"MANUAL\",\n    \"start\" : \"2016-08-01T11:50:16\",\n    \"messageType\" : \"FLUXFAReportMessage\",\n    \"subscriptionType\" :  \"TX_PULL\"\n}"
+					"raw": "{\n\n}"
 				},
 				"url": {
-					"raw": "{{hostname}}:{{port}}/subscription/rest/subscription/106",
+					"raw": "{{hostname}}:{{port}}/subscription/rest/subscription/1",
 					"host": [
 						"{{hostname}}"
 					],
@@ -337,7 +337,7 @@
 						"subscription",
 						"rest",
 						"subscription",
-						"106"
+						"1"
 					]
 				},
 				"description": ""
