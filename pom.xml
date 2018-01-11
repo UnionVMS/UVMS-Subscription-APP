@@ -11,21 +11,21 @@
         <groupId>fish.focus.uvms.maven</groupId>
         <artifactId>uvms-pom</artifactId>
         <relativePath />
-        <version>1.15</version>
+        <version>1.16</version>
     </parent>
 
     <properties>
         <maven.ejb.plugin.ejb.version>3.1</maven.ejb.plugin.ejb.version>
         <subscription.api.check.against.version>4.0.0</subscription.api.check.against.version>
-    	<docker.dev.version>3.17.0</docker.dev.version>    	
-        <usm4uvms.version>4.0.7-SNAPSHOT</usm4uvms.version>
+        <usm4uvms.version>4.0.8-SNAPSHOT</usm4uvms.version>
+    	<docker.dev.version>3.24.0</docker.dev.version>    	
         <spatial.model.version>1.0.10-SNAPSHOT</spatial.model.version>
         <audit.model.version>4.0.6</audit.model.version>
         <hibernate.version>4.3.11.Final</hibernate.version>
         <lombok.version>1.16.18</lombok.version>
         <mapstruct.version>1.2.0.Final</mapstruct.version>
         <uvms.test.version>0.0.4</uvms.test.version>
-        <uvms.commons.version>3.0.7-SNAPSHOT</uvms.commons.version>
+        <uvms.commons.version>3.0.8-SNAPSHOT</uvms.commons.version>
         <project.scm.id>github</project.scm.id>
     </properties>
 
@@ -132,12 +132,6 @@
 
             <dependency>
                 <groupId>org.hibernate</groupId>
-                <version>6.0.7.Final</version>
-                <artifactId>hibernate-validator</artifactId>
-            </dependency>
-
-            <dependency>
-                <groupId>org.hibernate</groupId>
                 <version>${hibernate.version}</version>
                 <artifactId>hibernate-core</artifactId>
             </dependency>
@@ -160,6 +154,10 @@
                 <artifactId>usm4uvms</artifactId>
                 <version>${usm4uvms.version}</version>
                 <exclusions>
+                    <exclusion>
+                        <groupId>eu.europa.ec.fisheries.uvms.commons</groupId>
+                        <artifactId>uvms-commons-service</artifactId>
+                    </exclusion>
                     <exclusion>
                         <groupId>org.jboss.resteasy</groupId>
                         <artifactId>resteasy-jaxrs</artifactId>

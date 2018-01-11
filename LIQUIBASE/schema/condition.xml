@@ -14,7 +14,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="criteria_type" type="VARCHAR(255)"/>
-            <column name="data_type" type="VARCHAR(255)"/>
+            <column name="message_type" type="VARCHAR(255)"/>
             <column name="end_operator" type="VARCHAR(255)"/>
             <column name="position" type="INT">
                 <constraints nullable="false"/>
@@ -30,23 +30,6 @@
 
     <changeSet author="emrinalgr (generated)" id="1513597247428-5">
         <addPrimaryKey columnNames="id" constraintName="condition_pkey" tableName="condition"/>
-    </changeSet>
-
-    <changeSet author="emrinalgr (generated)" id="1513941490176-11">
-        <createIndex indexName="idx_subscription" tableName="subscription">
-            <column name="name"/>
-            <column name="description"/>
-            <column name="channel"/>
-            <column name="end_point"/>
-            <column name="message_type"/>
-            <column name="subscription_type"/>
-            <column name="organisation"/>
-            <column name="accessibility"/>
-            <column name="end_date"/>
-            <column name="start_date"/>
-            <column name="enabled"/>
-            <column name="state_type"/>
-        </createIndex>
     </changeSet>
 
 </databaseChangeLog>

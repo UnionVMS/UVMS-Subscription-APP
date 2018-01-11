@@ -8,15 +8,16 @@
     <types>
         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="module.subscription.wsdl.fisheries.ec.europa.eu">
 
-            <xsd:complexType name="SubscriptionRequest" abstract="true">
+            <xsd:complexType name="SubscriptionBaseRequest" abstract="true">
                 <xsd:sequence>
-                    <xsd:element name="method" type="v:SubscriptionMethod"/>
+                    <xsd:element name="method" type="v:SubscriptionModuleMethod"/>
                 </xsd:sequence>
             </xsd:complexType>
 
-            <xsd:simpleType name="SubscriptionMethod">
+            <xsd:simpleType name="SubscriptionModuleMethod">
                 <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="SUBSCRIPTION_DATA"/>
+                    <xsd:enumeration value="MODULE_ACCESS_PERMISSION_REQUEST"/>
+                    <xsd:enumeration value="DATA_CHANGE_REQUEST"/>
                     <xsd:enumeration value="PING"/>
                 </xsd:restriction>
             </xsd:simpleType>
@@ -24,7 +25,7 @@
             <xsd:element name="SubscriptionDataRequest">
                 <xsd:complexType>
                     <xsd:complexContent>
-                        <xsd:extension base="v:SubscriptionRequest">
+                        <xsd:extension base="v:SubscriptionBaseRequest">
                             <xsd:sequence>
                                 <xsd:element name="query" type="v:SubscriptionDataQuery"/>
                             </xsd:sequence>
@@ -41,15 +42,23 @@
                 </xsd:complexType>
             </xsd:element>
 
+            <xsd:element name="SubscriptionPermissionResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="subscriptionCheck" type="v:SubscriptionPermissionAnswer" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
             <xsd:complexType name="SubscriptionDataQuery">
                 <xsd:sequence>
+                    <xsd:element name="messageType" type="v:MessageType"/>
                     <xsd:element name="criteria" type="v:SubscriptionDataCriteria" minOccurs="0" maxOccurs="unbounded" />
                 </xsd:sequence>
             </xsd:complexType>
 
             <xsd:complexType name="SubscriptionDataCriteria">
                 <xsd:sequence>
-                    <xsd:element name="dataType" type="v:DataType" default="UNKNOWN"/>
                     <xsd:element name="criteria" type="v:CriteriaType" default="UNKNOWN"/>
                     <xsd:element name="subCriteria" type="v:SubCriteriaType" default="UNKNOWN"/>
                     <xsd:element name="valueType" type="v:ValueType" default="UNKNOWN"/>
@@ -57,18 +66,19 @@
                 </xsd:sequence>
             </xsd:complexType>
 
-            <xsd:complexType name="SubscriptionModuleResponse">
-                <xsd:sequence>
-
-                </xsd:sequence>
-            </xsd:complexType>
+            <xsd:simpleType name="SubscriptionPermissionAnswer">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="YES"/>
+                    <xsd:enumeration value="NO"/>
+                </xsd:restriction>
+            </xsd:simpleType>
 
             <!-- Ping request -->
 
             <xsd:element name="pingRequest">
                 <xsd:complexType>
                     <xsd:complexContent>
-                        <xsd:extension base="v:SubscriptionRequest"/>
+                        <xsd:extension base="v:SubscriptionBaseRequest"/>
                     </xsd:complexContent>
                 </xsd:complexType>
             </xsd:element>
@@ -90,11 +100,13 @@
                 </xsd:complexType>
             </xsd:element>
 
-            <xsd:simpleType name="DataType">
+            <xsd:simpleType name="MessageType">
                 <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="VESSEL_POSITION"/>
-                    <xsd:enumeration value="SALES_NOTE"/>
-                    <xsd:enumeration value="FISHING_ACTIVITY"/>
+                    <xsd:enumeration value="FLUX_VESSEL_POSITION_MESSAGE"/>
+                    <xsd:enumeration value="FLUX_SALES_QUERY_MESSAGE"/>
+                    <xsd:enumeration value="FLUX_SALES_MESSAGE"/>
+                    <xsd:enumeration value="FLUX_FA_QUERY_MESSAGE"/>
+                    <xsd:enumeration value="FLUX_FA_REPORT_MESSAGE"/>
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
@@ -102,30 +114,58 @@
             <xsd:simpleType name="CriteriaType">
                 <xsd:restriction base="xsd:string">
                     <xsd:enumeration value="SENDER"/>
-                    <xsd:enumeration value="FLUXFAReportMessage"/>
-                    <xsd:enumeration value="FLUXReportDocument"/>
+                    <xsd:enumeration value="VESSEL"/>
+                    <xsd:enumeration value="AREA"/>
+                    <xsd:enumeration value="VALIDITY_PERIOD"/>
+                    <xsd:enumeration value="FLUX_FA_REPORT_MESSAGE"/>
+                    <xsd:enumeration value="FLUX_FA_QUERY_MESSAGE"/>
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
 
             <xsd:simpleType name="SubCriteriaType">
                 <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="START_DATE"/>
+                    <xsd:enumeration value="END_DATE"/>
                     <xsd:enumeration value="ORGANISATION"/>
-                    <xsd:enumeration value="OwnerParty"/>
-                    <xsd:enumeration value="ENDPOINT"/>
+                    <xsd:enumeration value="OWNER_PARTY"/>
+                    <xsd:enumeration value="END_POINT"/>
                     <xsd:enumeration value="CHANNEL"/>
-                    <xsd:enumeration value="PLUGIN"/>
+                    <xsd:enumeration value="FA_REPORT_DOCUMENT"/>
+                    <xsd:enumeration value="AREA_CODE"/>
+                    <xsd:enumeration value="AREA_TYPE"/>
+
+                    <!-- Flux FA Query Parameter -->
+                    <xsd:enumeration value="VESSELID"/>
+                    <xsd:enumeration value="TRIPID"/>
+                    <xsd:enumeration value="CONSOLIDATED"/>
+
+                    <!-- Flux Sales Query Parameter -->
+                    <xsd:enumeration value="VESSEL"/>
+                    <xsd:enumeration value="FLAG"/>
+                    <xsd:enumeration value="ROLE"/>
+                    <xsd:enumeration value="PLACE"/>
+                    <xsd:enumeration value="SALES_ID"/>
+                    <xsd:enumeration value="TRIP_ID"/>
+
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
 
             <xsd:simpleType name="ValueType">
                 <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="SCHEME_ID"/>
+                    <xsd:enumeration value="LIST_ID"/>
+                    <xsd:enumeration value="BOOLEAN_VALUE"/>
                     <xsd:enumeration value="FLUX_GP_PARTY"/>
+                    <xsd:enumeration value="CFR"/>
+                    <xsd:enumeration value="IRCS"/>
+                    <xsd:enumeration value="EU_TRIP_ID"/>
+                    <xsd:enumeration value="ICCAT"/>
                     <xsd:enumeration value="FLUX_FA_REPORT_TYPE"/>
                     <xsd:enumeration value="FLUX_GP_PURPOSE"/>
                     <xsd:enumeration value="YYYY-MM-DD"/>
-                    <xsd:enumeration value="YYYY-MM-DDTHH:mm:ss"/>
+                    <xsd:enumeration value="yyyy-MM-dd'T'HH:mm:ss.SSSZ"/>
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>

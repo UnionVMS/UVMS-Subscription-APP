@@ -16,7 +16,6 @@ import static org.junit.Assert.assertEquals;
 import java.util.Date;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AccessibilityType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.MessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.StateType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionType;
@@ -24,6 +23,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
+import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -55,7 +55,7 @@ public class SubscriptionMapperTest {
         dto.setDelay("1,1,1");
         dto.setEndPoint("endPoint");
         dto.setSubscriptionType(SubscriptionType.TX_PULL);
-        dto.setMessageType(MessageType.FLUXFAReportMessage);
+        dto.setMessageType(MessageType.FLUX_FA_REPORT_MESSAGE);
         dto.setAccessibility(AccessibilityType.PRIVATE);
 
 
@@ -72,7 +72,7 @@ public class SubscriptionMapperTest {
         assertEquals("channel", entity.getChannel());
         assertEquals("name", entity.getName());
         assertEquals(SubscriptionType.TX_PULL, entity.getSubscriptionType());
-        assertEquals(MessageType.FLUXFAReportMessage, entity.getMessageType());
+        assertEquals(MessageType.FLUX_FA_REPORT_MESSAGE, entity.getMessageType());
         assertEquals(StateType.INACTIVE, entity.getStateType());
         assertEquals("description", entity.getDescription());
         assertEquals("1,1,1", entity.getDelay());
@@ -102,7 +102,6 @@ public class SubscriptionMapperTest {
         assertEquals(dto.getOrganisation(), entity.getOrganisation());
         assertEquals(dto.getActive(), entity.isEnabled());
         assertEquals(dto.getAccessibility(), entity.getAccessibility());
-
 
     }
 }

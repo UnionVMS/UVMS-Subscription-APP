@@ -35,6 +35,7 @@
 			<param-name>datasources</param-name>
 			<param-value>java:/jdbc/uvms_subscription</param-value>
 		</init-param>
+
 	</filter>
 	<filter-mapping>
 		<filter-name>javamelody</filter-name>

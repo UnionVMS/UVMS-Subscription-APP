@@ -16,7 +16,6 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.ConditionType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.RelationalOperatorType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionParser;
-import eu.europa.ec.fisheries.wsdl.subscription.module.CriteriaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubCriteriaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.ValueType;
 import org.junit.Test;
@@ -29,7 +28,7 @@ public class ConditionParserTest {
         SubscriptionEntity subscription = SubscriptionEntity.random();
         ConditionEntity conditionEntity = new ConditionEntity();
         conditionEntity.setStartOperator("(");
-        conditionEntity.setCriteriaType(CriteriaType.FLUX_REPORT_DOCUMENT);
+        //conditionEntity.setCriteriaType(CriteriaType.FLUX_REPORT_DOCUMENT);
         conditionEntity.setSubCriteriaType(SubCriteriaType.OWNER_PARTY);
         conditionEntity.setCondition(RelationalOperatorType.EQ);
         conditionEntity.setValueType(ValueType.FLUX_GP_PARTY);
@@ -39,7 +38,7 @@ public class ConditionParserTest {
         subscription.addCondition(conditionEntity);
         conditionEntity = new ConditionEntity();
         conditionEntity.setStartOperator("(");
-        conditionEntity.setCriteriaType(CriteriaType.FLUX_REPORT_DOCUMENT);
+        //conditionEntity.setCriteriaType(CriteriaType.FLUX_REPORT_DOCUMENT);
         conditionEntity.setSubCriteriaType(SubCriteriaType.OWNER_PARTY);
         conditionEntity.setCondition(RelationalOperatorType.NE);
         conditionEntity.setValueType(ValueType.FLUX_GP_PARTY);

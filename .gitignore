@@ -2,9 +2,8 @@ target
 logging.properties
 *.iml
 .idea/
-/rest/src/main/webapp/apidocs
 *.ddl
 target/*
 container-conf/lib/*
 .DS_Store
-rest/src/main/webapp/apidocs/*
+/rest/src/main/webapp/apidocs/

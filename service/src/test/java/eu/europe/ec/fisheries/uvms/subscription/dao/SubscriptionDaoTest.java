@@ -11,8 +11,8 @@
 package eu.europe.ec.fisheries.uvms.subscription.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.random;
 import static junitparams.JUnitParamsRunner.$;
-import static org.jsoup.helper.Validate.fail;
 import static org.junit.Assert.assertEquals;
 
 import javax.persistence.EntityTransaction;
@@ -26,13 +26,16 @@ import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.MessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.ColumnType;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.DirectionType;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.QueryParameterDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
+import eu.europe.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import lombok.SneakyThrows;
@@ -41,7 +44,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(JUnitParamsRunner.class)
-public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
+public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
 
     private SubscriptionDao daoUnderTest = new SubscriptionDao(em);
 
@@ -57,12 +60,43 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
     }
 
     @Test
+    @Parameters(method = "dataQuery")
+    public void testListSubscriptionForModuleAuthorization(SubscriptionDataQuery dataQuery, int expected){
+        Map<String, Object> map = CustomMapper.mapCriteriaToQueryParameters(dataQuery);
+        map.put("strict", true);
+        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(map, new HashMap<ColumnType, DirectionType>(),-1, -1);
+        assertEquals(expected, subscriptionEntities.size());
+    }
+
+    protected Object[] dataQuery(){
+        return $(
+                $(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_1(), 1),
+                $(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_2(), 1),
+                $(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_3(), 0)
+        );
+    }
+
+    @Test
     @Parameters(method = "queryParameters")
     public void testListSubscription(QueryParameterDto queryParameters, int expected){
 
         Map<String, Object> map = objectMapper.convertValue(queryParameters, Map.class);
+        map.put("strict", false);
         List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(map, new HashMap<ColumnType, DirectionType>(),-1, -1);
         assertEquals(expected, subscriptionEntities.size());
+    }
+
+    protected Object[] queryParameters(){
+        return $(
+                $(QueryParameterDto.builder().channel("channel1").build(), 0),
+                $(QueryParameterDto.builder().channel("channel2").build(), 2),
+                $(QueryParameterDto.builder().channel("channel3").build(), 1),
+                $(QueryParameterDto.builder().build(), 4),
+                $(QueryParameterDto.builder().messageType(MessageType.FLUX_FA_QUERY_MESSAGE).organisation("organisation1").build(), 1),
+                $(QueryParameterDto.builder().enabled(true).build(), 3),
+                $(QueryParameterDto.builder().channel("channel4").organisation("org1").name("subscription4").build(), 1),
+                $(QueryParameterDto.builder().name("sub").enabled(true).build(), 2)
+        );
     }
 
     @Test
@@ -73,7 +107,7 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
 
-        SubscriptionEntity subscription = SubscriptionEntity.random();
+        SubscriptionEntity subscription = random();
         subscription.addArea(AreaEntity.random());
 
         Long id = daoUnderTest.createEntity(subscription).getId();
@@ -84,7 +118,6 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
         assertEquals(sizeBefore + 1, subscriptionEntities.size());
 
         SubscriptionEntity entityById = daoUnderTest.findEntityById(SubscriptionEntity.class, id);
-
         assertEquals(subscription, entityById);
     }
 
@@ -107,7 +140,6 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
 
         daoUnderTest.findEntityById(SubscriptionEntity.class, 1L);
         assertEquals(4, subscription.getAreas().size());
-
     }
 
     @Test
@@ -126,44 +158,6 @@ public class SubscriptionDaoTest extends BaseSubscriptionDaoTest {
 
         daoUnderTest.findEntityById(SubscriptionEntity.class, 1L);
         assertEquals(2, subscription.getAreas().size());
-
     }
 
-    @Test
-    @SneakyThrows
-    @Parameters(method = "subscriptionCreateWithConstraintViolationExceptionParameters")
-    public void testCreateWithMissingMandatoryValuesShouldThrowException(SubscriptionEntity subscription){
-
-        try {
-            EntityTransaction tx = em.getTransaction();
-            tx.begin();
-            daoUnderTest.createEntity(subscription);
-            em.flush();
-            fail("should throw javax.validation.ConstraintViolationException");
-        } catch (javax.validation.ConstraintViolationException e){
-            e.printStackTrace();
-        }
-    }
-
-    protected Object[] subscriptionCreateWithConstraintViolationExceptionParameters(){
-        return $(
-                $(SubscriptionEntity.builder().channel("channel100").build(),
-                        SubscriptionEntity.builder().name("name1").channel("channel4").build(),
-                        SubscriptionEntity.builder().name("name1").channel("channel4").endPoint("endpoint2").build(),
-                        SubscriptionEntity.builder().name("name1").channel("channel4").endPoint("endpoint2").organisation("org4").build(),
-                        SubscriptionEntity.builder().name("name1").channel("channel4").endPoint("endpoint2").organisation("org4").enabled(true).build(),
-                        SubscriptionEntity.builder().name("name1").channel("channel4").endPoint("endpoint2").organisation("org4").enabled(true).messageType(MessageType.FLUXFAReportMessage).build())
-        );
-    }
-    protected Object[] queryParameters(){
-        return $(
-                $(QueryParameterDto.builder().channel("channel1").build(), 0)//,
-               // $(QueryParameterDto.builder().channel("channel2").build(), 2),
-               // $(QueryParameterDto.builder().channel("channel3").build(), 1),
-               // $(QueryParameterDto.builder().build(), 4),
-               // $(QueryParameterDto.builder().enabled(true).build(), 3),
-               // $(QueryParameterDto.builder().channel("channel4").organisation("org1").name("subscription4").build(), 1),
-               // $(QueryParameterDto.builder().name("sub").enabled(true).build(), 2)
-        );
-    }
 }
