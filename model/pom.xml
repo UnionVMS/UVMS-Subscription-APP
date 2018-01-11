@@ -51,11 +51,6 @@
 		<dependency>
 			<groupId>eu.europa.ec.fisheries.uvms.commons</groupId>
 			<artifactId>uvms-commons-message</artifactId>
-			<version>3.0.7-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>eu.europa.ec.fisheries.uvms.commons</groupId>
-			<artifactId>uvms-commons-message</artifactId>
 			<version>${uvms.commons.version}</version>
 		</dependency>
 	</dependencies>
