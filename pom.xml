@@ -155,6 +155,10 @@
                 <version>${usm4uvms.version}</version>
                 <exclusions>
                     <exclusion>
+                        <groupId>eu.europa.ec.fisheries.uvms.commons</groupId>
+                        <artifactId>uvms-commons-service</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>org.jboss.resteasy</groupId>
                         <artifactId>resteasy-jaxrs</artifactId>
                     </exclusion>
