@@ -13,19 +13,6 @@ package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 import static eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper.mapToAuditLog;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.YES;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.EJB;
-import javax.ejb.LocalBean;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.interceptor.Interceptors;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.validation.constraints.NotNull;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
@@ -38,10 +25,21 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.OrderByDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.QueryParameterDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListResponseDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.ejb.LocalBean;
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.interceptor.Interceptors;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.validation.constraints.NotNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -78,15 +76,16 @@ public class SubscriptionServiceBean {
     @SuppressWarnings("unchecked")
     public SubscriptionPermissionResponse hasActiveSubscriptions(SubscriptionDataQuery query) {
         SubscriptionPermissionResponse response = new SubscriptionPermissionResponse();
-        Map<String, Object> stringObjectMap = CustomMapper.mapCriteriaToQueryParameters(query);
+/*        Map<String, Object> stringObjectMap = CustomMapper.mapCriteriaToQueryParameters(query);
         stringObjectMap.put("strict", true); // only use exact match in query
         List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(stringObjectMap, new HashMap<ColumnType, DirectionType>(),  -1 , -1);
         boolean empty = CollectionUtils.isEmpty(subscriptionEntities);
-        //if (empty){
-          //  response.setSubscriptionCheck(NO);
-        //} else {
+        if (empty){
+            response.setSubscriptionCheck(NO);
+        } else {
             response.setSubscriptionCheck(YES);
-        //}
+        }*/
+        response.setSubscriptionCheck(YES);
         return response;
     }
 
