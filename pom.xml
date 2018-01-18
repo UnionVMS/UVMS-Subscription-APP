@@ -11,7 +11,7 @@
         <groupId>fish.focus.uvms.maven</groupId>
         <artifactId>uvms-pom</artifactId>
         <relativePath />
-        <version>1.15</version>
+        <version>1.16</version>
     </parent>
 
     <properties>
@@ -154,6 +154,10 @@
                 <artifactId>usm4uvms</artifactId>
                 <version>${usm4uvms.version}</version>
                 <exclusions>
+                    <exclusion>
+                        <groupId>eu.europa.ec.fisheries.uvms.commons</groupId>
+                        <artifactId>uvms-commons-service</artifactId>
+                    </exclusion>
                     <exclusion>
                         <groupId>org.jboss.resteasy</groupId>
                         <artifactId>resteasy-jaxrs</artifactId>
