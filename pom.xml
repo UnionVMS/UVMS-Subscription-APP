@@ -194,7 +194,7 @@
     </distributionManagement>
 
     <scm>
-        <connection>scm:git:https://github.com/UnionVMS/UVMS-SubscriptionModule-APP.git</connection>
+        <connection>scm:git:https://github.com/UnionVMS/UVMS-Subscription-APP.git</connection>
         <tag>HEAD</tag>
     </scm>
 
