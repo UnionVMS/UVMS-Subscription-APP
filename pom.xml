@@ -4,7 +4,7 @@
 
     <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
     <artifactId>subscription</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -195,7 +195,7 @@
 
     <scm>
         <connection>scm:git:https://github.com/UnionVMS/UVMS-Subscription-APP.git</connection>
-        <tag>HEAD</tag>
+        <tag>subscription-1.0.0</tag>
     </scm>
 
     <modules>
