@@ -22,9 +22,11 @@
     </properties>
     
     <dependencies>
+
         <dependency>
             <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
             <artifactId>subscription-service</artifactId>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
 		<dependency>
