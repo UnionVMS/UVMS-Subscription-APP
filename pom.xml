@@ -4,7 +4,7 @@
 
     <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
     <artifactId>subscription</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -58,11 +58,6 @@
                 <groupId>eu.europa.ec.fisheries.uvms.audit</groupId>
                 <artifactId>audit-model</artifactId>
                 <version>${audit.model.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
-                <artifactId>subscription-service</artifactId>
-                <version>${project.version}</version>
             </dependency>
 			<dependency>
 				<groupId>fish.focus.uvms.maven</groupId>
