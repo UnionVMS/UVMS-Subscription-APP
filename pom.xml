@@ -45,11 +45,6 @@
 				<type>pom</type>
 			</dependency>
             <dependency>
-                <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
-                <artifactId>subscription-model</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>eu.europa.ec.fisheries.uvms.spatial</groupId>
                 <artifactId>spatial-model</artifactId>
                 <version>${spatial.model.version}</version>

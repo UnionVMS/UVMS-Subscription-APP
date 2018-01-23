@@ -57,6 +57,7 @@
         <dependency>
             <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
             <artifactId>subscription-model</artifactId>
+            <version>${project.parent.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
