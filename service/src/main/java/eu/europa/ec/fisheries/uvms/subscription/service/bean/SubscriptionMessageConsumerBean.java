@@ -25,8 +25,8 @@ import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.C
 import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.DESTINATION_TYPE_QUEUE;
 import static eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils.marshallJaxBObjectToString;
 import static eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils.unMarshallMessage;
-import static eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionMessageConsumerBean.QUEUE_NAME_SUBSCRIPTION_EVENT;
-import static eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionMessageConsumerBean.QUEUE_SUBSCRIPTION_EVENT;
+import static eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionMessageConsumerBean.QUEUE_SUBSCRIPTION;
+import static eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionMessageConsumerBean.QUEUE_NAME_SUBSCRIPTION;
 
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
@@ -42,18 +42,18 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataRequest;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
 import lombok.extern.slf4j.Slf4j;
 
-@MessageDriven(mappedName = QUEUE_SUBSCRIPTION_EVENT, activationConfig = {
+@MessageDriven(mappedName = QUEUE_SUBSCRIPTION, activationConfig = {
         @ActivationConfigProperty(propertyName = "messagingType", propertyValue = CONNECTION_TYPE),
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = DESTINATION_TYPE_QUEUE),
-        @ActivationConfigProperty(propertyName = "destination", propertyValue = QUEUE_NAME_SUBSCRIPTION_EVENT),
-        @ActivationConfigProperty(propertyName = "destinationJndiName", propertyValue = QUEUE_SUBSCRIPTION_EVENT),
+        @ActivationConfigProperty(propertyName = "destination", propertyValue = QUEUE_NAME_SUBSCRIPTION),
+        @ActivationConfigProperty(propertyName = "destinationJndiName", propertyValue = QUEUE_SUBSCRIPTION),
         @ActivationConfigProperty(propertyName = "connectionFactoryJndiName", propertyValue = CONNECTION_FACTORY)
 })
 @Slf4j
 public class SubscriptionMessageConsumerBean implements MessageListener {
 
-    static final String QUEUE_SUBSCRIPTION_EVENT = "jms/queue/UVMSSubscriptionEvent";
-    static final String QUEUE_NAME_SUBSCRIPTION_EVENT = "UVMSSubscriptionEvent";
+    static final String QUEUE_SUBSCRIPTION = "jms/queue/UVMSSubscription";
+    static final String QUEUE_NAME_SUBSCRIPTION = "UVMSSubscription";
 
     @EJB
     private SubscriptionProducerBean subscriptionProducerBean;

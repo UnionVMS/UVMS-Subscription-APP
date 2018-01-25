@@ -70,6 +70,10 @@
         </dependency>
         <dependency>
             <groupId>eu.europa.ec.fisheries.uvms.commons</groupId>
+            <artifactId>uvms-commons-message</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europa.ec.fisheries.uvms.commons</groupId>
             <artifactId>uvms-commons-dao</artifactId>
         </dependency>
         <dependency>
@@ -112,8 +116,20 @@
         </dependency>
 
         <dependency>
+            <groupId>eu.europa.ec.fisheries.uvms.user</groupId>
+            <artifactId>user-model</artifactId>
+            <version>${user.model.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>eu.europa.ec.fisheries.uvms</groupId>
             <artifactId>usm4uvms</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>eu.europa.ec.fisheries.uvms.user</groupId>
+                    <artifactId>user-model</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>
@@ -128,6 +144,7 @@
                     <ejbVersion>${maven.ejb.plugin.ejb.version}</ejbVersion>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>properties-maven-plugin</artifactId>

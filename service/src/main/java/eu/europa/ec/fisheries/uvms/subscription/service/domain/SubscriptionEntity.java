@@ -20,21 +20,12 @@ import static javax.persistence.EnumType.STRING;
 import static javax.persistence.GenerationType.AUTO;
 import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
 
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.PrePersist;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.nio.channels.Channel;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Random;
@@ -133,15 +124,24 @@ public class SubscriptionEntity implements Serializable {
     private DateRange validityPeriod = new DateRange(new Date(), new Date(Long.MAX_VALUE));
 
     @NotNull
-    private String organisation;
+    private Long organisation;
+
+    @Transient
+    private String organisationName;
+
+    @Transient
+    private String endpointName;
+
+    @Transient
+    private String channelName;
 
     @NotNull
     @Column(name = "end_point")
-    private String endPoint;
+    private Long endPoint;
 
     @NotNull
     @JsonProperty("communicationChannel")
-    private String channel;
+    private Long channel;
 
     @Enumerated(STRING)
     @NotNull
@@ -191,11 +191,11 @@ public class SubscriptionEntity implements Serializable {
 
     public static SubscriptionEntity random(){
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
-        subscriptionEntity.setChannel(randomAlphabetic(100));
+        subscriptionEntity.setChannel(new Random().nextLong());
         subscriptionEntity.setDescription(randomAlphabetic(200));
-        subscriptionEntity.setEndPoint(randomAlphabetic(100));
+        subscriptionEntity.setEndPoint(new Random().nextLong());
         subscriptionEntity.setName(randomAlphabetic(40));
-        subscriptionEntity.setOrganisation(randomAlphabetic(40));
+        subscriptionEntity.setOrganisation(new Random().nextLong());
         subscriptionEntity.setEnabled(new Random().nextBoolean());
         subscriptionEntity.setMessageType(MessageType.values()[new Random().nextInt(MessageType.values().length)]);
         subscriptionEntity.setStateType(StateType.values()[new Random().nextInt(StateType.values().length)]);
