@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
 		<artifactId>subscription</artifactId>
-		<version>4.0.5-SNAPSHOT</version>
+		<version>1.0.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -14,7 +14,7 @@
 
 	<scm>
 		<connection>scm:git:https://github.com/UnionVMS/UVMS-SubscriptionModule-MODEL.git</connection>
-		<tag>HEAD</tag>
+		<tag>subscription-1.0.0</tag>
 	</scm>
 
 	<properties>
@@ -22,7 +22,7 @@
 		<wsdl.source.name>AssetDataSourceService</wsdl.source.name>
 		<binding.xml>binding-date.xml</binding.xml>
 		<jaxb2-basics.version>0.9.5</jaxb2-basics.version>
-		<uvms.commons.version>3.0.8-SNAPSHOT</uvms.commons.version>
+		<uvms.commons.version>3.0.8</uvms.commons.version>
 	</properties>
 
 	<dependencies>

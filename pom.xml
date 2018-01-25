@@ -4,7 +4,7 @@
 
     <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
     <artifactId>subscription</artifactId>
-    <version>4.0.5-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -17,9 +17,9 @@
     <properties>
         <maven.ejb.plugin.ejb.version>3.1</maven.ejb.plugin.ejb.version>
         <subscription.api.check.against.version>4.0.0</subscription.api.check.against.version>
-        <usm4uvms.version>4.0.8-SNAPSHOT</usm4uvms.version>
+        <usm4uvms.version>4.0.8</usm4uvms.version>
     	<docker.dev.version>3.24.0</docker.dev.version>    	
-        <spatial.model.version>1.0.10-SNAPSHOT</spatial.model.version>
+        <spatial.model.version>1.0.10</spatial.model.version>
         <audit.model.version>4.0.6</audit.model.version>
         <hibernate.version>4.3.11.Final</hibernate.version>
         <lombok.version>1.16.18</lombok.version>
@@ -46,11 +46,6 @@
 				<type>pom</type>
 			</dependency>
             <dependency>
-                <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
-                <artifactId>subscription-model</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>eu.europa.ec.fisheries.uvms.spatial</groupId>
                 <artifactId>spatial-model</artifactId>
                 <version>${spatial.model.version}</version>
@@ -59,11 +54,6 @@
                 <groupId>eu.europa.ec.fisheries.uvms.audit</groupId>
                 <artifactId>audit-model</artifactId>
                 <version>${audit.model.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
-                <artifactId>subscription-service</artifactId>
-                <version>${project.version}</version>
             </dependency>
 			<dependency>
 				<groupId>fish.focus.uvms.maven</groupId>
@@ -195,8 +185,8 @@
     </distributionManagement>
 
     <scm>
-        <connection>scm:git:https://github.com/UnionVMS/UVMS-SubscriptionModule-APP.git</connection>
-        <tag>HEAD</tag>
+        <connection>scm:git:https://github.com/UnionVMS/UVMS-Subscription-APP.git</connection>
+        <tag>subscription-1.0.0</tag>
     </scm>
 
     <modules>

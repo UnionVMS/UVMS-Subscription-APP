@@ -41,7 +41,7 @@ public class SubscriptionTestHelper {
         startDate.setValue("2017-07-01T02:00:00.000+02:00");
 
         dataQuery.getCriteria().add(organisation);
-        dataQuery.getCriteria().add(startDate);
+        //dataQuery.getCriteria().add(startDate);FIXME
 
         return dataQuery;
     }
@@ -69,8 +69,8 @@ public class SubscriptionTestHelper {
         endDate.setValue("2018-07-01T02:00:00.000+02:00");
 
         dataQuery.getCriteria().add(organisation);
-        dataQuery.getCriteria().add(startDate);
-        dataQuery.getCriteria().add(endDate);
+        //dataQuery.getCriteria().add(startDate); FIXME
+        //dataQuery.getCriteria().add(endDate);FIXME
 
         return dataQuery;
     }

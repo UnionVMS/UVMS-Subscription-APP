@@ -72,16 +72,16 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
         Object endDate = queryParameters.get(END_DATE);
 
         if (startDate != null && endDate == null) {
-            queryParameters.put(END_DATE, startDate);
+            queryParameters.put(END_DATE, DateUtils.END_OF_TIME.toDate());
         }
 
         if (endDate != null && startDate == null) {
-            queryParameters.put(START_DATE, endDate);
+            queryParameters.put(START_DATE, DateUtils.START_OF_TIME.toDate());
         }
 
         if (endDate == null && startDate == null){
-            queryParameters.put(END_DATE, DateUtils.START_OF_TIME.toDate());
-            queryParameters.put(START_DATE, DateUtils.END_OF_TIME.toDate());
+            queryParameters.put(END_DATE, DateUtils.END_OF_TIME.toDate());
+            queryParameters.put(START_DATE, DateUtils.START_OF_TIME.toDate());
         }
 
         for (Map.Entry<String, Object> entry : queryParameters.entrySet()){

@@ -67,7 +67,7 @@ public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
     @Test
     @Parameters(method = "dataQuery")
     public void testListSubscriptionForModuleAuthorization(SubscriptionDataQuery dataQuery, int expected){
-        Map<String, Object> map = CustomMapper.mapCriteriaToQueryParameters(dataQuery);
+        Map<String, Object> map = CustomMapper.mapCriteriaToQueryParameters(dataQuery); // FIXME add startEndDate logic from rest
         map.put("strict", true);
         List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(map, new HashMap<ColumnType, DirectionType>(),-1, -1);
         assertEquals(expected, subscriptionEntities.size());

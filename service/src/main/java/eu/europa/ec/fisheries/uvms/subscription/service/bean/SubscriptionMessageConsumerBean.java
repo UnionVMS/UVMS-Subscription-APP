@@ -69,6 +69,7 @@ public class SubscriptionMessageConsumerBean implements MessageListener {
         String jmsCorrelationID = null;
         String jmsMessageID = null;
         try {
+            log.info("[INFO] Received message in Subscription...");
             textMessage = (TextMessage) message;
             jmsCorrelationID = textMessage.getJMSCorrelationID();
             jmsMessageID = textMessage.getJMSMessageID();
@@ -76,13 +77,17 @@ public class SubscriptionMessageConsumerBean implements MessageListener {
             switch (moduleRequest.getMethod()) {
                 case PING:
                     break;
-                case MODULE_ACCESS_PERMISSION_REQUEST:
+                case MODULE_ACCESS_PERMISSION_REQUEST :
+                    log.info("[START] Received MODULE_ACCESS_PERMISSION_REQUEST..");
                     SubscriptionDataRequest request = unMarshallMessage(textMessage.getText(), SubscriptionDataRequest.class);
                     SubscriptionPermissionResponse dataRequestAllowed = service.hasActiveSubscriptions(request.getQuery());
+                    log.info("[INFO] Checked permissions... Going to send back : " + dataRequestAllowed.getSubscriptionCheck());
                     String messageToSend = marshallJaxBObjectToString(dataRequestAllowed);
                     subscriptionProducerBean.sendMessage(jmsMessageID, jmsCorrelationID, subscriptionProducerBean.getRulesQueue(), null, messageToSend);
+                    log.info("[END] Answer sent to Rules module...");
                     break;
-                case DATA_CHANGE_REQUEST:
+                case DATA_CHANGE_REQUEST :
+                    log.error("DATA_CHANGE_REQUEST not implemented yet!");
                     break;
                 default:
                     subscriptionProducerBean.sendMessage(jmsMessageID, jmsCorrelationID, subscriptionProducerBean.getRulesQueue(), null, "[ Not implemented method consumed: {} ]");
