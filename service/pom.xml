@@ -110,6 +110,12 @@
         </dependency>
 
         <dependency>
+            <groupId>eu.europa.ec.fisheries.uvms.user</groupId>
+            <artifactId>user-model</artifactId>
+            <version>${user.model.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>eu.europa.ec.fisheries.uvms</groupId>
             <artifactId>usm4uvms</artifactId>
             <exclusions>
@@ -118,12 +124,6 @@
                     <artifactId>user-model</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europa.ec.fisheries.uvms.user</groupId>
-            <artifactId>user-model</artifactId>
-            <version>${user.model.version}</version>
         </dependency>
 
     </dependencies>
