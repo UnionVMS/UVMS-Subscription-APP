@@ -30,6 +30,11 @@ import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMappe
 import eu.europa.ec.fisheries.uvms.user.model.mapper.UserModuleRequestMapper;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
+import eu.europa.ec.fisheries.wsdl.user.module.FindOrganisationsResponse;
+import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
+import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
+import javax.jms.TextMessage;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
