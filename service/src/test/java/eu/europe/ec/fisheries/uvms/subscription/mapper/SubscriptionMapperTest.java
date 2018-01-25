@@ -47,13 +47,13 @@ public class SubscriptionMapperTest {
         dto.setEndDate(endDate);
 
         dto.setName("name");
-        dto.setChannel("channel");
+        dto.setChannel(new Long( 1 ));
         dto.setDescription("description");
         dto.setTriggerType(TriggerType.AUTO);
-        dto.setOrganisation("organisation");
+        dto.setOrganisation(new Long( 1 ));
         dto.setActive(true);
         dto.setDelay("1,1,1");
-        dto.setEndPoint("endPoint");
+        dto.setEndPoint(new Long(2));
         dto.setSubscriptionType(SubscriptionType.TX_PULL);
         dto.setMessageType(MessageType.FLUX_FA_REPORT_MESSAGE);
         dto.setAccessibility(AccessibilityType.PRIVATE);
@@ -68,8 +68,8 @@ public class SubscriptionMapperTest {
 
         assertEquals(TriggerType.AUTO, entity.getTriggerType());
         assertEquals(true, entity.isEnabled());
-        assertEquals("organisation", entity.getOrganisation());
-        assertEquals("channel", entity.getChannel());
+        assertEquals(new Long(1), entity.getOrganisation());
+        assertEquals(new Long(1), entity.getChannel());
         assertEquals("name", entity.getName());
         assertEquals(SubscriptionType.TX_PULL, entity.getSubscriptionType());
         assertEquals(MessageType.FLUX_FA_REPORT_MESSAGE, entity.getMessageType());
@@ -78,7 +78,7 @@ public class SubscriptionMapperTest {
         assertEquals("1,1,1", entity.getDelay());
         assertEquals(startDate, entity.getValidityPeriod().getStartDate());
         assertEquals(endDate, entity.getValidityPeriod().getEndDate());
-        assertEquals("endPoint", entity.getEndPoint());
+        assertEquals(new Long(2), entity.getEndPoint());
         assertEquals(AccessibilityType.PRIVATE, entity.getAccessibility());
 
     }

@@ -32,7 +32,7 @@ public class SubscriptionTestHelper {
         SubscriptionDataCriteria organisation = new SubscriptionDataCriteria();
         organisation.setCriteria(CriteriaType.SENDER);
         organisation.setSubCriteria(SubCriteriaType.ORGANISATION);
-        organisation.setValue("organisation1");
+        organisation.setValue("1");
 
         SubscriptionDataCriteria startDate = new SubscriptionDataCriteria();
         startDate.setCriteria(CriteriaType.VALIDITY_PERIOD);
@@ -54,7 +54,7 @@ public class SubscriptionTestHelper {
         SubscriptionDataCriteria organisation = new SubscriptionDataCriteria();
         organisation.setCriteria(CriteriaType.SENDER);
         organisation.setSubCriteria(SubCriteriaType.ORGANISATION);
-        organisation.setValue("organisation1");
+        organisation.setValue("3");
 
         SubscriptionDataCriteria startDate = new SubscriptionDataCriteria();
         startDate.setCriteria(CriteriaType.VALIDITY_PERIOD);
@@ -83,7 +83,7 @@ public class SubscriptionTestHelper {
         SubscriptionDataCriteria organisation = new SubscriptionDataCriteria();
         organisation.setCriteria(CriteriaType.SENDER);
         organisation.setSubCriteria(SubCriteriaType.ORGANISATION);
-        organisation.setValue("org");
+        organisation.setValue("4");
 
         SubscriptionDataCriteria startDate = new SubscriptionDataCriteria();
         startDate.setCriteria(CriteriaType.VALIDITY_PERIOD);

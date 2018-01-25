@@ -14,8 +14,10 @@ import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.random;
 import static junitparams.JUnitParamsRunner.$;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import javax.persistence.EntityTransaction;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +37,9 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
+import eu.europa.ec.fisheries.wsdl.user.types.Channel;
+import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
+import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
 import eu.europe.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
@@ -71,7 +76,7 @@ public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
     protected Object[] dataQuery(){
         return $(
                 $(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_1(), 1),
-                $(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_2(), 1),
+                $(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_2(), 0),
                 $(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_3(), 0)
         );
     }
@@ -88,13 +93,13 @@ public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
 
     protected Object[] queryParameters(){
         return $(
-                $(QueryParameterDto.builder().channel("channel1").build(), 0),
-                $(QueryParameterDto.builder().channel("channel2").build(), 2),
-                $(QueryParameterDto.builder().channel("channel3").build(), 1),
+                $(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
+                $(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
+                $(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
                 $(QueryParameterDto.builder().build(), 4),
-                $(QueryParameterDto.builder().messageType(MessageType.FLUX_FA_QUERY_MESSAGE).organisation("organisation1").build(), 1),
+                $(QueryParameterDto.builder().messageType(MessageType.FLUX_FA_QUERY_MESSAGE).organisation(new Long(1)).build(), 1),
                 $(QueryParameterDto.builder().enabled(true).build(), 3),
-                $(QueryParameterDto.builder().channel("channel4").organisation("org1").name("subscription4").build(), 1),
+                $(QueryParameterDto.builder().channel(new Long(1)).organisation(new Long(1)).name("subscription4").build(), 0),
                 $(QueryParameterDto.builder().name("sub").enabled(true).build(), 2)
         );
     }
@@ -158,6 +163,89 @@ public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
 
         daoUnderTest.findEntityById(SubscriptionEntity.class, 1L);
         assertEquals(2, subscription.getAreas().size());
+    }
+
+
+    @Test
+    @SneakyThrows
+    public void testListSubscriptionForEnrichment(){
+        List<SubscriptionEntity> subscriptionList = daoUnderTest.findAllEntity(SubscriptionEntity.class);
+        List<SubscriptionEntity> subscriptionEntityList = CustomMapper.enrichSubscriptionList(subscriptionList, fetchAllOrganisations() );
+
+        for(SubscriptionEntity subscription: subscriptionEntityList){
+            System.out.println(subscription.getOrganisationName() +
+                    " - " + subscription.getChannelName() +
+                    " - " + subscription.getEndpointName() );
+            assertNotNull( subscription.getOrganisationName() );
+            assertNotNull( subscription.getChannelName() );
+            assertNotNull( subscription.getEndpointName() );
+        }
+    }
+
+    private static List<Organisation> fetchAllOrganisations() {
+
+        List<Organisation> organisationList = new ArrayList<>(1);
+        Organisation org1 = new Organisation();
+        org1.setId( 1 );
+        org1.setEmail( "org1@email.com" );
+        org1.setParentOrganisation( "PARENT ORG 1 NAME" );
+        org1.setName( "ORG1 NAME" );
+        List<EndPoint> endpointList = org1.getEndPoints();
+        EndPoint endpoint1 = new EndPoint();
+        endpoint1.setId( 24 );
+        endpoint1.setName( "FLUX.EEC" );
+        endpoint1.setEnabled( true );
+        List<Channel> channelList = endpoint1.getChannels();
+        Channel channel1 = new Channel();
+        channel1.setId( 1 );
+        channel1.setDataFlow( "DataFlow" );
+        channel1.setService( "Channel Service " );
+
+        channelList.add( channel1 );
+
+        EndPoint endpoint2 = new EndPoint();
+        endpoint2.setId( 4 );
+        endpoint2.setName( "FLUX.FRA" );
+        endpoint2.setEnabled( true );
+        List<Channel> channelList2 = endpoint2.getChannels();
+        channelList2.add( channel1 );
+
+        EndPoint endpoint3 = new EndPoint();
+        endpoint3.setId( 1 );
+        endpoint3.setName( "FLUX.GRC" );
+        endpoint3.setEnabled( true );
+        List<Channel> channelList3 = endpoint3.getChannels();
+        channelList3.add( channel1 );
+
+        endpointList.add( endpoint1 );
+        endpointList.add( endpoint2 );
+        endpointList.add( endpoint3 );
+
+        Organisation org2 = new Organisation();
+        org2.setId( 2 );
+        org2.setEmail( "org2@email.com" );
+        org2.setParentOrganisation( "ORG1 NAME" );
+        org2.setName( "ORG2 NAME" );
+        List<EndPoint> endpointList2 = org2.getEndPoints();
+        endpointList2.add( endpoint1 );
+        endpointList2.add( endpoint2 );
+        endpointList2.add( endpoint3 );
+
+        Organisation org3 = new Organisation();
+        org3.setId( 4 );
+        org3.setEmail( "org3@email.com" );
+        org3.setParentOrganisation( "ORG1 NAME" );
+        org3.setName( "ORG3 NAME" );
+        List<EndPoint> endpointList3 = org3.getEndPoints();
+        endpointList3.add( endpoint1 );
+        endpointList3.add( endpoint2 );
+        endpointList3.add( endpoint3 );
+
+
+        organisationList.add( org1 );
+        organisationList.add( org2 );
+        organisationList.add( org3 );
+        return organisationList;
     }
 
 }

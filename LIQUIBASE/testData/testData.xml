@@ -6,15 +6,15 @@
     <changeSet author="emrinalgr (generated)" id="1513684356983-1">
         <insert tableName="subscription">
             <column name="id" valueNumeric="1"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="2"/>
             <column name="subscription_guid" value="78789731-1b91-489e-8432-04b783f2f0f6"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name1"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="1"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -23,15 +23,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="2"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="853d17a3-0a7d-40d4-9bf4-d565b005f726"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name2"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="1"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -40,15 +40,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="3"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="2"/>
             <column name="subscription_guid" value="8c02adc1-f015-4221-8b6c-aa4b2ff132c5"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name3"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="2"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -57,15 +57,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="4"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="cc63eec9-ca2c-477b-9d6e-b8cd87404632"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name4"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="3"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -74,15 +74,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="5"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="2"/>
             <column name="subscription_guid" value="0b9f3a60-56e2-4c17-bc9d-6dc28551bc50"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name5"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="3"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -91,15 +91,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="6"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="bdb36dcb-5acf-4431-8488-e5a803e4a11c"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name6"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="4"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -108,15 +108,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="7"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="2"/>
             <column name="subscription_guid" value="d71c3765-d239-4c1e-9ee6-6e22ee21607c"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name7"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="4"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -125,15 +125,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="8"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="a7d29372-3888-49c3-a0ab-1a2fb5c7a907"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name8"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="4"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -142,15 +142,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="9"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="2"/>
             <column name="subscription_guid" value="72f25d44-8809-409d-a3e0-65051ba2313c"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name9"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="1"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -159,15 +159,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="10"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="afae9f91-e379-413d-b713-e1b5dff087b9"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name10"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="3"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -176,15 +176,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="119"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="2"/>
             <column name="subscription_guid" value="c1adac2e-59cf-4ee8-915e-2d2436bd0fbf"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name11"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="2"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -193,15 +193,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="11"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="2ec82787-c43c-4954-ae7d-997a23d1c3a5"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name12"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="4"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -210,15 +210,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="12"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="2"/>
             <column name="subscription_guid" value="7573acd1-3627-49b3-9b55-88c7363ca70d"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name13"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="2"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -227,15 +227,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="13"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="f7c535da-f771-44a5-926c-c1602c2de6fd"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name14"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="4"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -244,15 +244,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="14"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="2"/>
             <column name="subscription_guid" value="d810d402-cee6-4806-a98c-5cccbd7496d3"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name15"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="2"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -261,15 +261,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="15"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="cacab9b1-3863-4e34-a8c7-4dc809d653b8"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name16"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="1"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -278,15 +278,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="16"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="2"/>
             <column name="subscription_guid" value="467e632a-8f6d-4a1c-a88a-afcb76f37c41"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name17"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="1"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -295,15 +295,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="17"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="a868e48a-4039-48dd-a919-00a9a63eddeb"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name18"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="4"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -312,15 +312,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="18"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="2"/>
             <column name="subscription_guid" value="38d48838-b4d6-4ade-b5d6-d8d9bdc22cd7"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name19"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="4"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -329,15 +329,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="19"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="b82640f2-73a8-49f1-b771-e8e6e7cb3705"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name20"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="4"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -346,15 +346,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="20"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="2"/>
             <column name="subscription_guid" value="d2483450-0024-44a3-941c-afe05120dba0"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name21"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="3"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -363,15 +363,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="21"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="c6403248-7ff3-463e-bc5c-86f1e984e614"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name22"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="1"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -380,15 +380,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="22"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="2"/>
             <column name="subscription_guid" value="b24caf6d-777f-4bf8-b3e1-b9638aac05a9"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name23"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="3"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -397,15 +397,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="23"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="fd7a495e-0c97-4c6f-90f0-74aae87864c2"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name24"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="1"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -414,15 +414,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="24"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="2"/>
             <column name="subscription_guid" value="a6a92394-e4dc-4353-b0c6-37f7367b1510"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name25"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="3"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -431,15 +431,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="25"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="dc2e30c3-ec26-4a6c-845a-4e603d38dd7c"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name26"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="4"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -448,15 +448,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="26"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="a4bc3701-6476-4789-be8b-7b3063126da3"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name27"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="3"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -465,15 +465,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="27"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="2"/>
             <column name="subscription_guid" value="d2dd0660-2625-4e04-b93d-43e7d6b8bae2"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name29"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="1"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -482,15 +482,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="28"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="2"/>
             <column name="subscription_guid" value="61bbad36-a8dd-4a32-b187-0a9b046fe4eb"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name28"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="2"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -499,15 +499,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="29"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="b3a55adf-3499-48a8-9a3d-e79707a45397"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name30"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="3"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
@@ -516,15 +516,15 @@
         </insert>
         <insert tableName="subscription">
             <column name="id" valueNumeric="30"/>
-            <column name="channel" value="channel"/>
+            <column name="channel" valueNumeric="1"/>
             <column name="delay"/>
             <column name="description" value="description"/>
             <column name="enabled" valueBoolean="true"/>
-            <column name="end_point" value="endPoint"/>
+            <column name="end_point" valueNumeric="4"/>
             <column name="subscription_guid" value="c92fcb36-4005-4bd4-b760-28d3ac3aa802"/>
             <column name="message_type" value="FLUX_FA_REPORT_MESSAGE"/>
             <column name="name" value="name31"/>
-            <column name="organisation" value="organisation"/>
+            <column name="organisation" valueNumeric="4"/>
             <column name="state_type" value="INACTIVE"/>
             <column name="subscription_type" value="TX_PULL"/>
             <column name="trigger_type" value="MANUAL"/>
