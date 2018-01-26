@@ -9,13 +9,13 @@
     
     <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
     <artifactId>subscription</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     
     <scm>
         <url>${scm.url}</url>
         <connection>${scm.connection}</connection>
-        <tag>subscription-1.0.0</tag>
+        <tag>HEAD</tag>
     </scm>
     
     <properties>
