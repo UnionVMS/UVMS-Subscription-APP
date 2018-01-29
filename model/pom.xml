@@ -22,7 +22,7 @@
 		<wsdl.source.name>AssetDataSourceService</wsdl.source.name>
 		<binding.xml>binding-date.xml</binding.xml>
 		<jaxb2-basics.version>0.9.5</jaxb2-basics.version>
-		<uvms.commons.version>3.0.8</uvms.commons.version>
+		<uvms.commons.version>3.0.9-SNAPSHOT</uvms.commons.version>
 	</properties>
 
 	<dependencies>

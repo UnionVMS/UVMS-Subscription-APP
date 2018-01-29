@@ -14,6 +14,7 @@ import static eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper.mapT
 import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.YES;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.ValidationInterceptor;
@@ -26,6 +27,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.QueryParameterDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListResponseDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
 import java.util.HashMap;
@@ -37,8 +40,6 @@ import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.interceptor.Interceptors;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +48,7 @@ import org.apache.commons.collections.CollectionUtils;
 @Stateless
 @LocalBean
 @Slf4j
-public class SubscriptionServiceBean {
+public class SubscriptionServiceBean extends BaseSubscriptionBean {
 
     private static final String SUBSCRIPTION = "SUBSCRIPTION";
     private SubscriptionDao subscriptionDAO;
@@ -60,11 +61,15 @@ public class SubscriptionServiceBean {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    @PersistenceContext(unitName = "subscriptionPU")
-    private EntityManager em;
+    @EJB
+    private SubscriptionAuditProducer auditProducer;
+
+    @EJB
+    private SubscriptionProducerBean subscriptionProducer;
 
     @PostConstruct
     public void init() {
+        initEntityManager();
         subscriptionDAO = new SubscriptionDao(em);
     }
 
@@ -138,8 +143,7 @@ public class SubscriptionServiceBean {
     public SubscriptionDto create(@NotNull SubscriptionDto subscription, @NotNull String currentUser) {
         SubscriptionEntity entity = mapper.mapDtoToEntity(subscription);
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
-        String log = mapToAuditLog(SUBSCRIPTION, AuditActionEnum.CREATE.name(), saved.getId().toString(), currentUser);
-        producer.sendMessage(producer.getAuditEventQueue(), producer.getSubscriptionEventQueue(), log);
+        sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.CREATE.name(), saved.getId().toString(), currentUser));
         return mapper.mapEntityToDto(saved);
     }
 
@@ -153,8 +157,7 @@ public class SubscriptionServiceBean {
         }
         mapper.updateEntity(subscription, entityById);
         SubscriptionEntity subscriptionEntity = subscriptionDAO.updateEntity(entityById);
-        String log = mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), subscriptionEntity.getId().toString(), currentUser);
-        producer.sendMessage(producer.getAuditEventQueue(), producer.getSubscriptionEventQueue(), log);
+        sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), subscriptionEntity.getId().toString(), currentUser));
         return mapper.mapEntityToDto(subscriptionEntity);
     }
 
@@ -162,8 +165,11 @@ public class SubscriptionServiceBean {
     @Interceptors(ValidationInterceptor.class)
     public void delete(@NotNull Long id, @NotNull String currentUser) {
         subscriptionDAO.deleteEntity(SubscriptionEntity.class, id);
-        String log = mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), String.valueOf(id), currentUser);
-        producer.sendMessage(producer.getAuditEventQueue(), producer.getSubscriptionEventQueue(), log);
+        sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), String.valueOf(id), currentUser));
+    }
+
+    public void sendLogToAudit(String log) throws MessageException {
+        auditProducer.sendModuleMessage(log, subscriptionProducer.getDestination());
     }
 
     @Interceptors(ValidationInterceptor.class)
