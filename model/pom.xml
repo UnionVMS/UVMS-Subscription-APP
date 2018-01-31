@@ -14,6 +14,7 @@
         <wsdl.contract.name>SubscriptionModuleService</wsdl.contract.name>
         <wsdl.source.name>AssetDataSourceService</wsdl.source.name>
         <binding.xml>binding-date.xml</binding.xml>
+        <uvms.commons.version>3.0.9-SNAPSHOT</uvms.commons.version>
     </properties>
 
     <dependencies>
@@ -60,7 +61,7 @@
                                     </bindingFiles>
                                     <extraargs>
                                         <extraarg>-xjc-Xcommons-lang</extraarg>
-                                        <extraarg>-xjc-Xcommons-lang:ToStringStyle=SHORT_PREFIX_STYLE</extraarg>										
+                                        <extraarg>-xjc-Xcommons-lang:ToStringStyle=SHORT_PREFIX_STYLE</extraarg>
                                     </extraargs>
                                 </wsdlOption>
                             </wsdlOptions>
