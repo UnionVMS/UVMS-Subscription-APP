@@ -1,89 +1,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>liquibase</artifactId>
-    <name>${project.artifactId}</name>
-    <packaging>pom</packaging>
-
     <parent>
         <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
         <artifactId>subscription</artifactId>
         <version>1.0.1-SNAPSHOT</version>
     </parent>
 
+    <artifactId>liquibase</artifactId>
+    <packaging>pom</packaging>
+
     <properties>
-        <liquibase.core.version>3.4.2</liquibase.core.version>
         <liquibase.contexts>default</liquibase.contexts>
         <liquibase.update.phase>test</liquibase.update.phase>
-        <postgresql.version>9.4-1201-jdbc41</postgresql.version>
-        <ojdbc6.version>11.2.0.4</ojdbc6.version>
         <liquibase.spatial.version>1.2.1</liquibase.spatial.version>
     </properties>
-
-    <dependencyManagement>
-
-        <dependencies>
-
-            <dependency>
-                <groupId>org.liquibase</groupId>
-                <artifactId>liquibase-core</artifactId>
-                <version>${liquibase.core.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.postgresql</groupId>
-                <artifactId>postgresql</artifactId>
-                <version>${postgresql.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.oracle</groupId>
-                <artifactId>ojdbc6</artifactId>
-                <version>${ojdbc6.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.github.lonnyj</groupId>
-                <artifactId>liquibase-spatial</artifactId>
-                <version>${liquibase.spatial.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.liquibase</groupId>
-                <artifactId>liquibase-maven-plugin</artifactId>
-                <version>3.2.1</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
-    <dependencies>
-
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.lonnyj</groupId>
-            <artifactId>liquibase-spatial</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.vividsolutions</groupId>
-                    <artifactId>jts</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-maven-plugin</artifactId>
-        </dependency>
-    </dependencies>
-
     <profiles>
 
         <profile>
@@ -99,8 +30,17 @@
                 <db.defaultSchema>subscription</db.defaultSchema>
                 <db.changeLogFile>changelog/db-changelog-master.xml</db.changeLogFile>
                 <db.outputFile>changelog/generatedChangelog.xml</db.outputFile>
-                <db.diffTypes />
+                <driver.groupId>org.postgresql</driver.groupId>
+                <driver.artifactId>postgresql</driver.artifactId>
+                <driver.version>9.4-1201-jdbc41</driver.version>
             </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>${driver.groupId}</groupId>
+                    <artifactId>${driver.artifactId}</artifactId>
+                    <version>${driver.version}</version>
+                </dependency>
+            </dependencies>            
         </profile>
 
         <profile>
@@ -113,54 +53,23 @@
                 <db.driver>oracle.jdbc.driver.OracleDriver</db.driver>
                 <db.user>subscription</db.user>
                 <db.passwd>subscription</db.passwd>
-                <db.changeLogFile>changelog/db-changelog-master-oracle.xml</db.changeLogFile>
+                <db.changeLogFile>changelog/db-changelog-master.xml</db.changeLogFile>
                 <driver.groupId>com.oracle</driver.groupId>
                 <driver.artifactId>ojdbc7</driver.artifactId>
                 <driver.version>12.1.0.2.0</driver.version>
             </properties>
+	    
+            <dependencies>
+                <dependency>
+                    <groupId>${driver.groupId}</groupId>
+                    <artifactId>${driver.artifactId}</artifactId>
+                    <version>${driver.version}</version>
+                </dependency>
+            </dependencies>            
+
         </profile>
 
-        <profile>
-            <id>exec</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <inherited>false</inherited>
-                        <version>2.6</version>
-                        <configuration>
-                            <finalName>${project.name}-${project.version}</finalName>
-                            <descriptor>assembly.xml</descriptor>
-                            <appendAssemblyId>false</appendAssemblyId>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>make-assembly</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.liquibase</groupId>
-                        <artifactId>liquibase-maven-plugin</artifactId>
-                        <configuration>
-                            <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
-                            <changeLogFile>${db.changeLogFile}</changeLogFile>
-                            <driver>${db.driver}</driver>
-                            <url>${db.url}</url>
-                            <username>${db.user}</username>
-                            <password>${db.passwd}</password>
-                            <defaultSchemaName>${db.defaultSchema}</defaultSchemaName>
-                            <outputChangeLogFile>${db.outputFile}</outputChangeLogFile>
-                            <diffTypes>${db.diffTypes}</diffTypes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
+        
 
         <profile>
             <id>export</id>
@@ -176,7 +85,8 @@
             </properties>
         </profile>
         <profile>
-            <id>publish-sql</id>
+            <!-- Generate sql from liquibase script against docker db-->
+            <id>publish-sql</id> 
             <build>
                 <plugins>
                     <plugin>
@@ -261,7 +171,7 @@
                     <plugin>
                         <groupId>org.liquibase</groupId>
                         <artifactId>liquibase-maven-plugin</artifactId>
-                        <version>3.4.2</version>
+            
                         <configuration>
                             <url>${db.docker.url}</url>
                             <migrationSqlOutputFile>${project.build.directory}/full-update.sql</migrationSqlOutputFile>
@@ -313,5 +223,69 @@
             </properties>
         </profile>
     </profiles>
-
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.liquibase</groupId>
+                    <artifactId>liquibase-maven-plugin</artifactId>
+                    <version>3.5.3</version>
+                    <configuration>
+                        <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
+                        <changeLogFile>${db.changeLogFile}</changeLogFile>
+                        <driver>${db.driver}</driver>
+                        <url>${db.url}</url>
+                        <username>${db.user}</username>
+                        <password>${db.passwd}</password>
+                        <defaultSchemaName>${db.defaultSchema}</defaultSchemaName>
+                        <outputChangeLogFile>${db.outputFile}</outputChangeLogFile>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4.1</version>
+                <configuration>
+                    <descriptor>assembly.xml</descriptor>
+                    <finalName>${artifactId}</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <!-- put the default-jar in the none phase to skip it from being created -->
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <goals>
+                    <goal>deploy-file</goal>
+                </goals>
+                <configuration>
+                    <packaging>zip</packaging>
+                    <generatePom>true</generatePom>
+                    <artifactId>${project.artifactId}</artifactId>
+                    <groupId>${project.groupId}</groupId>
+                    <version>${project.version}</version>
+                    <file>target/liquibase.zip</file>
+                </configuration>
+            </plugin>        	
+        </plugins>
+    </build>
 </project>

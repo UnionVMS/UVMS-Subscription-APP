@@ -1,24 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>subscription-module</artifactId>
-    <name>${project.parent.artifactId}-module</name>
-    <packaging>ear</packaging>
-
     <parent>
-	    <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
-	    <artifactId>subscription</artifactId>
-	    <version>1.0.1-SNAPSHOT</version>
-	    <relativePath>../pom.xml</relativePath>
+        <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
+        <artifactId>subscription</artifactId>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
 
-    <properties>
-        <wildfly.maven.plugin.version>1.0.2.Final</wildfly.maven.plugin.version>
-        <maven.ear.plugin.version>2.7</maven.ear.plugin.version>
-    </properties>
+    <artifactId>subscription-module</artifactId>
+    <packaging>ear</packaging>
 
     <build>
-        <finalName>${project.name}</finalName>
         <plugins>
             <!-- This configuration specifies what ends up in application.xml -->
             <plugin>
@@ -27,21 +19,21 @@
                 <configuration>
                     <modules>
                         <ejbModule>
-                            <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
+                            <groupId>${project.groupId}</groupId>
                             <artifactId>subscription-service</artifactId>
                         </ejbModule>
                         <jarModule>
-                            <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
+                            <groupId>${project.groupId}</groupId>
                             <artifactId>subscription-model</artifactId>
                         </jarModule>
                         <webModule>
-                            <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
+                            <groupId>${project.groupId}</groupId>
                             <context-root>${project.parent.artifactId}</context-root>
                             <artifactId>subscription-rest</artifactId>
                         </webModule>
                     </modules>
                     <skinnyWars>true</skinnyWars>
-                    <defaultLibBundleDir>APP-INF/lib</defaultLibBundleDir>
+                    <defaultLibBundleDir>${defaultLibBundleDir}</defaultLibBundleDir>
                 </configuration>
             </plugin>
         </plugins>
@@ -49,19 +41,19 @@
 
     <dependencies>
         <dependency>
-            <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>subscription-service</artifactId>
             <version>${project.parent.version}</version>
             <type>ejb</type>
         </dependency>
         <dependency>
-            <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>subscription-model</artifactId>
             <version>${project.parent.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>subscription-rest</artifactId>
             <version>${project.parent.version}</version>
             <type>war</type>
