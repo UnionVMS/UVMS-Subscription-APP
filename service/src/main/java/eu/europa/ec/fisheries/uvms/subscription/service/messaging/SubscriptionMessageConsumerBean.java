@@ -24,6 +24,7 @@ import static eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils.marshal
 import static eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils.unMarshallMessage;
 
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants;
+import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionServiceBean;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionBaseRequest;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataRequest;
@@ -87,10 +88,10 @@ public class SubscriptionMessageConsumerBean implements MessageListener {
                 default:
                     subscriptionProducer.sendMessageWithSpecificIds("[ Not implemented method consumed: {} ]", jmsReplyTo, null, jmsMessageID, jmsCorrelationID );
             }
-        } catch (JMSException | JAXBException e) {
+        } catch (MessageException | JAXBException | JMSException e) {
             try {
                 subscriptionProducer.sendMessageWithSpecificIds(e.getLocalizedMessage(), jmsReplyTo,null, jmsMessageID, jmsCorrelationID);
-            } catch (JMSException e1) {
+            } catch (MessageException e1) {
                 log.error("Unrecoverable error while in an JMSException | JAXBException!", e1);
             }
         }
