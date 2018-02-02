@@ -16,7 +16,7 @@ import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.Q
 import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.QUEUE_MDR_EVENT;
 import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.QUEUE_MODULE_RULES;
 import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.QUEUE_RULES;
-import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.QUEUE_SUBSCRIPTION;
+import static eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants.USER_MESSAGE_IN_QUEUE;
 import static eu.europa.ec.fisheries.uvms.commons.message.impl.JMSUtils.lookupConnectionFactory;
 import static eu.europa.ec.fisheries.uvms.commons.message.impl.JMSUtils.lookupQueue;
 
@@ -46,7 +46,6 @@ public class SubscriptionProducerBean extends SimpleAbstractProducer {
     private Queue mdrQueue;
     private Queue rulesQueue;
     private Queue auditEventQueue;
-    private Queue subscriptionQueue;
 
     @PostConstruct
     public void init() {
@@ -57,8 +56,6 @@ public class SubscriptionProducerBean extends SimpleAbstractProducer {
         rulesQueue = lookupQueue(QUEUE_RULES);
         mdrQueue = lookupQueue(QUEUE_MDR_EVENT);
         auditEventQueue = lookupQueue(QUEUE_AUDIT_EVENT);
-        subscriptionQueue = lookupQueue(QUEUE_SUBSCRIPTION);
-
     }
 
     @Override protected ConnectionFactory getConnectionFactory() {

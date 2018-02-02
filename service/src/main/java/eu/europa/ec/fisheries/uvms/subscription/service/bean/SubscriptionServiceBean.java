@@ -46,7 +46,10 @@ import javax.inject.Inject;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.Context;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -63,12 +66,18 @@ public class SubscriptionServiceBean {
     private SubscriptionProducerBean producer;
 
     @EJB
-    private SubscriptionConsumerBean consumer;
+    private SubscriptionUserConsumerBean subscriptionUserConsumerBean;
+
+    @EJB
+    private SubscriptionUserProducerBean subscriptionUserProducerBean;
 
     @Inject
     private SubscriptionMapper mapper;
 
     private ObjectMapper objectMapper = new ObjectMapper();
+
+    @Context
+    private HttpServletRequest servletRequest;
 
     @PersistenceContext(unitName = "subscriptionPU")
     private EntityManager em;
@@ -131,21 +140,23 @@ public class SubscriptionServiceBean {
         }
 
         int firstResult = (page - 1) * pageSize;
+
         subscriptionEntities = subscriptionDAO.listSubscriptions(map, orderMap, firstResult , pageSize);
 
         String getAllOrganisationRequest = UserModuleRequestMapper.mapToGetAllOrganisationRequest();
 
-        String correlationID = producer.sendMessage(producer.getSubscriptionQueue(),producer.getSubscriptionQueue(),getAllOrganisationRequest);
+        String correlationID = subscriptionUserProducerBean.sendModuleMessage(getAllOrganisationRequest, subscriptionUserConsumerBean.getDestination());
 
         if (correlationID != null){
 
-            TextMessage message = consumer.getMessage(correlationID, TextMessage.class );
+            TextMessage message = subscriptionUserConsumerBean.getMessage(correlationID, TextMessage.class );
 
             FindOrganisationsResponse responseMessage = JAXBUtils.unMarshallMessage( message.getText() , FindOrganisationsResponse.class);
 
             List<Organisation> organisationList = responseMessage.getOrganisation();
 
             responseDto.setList(CustomMapper.enrichSubscriptionList(subscriptionEntities,organisationList));
+
         }else
             responseDto.setList( subscriptionEntities );
 
