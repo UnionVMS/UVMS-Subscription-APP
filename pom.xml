@@ -1,12 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>subscription</name>
-
-    <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
-    <artifactId>subscription</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
-    <packaging>pom</packaging>
-
     <parent>
         <groupId>fish.focus.uvms.maven</groupId>
         <artifactId>uvms-pom</artifactId>
@@ -14,37 +7,51 @@
         <version>1.16</version>
     </parent>
 
+    <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
+    <artifactId>subscription</artifactId>
+    <version>1.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <scm>
+        <url>${scm.url}</url>
+        <connection>${scm.connection}</connection>
+        <tag>HEAD</tag>
+    </scm>
+
     <properties>
-        <maven.ejb.plugin.ejb.version>3.1</maven.ejb.plugin.ejb.version>
+        <scm.url>scm:git:https://github.com/UnionVMS/UVMS-Subscription-APP.git</scm.url>
+        <scm.connection>${scm.url}</scm.connection>
+
         <subscription.api.check.against.version>4.0.0</subscription.api.check.against.version>
+        <docker.dev.version>3.24.0</docker.dev.version>
+
         <usm4uvms.version>4.0.8</usm4uvms.version>
-    	<docker.dev.version>3.24.0</docker.dev.version>    	
         <spatial.model.version>1.0.10</spatial.model.version>
         <audit.model.version>4.0.6</audit.model.version>
+
         <hibernate.version>4.3.11.Final</hibernate.version>
         <lombok.version>1.16.18</lombok.version>
         <mapstruct.version>1.2.0.Final</mapstruct.version>
         <uvms.test.version>0.0.4</uvms.test.version>
         <uvms.commons.version>3.0.9-SNAPSHOT</uvms.commons.version>
         <user.model.version>2.0.8-SNAPSHOT</user.model.version>
-        <project.scm.id>github</project.scm.id>
+
+        <maven.ejb.plugin.ejb.version>3.1</maven.ejb.plugin.ejb.version>
+
+        <defaultLibBundleDir>APP-INF/lib</defaultLibBundleDir>
+        <netbeans.hint.jdkPlatform>JDK_1.8</netbeans.hint.jdkPlatform>
     </properties>
 
-	<dependencies>
-		<dependency>
-			<groupId>javax</groupId>
-			<artifactId>javaee-api</artifactId>
-		</dependency>
-	</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+        </dependency>
+    </dependencies>
 
     <dependencyManagement>
         <dependencies>
-        	<dependency>
-				<groupId>fish.focus.uvms.maven</groupId>
-				<artifactId>uvms-pom-gis-deps</artifactId>
-				<version>1.14</version>
-				<type>pom</type>
-			</dependency>
+            <!-- Modules dep -->
             <dependency>
                 <groupId>eu.europa.ec.fisheries.uvms.spatial</groupId>
                 <artifactId>spatial-model</artifactId>
@@ -55,34 +62,30 @@
                 <artifactId>audit-model</artifactId>
                 <version>${audit.model.version}</version>
             </dependency>
-			<dependency>
-				<groupId>fish.focus.uvms.maven</groupId>
-				<artifactId>uvms-pom-logging-deps</artifactId>
-				<version>1.14</version>
-				<type>pom</type>
-			</dependency>
-			<dependency>
-				<groupId>fish.focus.uvms.maven</groupId>
-				<artifactId>uvms-pom-monitoring-deps</artifactId>
-				<version>1.14</version>
-				<type>pom</type>
-			</dependency>
-			<dependency>
-				<groupId>fish.focus.uvms.maven</groupId>
-				<artifactId>uvms-pom-test-deps</artifactId>
-				<version>1.14</version>
-				<type>pom</type>
-			</dependency>
-			<dependency>
-				<groupId>fish.focus.uvms.maven</groupId>
-				<artifactId>uvms-pom-arquillian-deps</artifactId>
-				<version>1.14</version>
-				<type>pom</type>
-			</dependency>
+
             <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>${lombok.version}</version>
+                <groupId>fish.focus.uvms.maven</groupId>
+                <artifactId>uvms-pom-gis-deps</artifactId>
+                <version>1.16</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>fish.focus.uvms.maven</groupId>
+                <artifactId>uvms-pom-logging-deps</artifactId>
+                <version>1.16</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>fish.focus.uvms.maven</groupId>
+                <artifactId>uvms-pom-monitoring-deps</artifactId>
+                <version>1.16</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>fish.focus.uvms.maven</groupId>
+                <artifactId>uvms-pom-test-deps</artifactId>
+                <version>1.16</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>eu.europa.ec.fisheries.uvms.commons</groupId>
@@ -109,6 +112,17 @@
                 <artifactId>uvms-commons-date</artifactId>
                 <version>${uvms.commons.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.jvnet.jaxb2_commons</groupId>
+                <artifactId>jaxb2-basics</artifactId>
+                <version>0.9.5</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct</artifactId>
@@ -123,9 +137,16 @@
 
             <dependency>
                 <groupId>org.hibernate</groupId>
-                <version>${hibernate.version}</version>
                 <artifactId>hibernate-core</artifactId>
+                <version>${hibernate.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-entitymanager</artifactId>
+                <version>${hibernate.version}</version>
+                <scope>test</scope>
+            </dependency>
+
 
             <dependency>
                 <groupId>eu.europa.ec.fisheries.uvms</groupId>
@@ -163,34 +184,27 @@
         </dependencies>
     </dependencyManagement>
 
-    <repositories>
-        <repository>
-            <id>focus-repo</id>
-            <name>Focus nexus repository</name>
-            <url>http://nexus.focus.fish/nexus</url>
-        </repository>
-    </repositories>
-
-    <distributionManagement>
-        <repository>
-            <id>focus-releases</id>
-            <name>UnionVms Repository</name>
-            <url>http://nexus.focus.fish/nexus/content/repositories/releases/</url>
-        </repository>
-        <snapshotRepository>
-            <id>focus-snapshots</id>
-            <name>UnionVms Snapshot Repository</name>
-            <url>http://nexus.focus.fish/nexus/content/repositories/snapshots/</url>
-        </snapshotRepository>
-    </distributionManagement>
-
-    <scm>
-        <connection>scm:git:https://github.com/UnionVMS/UVMS-Subscription-APP.git</connection>
-        <tag>subscription-1.0.0</tag>
-    </scm>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-ejb-plugin</artifactId>
+                    <configuration>
+                        <ejbVersion>${maven.ejb.plugin.ejb.version}</ejbVersion>
+                        <archive>
+                            <manifest>
+                                <addClasspath>true</addClasspath>
+                            </manifest>
+                        </archive>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
     <modules>
-    	<module>model</module>
+        <module>model</module>
         <module>LIQUIBASE</module>
         <module>rest</module>
         <module>service</module>

@@ -20,7 +20,18 @@ import static javax.persistence.EnumType.STRING;
 import static javax.persistence.GenerationType.AUTO;
 import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Table;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -176,7 +187,8 @@ public class SubscriptionEntity implements Serializable {
     }
 
     @PrePersist
-    private void prepersist() {
+    @PreUpdate
+    private void prepersistOrPreUpdate() {
         if (validityPeriod == null){
             validityPeriod = new DateRange(new Date(), new Date(Long.MAX_VALUE));
         }
