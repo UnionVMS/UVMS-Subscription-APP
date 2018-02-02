@@ -30,6 +30,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -176,7 +177,8 @@ public class SubscriptionEntity implements Serializable {
     }
 
     @PrePersist
-    private void prepersist() {
+    @PreUpdate
+    private void prepersistOrPreUpdate() {
         if (validityPeriod == null){
             validityPeriod = new DateRange(new Date(), new Date(Long.MAX_VALUE));
         }
