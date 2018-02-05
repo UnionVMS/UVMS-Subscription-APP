@@ -107,7 +107,9 @@ public class CustomMapper {
                         sb.append( orgDomain.getParentOrganisation() );
                         sb.append( " / " ).append( orgDomain.getName() );
                         subscription.setOrganisationName( sb.toString() );
-                    }
+                    }else
+                        subscription.setOrganisationName( orgDomain.getName());
+
                     for (EndPoint endPoint : orgDomain.getEndPoints()) {
                         if (subscription.getEndPoint() == endPoint.getId()) {
                             isEndPointAvailable = true;

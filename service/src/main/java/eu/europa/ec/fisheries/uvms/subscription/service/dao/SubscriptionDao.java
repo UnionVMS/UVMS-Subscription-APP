@@ -37,8 +37,6 @@ public class SubscriptionDao extends AbstractDAO<SubscriptionEntity> {
     private static final String END_DATE = "endDate";
     private EntityManager em;
 
-    public SubscriptionDao(){}
-
     public SubscriptionDao(EntityManager em) {
         this.em = em;
     }

@@ -115,7 +115,8 @@ public class SubscriptionServiceBean extends BaseSubscriptionBean {
      */
     @SneakyThrows
     @Interceptors(ValidationInterceptor.class)
-    public SubscriptionListResponseDto listSubscriptions(@NotNull QueryParameterDto parameters, @NotNull PaginationDto pagination, @NotNull OrderByDto orderByDto) {
+    public SubscriptionListResponseDto listSubscriptions(@NotNull QueryParameterDto parameters, @NotNull PaginationDto pagination,
+                                                         @NotNull OrderByDto orderByDto, String scopeName, String roleName, String requester) {
 
         SubscriptionListResponseDto responseDto = new SubscriptionListResponseDto();
 
@@ -142,7 +143,7 @@ public class SubscriptionServiceBean extends BaseSubscriptionBean {
 
         subscriptionEntities = subscriptionDAO.listSubscriptions(map, orderMap, firstResult , pageSize);
 
-        String getAllOrganisationRequest = UserModuleRequestMapper.mapToGetAllOrganisationRequest();
+        String getAllOrganisationRequest = UserModuleRequestMapper.mapToGetAllOrganisationRequest(scopeName, roleName, requester);
 
         String correlationID = subscriptionUserProducerBean.sendModuleMessage(getAllOrganisationRequest, subscriptionUserConsumerBean.getDestination());
 
