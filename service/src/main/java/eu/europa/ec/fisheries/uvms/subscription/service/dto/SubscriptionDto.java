@@ -20,14 +20,6 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
-import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
-import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.DATE_TIME_UI_FORMAT;
-
-import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AccessibilityType;
@@ -36,6 +28,14 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import lombok.Data;
+
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
+import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.DATE_TIME_UI_FORMAT;
 
 @Data
 public class SubscriptionDto {
@@ -56,13 +56,14 @@ public class SubscriptionDto {
     private Boolean active;
 
     @NotNull
-    private String organisation;
+    private Long organisation;
+
     @NotNull
-    private String endPoint;
+    private Long endPoint;
 
     @NotNull
     @JsonProperty("communicationChannel")
-    private String channel;
+    private Long channel;
 
     private List<Object> conditions = new ArrayList<>();
 

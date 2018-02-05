@@ -10,11 +10,6 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
-import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
-import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.DATE_TIME_UI_FORMAT;
-
-import java.util.Date;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AccessibilityType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionType;
@@ -24,6 +19,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
+import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
+import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.DATE_TIME_UI_FORMAT;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -31,10 +31,10 @@ import lombok.NoArgsConstructor;
 public class QueryParameterDto {
 
     private String name;
-    private String organisation;
+    private Long organisation;
     private Boolean enabled;
-    private String channel;
-    private String endPoint;
+    private Long channel;
+    private Long endPoint;
     private MessageType messageType;
     private SubscriptionType subscriptionType;
     private String description;
