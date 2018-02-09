@@ -11,6 +11,8 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
 import static eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper.mapToAuditLog;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.MessageType.FLUX_FA_QUERY_MESSAGE;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.NO;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.YES;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +34,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAu
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.ec.fisheries.uvms.user.model.mapper.UserModuleRequestMapper;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
 import eu.europa.ec.fisheries.wsdl.user.module.FindOrganisationsResponse;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
@@ -103,7 +106,9 @@ public class SubscriptionServiceBean extends BaseSubscriptionBean {
         } else {
             response.setSubscriptionCheck(YES);
         }*/
-        response.setSubscriptionCheck(YES);
+        // Business wants to returnpermission denied in case of FA Query for untill the real implementation has been done, in Activity and Subscriptions!
+        SubscriptionPermissionAnswer subscriptionPermissionAnswer = query.getMessageType() == FLUX_FA_QUERY_MESSAGE ? NO : YES;
+        response.setSubscriptionCheck(subscriptionPermissionAnswer);
         return response;
     }
 
