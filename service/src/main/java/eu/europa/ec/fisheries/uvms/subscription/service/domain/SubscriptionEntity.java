@@ -75,7 +75,7 @@ import lombok.NoArgsConstructor;
                 "((:messageType is NULL) OR (UPPER(cast(s.messageType as string)) LIKE CONCAT('%', UPPER(cast(:messageType as string)), '%'))) AND " +
                 "((:accessibility is NULL) OR (UPPER(cast(s.accessibility as string)) = UPPER(cast(:accessibility as string)))) AND " +
                 "((:description is NULL) OR (UPPER(cast(s.description as string)) LIKE CONCAT('%', UPPER(cast(:description as string)), '%'))) AND " +
-                "(cast(:startDate as timestamp) <= s.validityPeriod.startDate AND cast(:endDate as timestamp) <= s.validityPeriod.endDate) "
+                "(cast(:startDate as timestamp) <= s.validityPeriod.startDate OR cast(:endDate as timestamp) <= s.validityPeriod.endDate) "
         ),
         @NamedQuery(name = BY_NAME, query = "SELECT s FROM SubscriptionEntity s " +
                 "LEFT JOIN FETCH s.conditions c " +

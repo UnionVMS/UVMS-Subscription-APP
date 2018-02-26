@@ -33,7 +33,7 @@
         <lombok.version>1.16.18</lombok.version>
         <mapstruct.version>1.2.0.Final</mapstruct.version>
         <uvms.test.version>0.0.4</uvms.test.version>
-        <uvms.commons.version>3.0.9-SNAPSHOT</uvms.commons.version>
+        <uvms.commons.version>3.0.10</uvms.commons.version>
         <user.model.version>2.0.8-SNAPSHOT</user.model.version>
 
         <maven.ejb.plugin.ejb.version>3.1</maven.ejb.plugin.ejb.version>
@@ -146,7 +146,6 @@
                 <version>${hibernate.version}</version>
                 <scope>test</scope>
             </dependency>
-
 
             <dependency>
                 <groupId>eu.europa.ec.fisheries.uvms</groupId>
