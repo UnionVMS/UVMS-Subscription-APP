@@ -11,10 +11,13 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
 import static eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper.mapToAuditLog;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.MessageType.FLUX_FA_QUERY_MESSAGE;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.NO;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.YES;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
+import eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils;
 import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.ValidationInterceptor;
@@ -29,8 +32,15 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListResp
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
+import eu.europa.ec.fisheries.uvms.user.model.mapper.UserModuleRequestMapper;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
+import eu.europa.ec.fisheries.wsdl.user.module.FindOrganisationsResponse;
+import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
+import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
+import javax.jms.TextMessage;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +65,12 @@ public class SubscriptionServiceBean extends BaseSubscriptionBean {
 
     @EJB
     private SubscriptionProducerBean producer;
+
+    @EJB
+    private SubscriptionUserConsumerBean subscriptionUserConsumerBean;
+
+    @EJB
+    private SubscriptionUserProducerBean subscriptionUserProducerBean;
 
     @Inject
     private SubscriptionMapper mapper;
@@ -90,7 +106,9 @@ public class SubscriptionServiceBean extends BaseSubscriptionBean {
         } else {
             response.setSubscriptionCheck(YES);
         }*/
-        response.setSubscriptionCheck(YES);
+        // Business wants to returnpermission denied in case of FA Query for untill the real implementation has been done, in Activity and Subscriptions!
+        SubscriptionPermissionAnswer subscriptionPermissionAnswer = query.getMessageType() == FLUX_FA_QUERY_MESSAGE ? NO : YES;
+        response.setSubscriptionCheck(subscriptionPermissionAnswer);
         return response;
     }
 
@@ -102,7 +120,8 @@ public class SubscriptionServiceBean extends BaseSubscriptionBean {
      */
     @SneakyThrows
     @Interceptors(ValidationInterceptor.class)
-    public SubscriptionListResponseDto listSubscriptions(@NotNull QueryParameterDto parameters, @NotNull PaginationDto pagination, @NotNull OrderByDto orderByDto) {
+    public SubscriptionListResponseDto listSubscriptions(@NotNull QueryParameterDto parameters, @NotNull PaginationDto pagination,
+                                                         @NotNull OrderByDto orderByDto, String scopeName, String roleName, String requester) {
 
         SubscriptionListResponseDto responseDto = new SubscriptionListResponseDto();
 
@@ -126,8 +145,25 @@ public class SubscriptionServiceBean extends BaseSubscriptionBean {
         }
 
         int firstResult = (page - 1) * pageSize;
+
         subscriptionEntities = subscriptionDAO.listSubscriptions(map, orderMap, firstResult , pageSize);
-        responseDto.setList(subscriptionEntities);
+
+        String getAllOrganisationRequest = UserModuleRequestMapper.mapToGetAllOrganisationRequest(scopeName, roleName, requester);
+
+        String correlationID = subscriptionUserProducerBean.sendModuleMessage(getAllOrganisationRequest, subscriptionUserConsumerBean.getDestination());
+
+        if (correlationID != null){
+
+            TextMessage message = subscriptionUserConsumerBean.getMessage(correlationID, TextMessage.class );
+
+            FindOrganisationsResponse responseMessage = JAXBUtils.unMarshallMessage( message.getText() , FindOrganisationsResponse.class);
+
+            List<Organisation> organisationList = responseMessage.getOrganisation();
+
+            responseDto.setList(CustomMapper.enrichSubscriptionList(subscriptionEntities,organisationList));
+
+        }else
+            responseDto.setList( subscriptionEntities );
 
         if (firstResult >= 0) {
             responseDto.setCurrentPage(page);
@@ -137,6 +173,7 @@ public class SubscriptionServiceBean extends BaseSubscriptionBean {
 
         return responseDto;
     }
+
 
     @SneakyThrows
     @Interceptors(ValidationInterceptor.class)

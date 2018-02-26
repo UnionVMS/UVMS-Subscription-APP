@@ -80,7 +80,7 @@ public class SubscriptionResource extends UnionVMSResource {
     @Interceptors(ValidationInterceptor.class)
     @RequiresFeature(VIEW_SUBSCRIPTION)
     public Response listSubscriptions(@NotNull SubscriptionListQueryDto dto) {
-        return createSuccessResponse(service.listSubscriptions(dto.getQueryParameters(), dto.getPagination(), dto.getOrderBy()));
+        return createSuccessResponse(service.listSubscriptions(dto.getQueryParameters(), dto.getPagination(), dto.getOrderBy(), scopeName, roleName,servletRequest.getRemoteUser()));
     }
 
     /**

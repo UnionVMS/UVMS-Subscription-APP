@@ -10,16 +10,18 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.mapper;
 
+import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.wsdl.subscription.module.*;
+import eu.europa.ec.fisheries.wsdl.user.types.Channel;
+import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
+import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
-import eu.europa.ec.fisheries.wsdl.subscription.module.CriteriaType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubCriteriaType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataCriteria;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 
 public class CustomMapper {
 
@@ -57,7 +59,7 @@ public class CustomMapper {
             switch (criteriaType) {
                 case SENDER:
 
-                    queryParameters.put("organisation", value);
+                    queryParameters.put("organisation", Long.valueOf( value ));
                     break;
 
                 case VESSEL:
@@ -83,4 +85,66 @@ public class CustomMapper {
 
     }
 
+    public static List<SubscriptionEntity> enrichSubscriptionList(List<SubscriptionEntity> resultList, List<Organisation> organisationList) {
+
+        boolean isOrgAvailable;
+        boolean isChannelAvailable;
+        boolean isEndPointAvailable;
+
+        if (organisationList == null || organisationList.isEmpty()) {
+            return resultList;
+        }
+        for (SubscriptionEntity subscription : resultList){
+            isOrgAvailable = false;
+             for (Organisation orgDomain: organisationList){
+                if (subscription.getOrganisation() == orgDomain.getId()) {
+                    isOrgAvailable = true;
+                    isEndPointAvailable = false;
+                    if (orgDomain.getParentOrganisation() != null
+                            && !StringUtils.isEmpty( orgDomain.getParentOrganisation() )) {
+
+                        StringBuilder sb = new StringBuilder();
+                        sb.append( orgDomain.getParentOrganisation() );
+                        sb.append( " / " ).append( orgDomain.getName() );
+                        subscription.setOrganisationName( sb.toString() );
+                    }else
+                        subscription.setOrganisationName( orgDomain.getName());
+
+                    for (EndPoint endPoint : orgDomain.getEndPoints()) {
+                        if (subscription.getEndPoint() == endPoint.getId()) {
+                            isEndPointAvailable = true;
+                            isChannelAvailable = false;
+                            subscription.setEndpointName( endPoint.getName() );
+                            for (Channel channel : endPoint.getChannels()) {
+                                if (subscription.getChannel() == channel.getId()) {
+                                    isChannelAvailable = true;
+                                    subscription.setChannelName( channel.getDataFlow() );
+                                }
+                                if(isChannelAvailable)
+                                    break;
+                            }
+                            if(!isChannelAvailable){
+                                subscription.setChannelName( "UNKNOWN" );
+                            }
+                        }
+                        if(isEndPointAvailable)
+                            break;
+                    }
+                    if(!isEndPointAvailable){
+                        subscription.setEndpointName( "UNKNOWN" );
+                        subscription.setChannelName( "UNKNOWN" );
+                    }
+                }
+                if (isOrgAvailable)
+                    break;
+            }
+            if(!isOrgAvailable){
+                 subscription.setOrganisationName( "UNKNOWN" );
+                 subscription.setEndpointName( "UNKNOWN" );
+                 subscription.setChannelName( "UNKNOWN" );
+            }
+        }
+
+        return resultList;
+    }
 }
