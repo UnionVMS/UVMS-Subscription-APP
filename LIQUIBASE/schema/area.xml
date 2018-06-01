@@ -38,4 +38,19 @@
             <dropSequence schemaName="subscription" sequenceName="HIBERNATE_SEQUENCE"/>
         </rollback>
     </changeSet>
+
+    <changeSet author="stihft" id="addIndexOnTableAreaAndColumnSubscription_id">
+        <createIndex
+                indexName="area_i_1"
+                tableName="area">
+            <column name="subscription_id" type="bigint"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex
+                    indexName="area_i_1"
+                    tableName="area"/>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>
