@@ -32,4 +32,18 @@
         <addPrimaryKey columnNames="id" constraintName="condition_pkey" tableName="condition"/>
     </changeSet>
 
+    <changeSet author="stihft" id="addIndexOnTableConditionAndColumnSubscription_id">
+        <createIndex
+                indexName="condition_i_1"
+                tableName="condition">
+            <column name="subscription_id" type="bigint"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex
+                    indexName="condition_i_1"
+                    tableName="condition"/>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>
