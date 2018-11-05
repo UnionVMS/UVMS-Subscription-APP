@@ -57,7 +57,6 @@ public class SubscriptionMessageConsumerBean implements MessageListener {
     private SubscriptionServiceBean subscriptionService;
 
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void onMessage(Message message) {
         TextMessage textMessage;
         String jmsCorrelationID = null;
