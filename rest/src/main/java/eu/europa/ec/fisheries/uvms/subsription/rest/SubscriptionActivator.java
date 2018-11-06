@@ -26,7 +26,6 @@ public class SubscriptionActivator extends Application {
 
     public SubscriptionActivator() {
         set.add(SubscriptionResource.class);
-        set.add(UnionVMSFeatureFilter.class);
     }
 
     @Override

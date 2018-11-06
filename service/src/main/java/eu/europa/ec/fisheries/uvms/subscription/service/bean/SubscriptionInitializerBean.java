@@ -17,7 +17,7 @@ import java.io.InputStream;
 import eu.europa.ec.fisheries.uvms.init.AbstractModuleInitializerBean;
 
 @Singleton
-public class SubscriptionApplication extends AbstractModuleInitializerBean {
+public class SubscriptionInitializerBean extends AbstractModuleInitializerBean {
 
     @EJB
     private PropertiesBean properties;

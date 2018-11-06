@@ -81,6 +81,14 @@
                 </xsd:restriction>
             </xsd:simpleType>
 
+            <xsd:simpleType name="SubscriptionFeaturesEnum">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="VIEW_SUBSCRIPTION" />
+                    <xsd:enumeration value="MANAGE_SUBSCRIPTION"/>
+                    <xsd:enumeration value="SUBSCRIPTIONS_ALLOWED"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+
             <!-- Ping request -->
 
             <xsd:element name="pingRequest">
