@@ -29,8 +29,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
-import static eu.europa.ec.fisheries.uvms.rest.security.UnionVMSFeature.MANAGE_SUBSCRIPTION;
-import static eu.europa.ec.fisheries.uvms.rest.security.UnionVMSFeature.VIEW_SUBSCRIPTION;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 /**
