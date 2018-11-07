@@ -25,7 +25,7 @@
 
         <docker.dev.version>3.24.0</docker.dev.version>
 
-        <usm4uvms.version>4.0.13-SNAPSHOT</usm4uvms.version>
+        <usm4uvms.version>4.0.13</usm4uvms.version>
         <spatial.model.version>1.0.10</spatial.model.version>
         <audit.model.version>4.0.6</audit.model.version>
 
