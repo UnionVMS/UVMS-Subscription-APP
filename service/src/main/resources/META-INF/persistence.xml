@@ -15,6 +15,16 @@
             <property name="hibernate.generate_statistics" value="true"/>
         </properties>
     </persistence-unit>
+
+    <persistence-unit name="subscriptionConfig" transaction-type="JTA">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        <jta-data-source>jdbc/uvms_config</jta-data-source>
+        <class>eu.europa.ec.fisheries.uvms.config.service.entity.Parameter</class>
+        <properties>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
+        </properties>
+    </persistence-unit>
+
 </persistence>
 
 

@@ -36,6 +36,7 @@
         <uvms.test.version>0.0.4</uvms.test.version>
         <uvms.commons.version>3.0.16</uvms.commons.version>
         <user.model.version>2.0.8</user.model.version>
+        <uvms.config.version>4.0.1</uvms.config.version>
 
         <maven.ejb.plugin.ejb.version>3.1</maven.ejb.plugin.ejb.version>
 
@@ -144,6 +145,18 @@
                     <exclusion>
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>eu.europa.ec.fisheries.uvms</groupId>
+                <artifactId>uvms-config</artifactId>
+                <version>${uvms.config.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>eu.europa.ec.fisheries.uvms</groupId>
+                        <artifactId>uvms-commons</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
