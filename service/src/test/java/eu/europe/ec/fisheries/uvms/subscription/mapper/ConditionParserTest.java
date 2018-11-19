@@ -10,13 +10,8 @@
 
 package eu.europe.ec.fisheries.uvms.subscription.mapper;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.CompositeType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.ConditionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.ConditionType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.RelationalOperatorType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.*;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionParser;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubCriteriaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.ValueType;
 import org.junit.Test;
 
@@ -29,7 +24,6 @@ public class ConditionParserTest {
         ConditionEntity conditionEntity = new ConditionEntity();
         conditionEntity.setStartOperator("(");
         //conditionEntity.setCriteriaType(CriteriaType.FLUX_REPORT_DOCUMENT);
-        conditionEntity.setSubCriteriaType(SubCriteriaType.OWNER_PARTY);
         conditionEntity.setCondition(RelationalOperatorType.EQ);
         conditionEntity.setValueType(ValueType.FLUX_GP_PARTY);
         conditionEntity.setValue("BEL");
@@ -39,7 +33,6 @@ public class ConditionParserTest {
         conditionEntity = new ConditionEntity();
         conditionEntity.setStartOperator("(");
         //conditionEntity.setCriteriaType(CriteriaType.FLUX_REPORT_DOCUMENT);
-        conditionEntity.setSubCriteriaType(SubCriteriaType.OWNER_PARTY);
         conditionEntity.setCondition(RelationalOperatorType.NE);
         conditionEntity.setValueType(ValueType.FLUX_GP_PARTY);
         conditionEntity.setValue("FRA");

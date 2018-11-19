@@ -10,18 +10,11 @@
 
 package eu.europe.ec.fisheries.uvms.subscription.dao;
 
-import static com.ninja_squad.dbsetup.Operations.sequenceOf;
-import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.random;
-import static junitparams.JUnitParamsRunner.$;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import javax.persistence.EntityTransaction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
@@ -47,6 +40,11 @@ import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import static com.ninja_squad.dbsetup.Operations.sequenceOf;
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.random;
+import static junitparams.JUnitParamsRunner.$;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(JUnitParamsRunner.class)
 public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
@@ -97,7 +95,7 @@ public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
                 $(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
                 $(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
                 $(QueryParameterDto.builder().build(), 4),
-                $(QueryParameterDto.builder().messageType(MessageType.FLUX_FA_QUERY_MESSAGE).organisation(new Long(1)).build(), 1),
+                $(QueryParameterDto.builder().messageType(MessageType.FA_QUERY_MESSAGE_PULL).organisation(new Long(1)).build(), 1),
                 $(QueryParameterDto.builder().enabled(true).build(), 3),
                 $(QueryParameterDto.builder().channel(new Long(1)).organisation(new Long(1)).name("subscription4").build(), 0),
                 $(QueryParameterDto.builder().name("sub").enabled(true).build(), 2)

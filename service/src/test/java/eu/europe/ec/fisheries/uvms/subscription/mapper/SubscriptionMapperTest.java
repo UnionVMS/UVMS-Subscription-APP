@@ -10,22 +10,16 @@
 
 package eu.europe.ec.fisheries.uvms.subscription.mapper;
 
-import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.UI_FORMATTER;
-import static org.junit.Assert.assertEquals;
-
 import java.util.Date;
-
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.AccessibilityType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.StateType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.*;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
 import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import org.junit.Before;
 import org.junit.Test;
+import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.UI_FORMATTER;
+import static org.junit.Assert.assertEquals;
 
 public class SubscriptionMapperTest {
 
@@ -55,7 +49,7 @@ public class SubscriptionMapperTest {
         dto.setDelay("1,1,1");
         dto.setEndPoint(new Long(2));
         dto.setSubscriptionType(SubscriptionType.TX_PULL);
-        dto.setMessageType(MessageType.FLUX_FA_REPORT_MESSAGE);
+        dto.setMessageType(MessageType.FA_REPORT_MESSAGE_PULL);
         dto.setAccessibility(AccessibilityType.PRIVATE);
 
 
@@ -72,7 +66,7 @@ public class SubscriptionMapperTest {
         assertEquals(new Long(1), entity.getChannel());
         assertEquals("name", entity.getName());
         assertEquals(SubscriptionType.TX_PULL, entity.getSubscriptionType());
-        assertEquals(MessageType.FLUX_FA_REPORT_MESSAGE, entity.getMessageType());
+        assertEquals(MessageType.FA_REPORT_MESSAGE_PULL, entity.getMessageType());
         assertEquals(StateType.INACTIVE, entity.getStateType());
         assertEquals("description", entity.getDescription());
         assertEquals("1,1,1", entity.getDelay());

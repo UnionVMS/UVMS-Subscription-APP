@@ -110,11 +110,14 @@
 
             <xsd:simpleType name="MessageType">
                 <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="FLUX_VESSEL_POSITION_MESSAGE"/>
-                    <xsd:enumeration value="FLUX_SALES_QUERY_MESSAGE"/>
-                    <xsd:enumeration value="FLUX_SALES_MESSAGE"/>
-                    <xsd:enumeration value="FLUX_FA_QUERY_MESSAGE"/>
-                    <xsd:enumeration value="FLUX_FA_REPORT_MESSAGE"/>
+                    <xsd:enumeration value="VESSEL_POSITION_MESSAGE"/>
+                    <xsd:enumeration value="SALES_QUERY_MESSAGE"/>
+                    <xsd:enumeration value="SALES_MESSAGE"/>
+                    <xsd:enumeration value="FA_QUERY_MESSAGE_PUSH"/>
+                    <xsd:enumeration value="FA_QUERY_MESSAGE_PULL"/>
+                    <xsd:enumeration value="FA_REPORT_MESSAGE_PUSH"/>
+                    <xsd:enumeration value="FA_REPORT_MESSAGE_PULL"/>
+
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
@@ -122,40 +125,23 @@
             <xsd:simpleType name="CriteriaType">
                 <xsd:restriction base="xsd:string">
                     <xsd:enumeration value="SENDER"/>
+                    <xsd:enumeration value="RECEIVER"/>
                     <xsd:enumeration value="VESSEL"/>
                     <xsd:enumeration value="AREA"/>
                     <xsd:enumeration value="VALIDITY_PERIOD"/>
-                    <xsd:enumeration value="FLUX_FA_REPORT_MESSAGE"/>
-                    <xsd:enumeration value="FLUX_FA_QUERY_MESSAGE"/>
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
 
             <xsd:simpleType name="SubCriteriaType">
                 <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="START_DATE"/>
-                    <xsd:enumeration value="END_DATE"/>
                     <xsd:enumeration value="ORGANISATION"/>
-                    <xsd:enumeration value="OWNER_PARTY"/>
                     <xsd:enumeration value="END_POINT"/>
                     <xsd:enumeration value="CHANNEL"/>
-                    <xsd:enumeration value="FA_REPORT_DOCUMENT"/>
+                    <xsd:enumeration value="START_DATE"/>
+                    <xsd:enumeration value="END_DATE"/>
                     <xsd:enumeration value="AREA_CODE"/>
                     <xsd:enumeration value="AREA_TYPE"/>
-
-                    <!-- Flux FA Query Parameter -->
-                    <xsd:enumeration value="VESSELID"/>
-                    <xsd:enumeration value="TRIPID"/>
-                    <xsd:enumeration value="CONSOLIDATED"/>
-
-                    <!-- Flux Sales Query Parameter -->
-                    <xsd:enumeration value="VESSEL"/>
-                    <xsd:enumeration value="FLAG"/>
-                    <xsd:enumeration value="ROLE"/>
-                    <xsd:enumeration value="PLACE"/>
-                    <xsd:enumeration value="SALES_ID"/>
-                    <xsd:enumeration value="TRIP_ID"/>
-
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>
@@ -170,8 +156,6 @@
                     <xsd:enumeration value="IRCS"/>
                     <xsd:enumeration value="EU_TRIP_ID"/>
                     <xsd:enumeration value="ICCAT"/>
-                    <xsd:enumeration value="FLUX_FA_REPORT_TYPE"/>
-                    <xsd:enumeration value="FLUX_GP_PURPOSE"/>
                     <xsd:enumeration value="YYYY-MM-DD"/>
                     <xsd:enumeration value="yyyy-MM-dd'T'HH:mm:ss.SSSZ"/>
                     <xsd:enumeration value="UNKNOWN"/>

@@ -10,6 +10,9 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.mapper;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.wsdl.subscription.module.*;
@@ -17,11 +20,6 @@ import eu.europa.ec.fisheries.wsdl.user.types.Channel;
 import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
 import org.apache.commons.lang.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class CustomMapper {
 
@@ -58,8 +56,6 @@ public class CustomMapper {
             String value = criterion.getValue();
             switch (criteriaType) {
                 case SENDER:
-
-                    queryParameters.put("organisation", Long.valueOf( value ));
                     break;
 
                 case VESSEL:

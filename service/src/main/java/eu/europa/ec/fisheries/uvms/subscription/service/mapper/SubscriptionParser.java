@@ -63,14 +63,6 @@ public class SubscriptionParser {
                         }
                         sb.append("endPoint");
                         break;
-                    case OWNER_PARTY:
-                        // If list and NE
-                        if (condition.getCondition().equals(RelationalOperatorType.NE)) {
-                            //sb.append("!");
-                        }
-                        sb.append("ownerParty");
-                        break;
-
 
                     default:
                         break;
