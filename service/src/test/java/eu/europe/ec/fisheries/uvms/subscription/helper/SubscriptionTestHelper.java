@@ -27,7 +27,7 @@ public class SubscriptionTestHelper {
     public static SubscriptionDataQuery getSubscriptionDataQueryFaQuery_1(){
         SubscriptionDataQuery dataQuery = new SubscriptionDataQuery();
 
-        dataQuery.setMessageType(MessageType.FA_QUERY_MESSAGE_PULL);
+        dataQuery.setMessageType(MessageType.FLUX_FA_QUERY_MESSAGE);
 
         SubscriptionDataCriteria organisation = new SubscriptionDataCriteria();
         organisation.setCriteria(CriteriaType.SENDER);
@@ -49,7 +49,7 @@ public class SubscriptionTestHelper {
     public static SubscriptionDataQuery getSubscriptionDataQueryFaQuery_2(){
         SubscriptionDataQuery dataQuery = new SubscriptionDataQuery();
 
-        dataQuery.setMessageType(MessageType.FA_QUERY_MESSAGE_PULL);
+        dataQuery.setMessageType(MessageType.FLUX_FA_QUERY_MESSAGE);
 
         SubscriptionDataCriteria organisation = new SubscriptionDataCriteria();
         organisation.setCriteria(CriteriaType.SENDER);
@@ -78,7 +78,7 @@ public class SubscriptionTestHelper {
     public static SubscriptionDataQuery getSubscriptionDataQueryFaQuery_3(){
         SubscriptionDataQuery dataQuery = new SubscriptionDataQuery();
 
-        dataQuery.setMessageType(MessageType.FA_QUERY_MESSAGE_PULL);
+        dataQuery.setMessageType(MessageType.FLUX_FA_QUERY_MESSAGE);
 
         SubscriptionDataCriteria organisation = new SubscriptionDataCriteria();
         organisation.setCriteria(CriteriaType.SENDER);

@@ -95,7 +95,7 @@ public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
                 $(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
                 $(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
                 $(QueryParameterDto.builder().build(), 4),
-                $(QueryParameterDto.builder().messageType(MessageType.FA_QUERY_MESSAGE_PULL).organisation(new Long(1)).build(), 1),
+                $(QueryParameterDto.builder().messageType(MessageType.FLUX_FA_QUERY_MESSAGE).organisation(new Long(1)).build(), 1),
                 $(QueryParameterDto.builder().enabled(true).build(), 3),
                 $(QueryParameterDto.builder().channel(new Long(1)).organisation(new Long(1)).name("subscription4").build(), 0),
                 $(QueryParameterDto.builder().name("sub").enabled(true).build(), 2)

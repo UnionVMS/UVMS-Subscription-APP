@@ -113,11 +113,8 @@
                     <xsd:enumeration value="VESSEL_POSITION_MESSAGE"/>
                     <xsd:enumeration value="SALES_QUERY_MESSAGE"/>
                     <xsd:enumeration value="SALES_MESSAGE"/>
-                    <xsd:enumeration value="FA_QUERY_MESSAGE_PUSH"/>
-                    <xsd:enumeration value="FA_QUERY_MESSAGE_PULL"/>
-                    <xsd:enumeration value="FA_REPORT_MESSAGE_PUSH"/>
-                    <xsd:enumeration value="FA_REPORT_MESSAGE_PULL"/>
-
+                    <xsd:enumeration value="FLUX_FA_QUERY_MESSAGE"/>
+                    <xsd:enumeration value="FLUX_FA_REPORT_MESSAGE"/>
                     <xsd:enumeration value="UNKNOWN"/>
                 </xsd:restriction>
             </xsd:simpleType>

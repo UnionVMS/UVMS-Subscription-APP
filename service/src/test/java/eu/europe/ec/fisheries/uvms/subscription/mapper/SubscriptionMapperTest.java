@@ -49,7 +49,7 @@ public class SubscriptionMapperTest {
         dto.setDelay("1,1,1");
         dto.setEndPoint(new Long(2));
         dto.setSubscriptionType(SubscriptionType.TX_PULL);
-        dto.setMessageType(MessageType.FA_REPORT_MESSAGE_PULL);
+        dto.setMessageType(MessageType.FLUX_FA_REPORT_MESSAGE);
         dto.setAccessibility(AccessibilityType.PRIVATE);
 
 
@@ -66,7 +66,7 @@ public class SubscriptionMapperTest {
         assertEquals(new Long(1), entity.getChannel());
         assertEquals("name", entity.getName());
         assertEquals(SubscriptionType.TX_PULL, entity.getSubscriptionType());
-        assertEquals(MessageType.FA_REPORT_MESSAGE_PULL, entity.getMessageType());
+        assertEquals(MessageType.FLUX_FA_REPORT_MESSAGE, entity.getMessageType());
         assertEquals(StateType.INACTIVE, entity.getStateType());
         assertEquals("description", entity.getDescription());
         assertEquals("1,1,1", entity.getDelay());
