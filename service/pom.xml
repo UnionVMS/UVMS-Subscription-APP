@@ -101,7 +101,6 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -125,6 +124,12 @@
                     <artifactId>user-model</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
         </dependency>
 
     </dependencies>

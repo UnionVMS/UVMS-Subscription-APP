@@ -38,12 +38,13 @@
         <maven.ejb.plugin.ejb.version>3.1</maven.ejb.plugin.ejb.version>
 
         <!-- UVMS Libraries -->
-        <uvms.config.version>4.0.2-W14-J8</uvms.config.version>
+        <uvms.config.version>4.0.3-W14J8</uvms.config.version>
         <usm4uvms.version>4.0.14-W14-J8</usm4uvms.version>
-        <uvms.commons.version>3.0.29</uvms.commons.version>
+        <uvms.commons.version>3.0.31-W14J8</uvms.commons.version>
 
         <defaultLibBundleDir>APP-INF/lib</defaultLibBundleDir>
         <netbeans.hint.jdkPlatform>JDK_1.8</netbeans.hint.jdkPlatform>
+        <hibernate.version>5.1.9.Final</hibernate.version>
     </properties>
 
     <dependencies>
