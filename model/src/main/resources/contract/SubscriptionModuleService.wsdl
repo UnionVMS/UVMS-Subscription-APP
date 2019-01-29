@@ -173,6 +173,7 @@
                     <xsd:enumeration value="SCHEME_ID"/>
                     <xsd:enumeration value="LIST_ID"/>
                     <xsd:enumeration value="BOOLEAN_VALUE"/>
+                    <xsd:enumeration value="BOOLEAN_TYPE"/>
                     <xsd:enumeration value="FLUX_GP_PARTY"/>
                     <xsd:enumeration value="CFR"/>
                     <xsd:enumeration value="IRCS"/>
