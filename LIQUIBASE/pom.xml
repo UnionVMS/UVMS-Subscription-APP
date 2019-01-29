@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
         <artifactId>subscription</artifactId>
-        <version>1.4-SNAPSHOT</version>
+        <version>1.4.2-W14J8</version>
     </parent>
 
     <artifactId>liquibase</artifactId>
