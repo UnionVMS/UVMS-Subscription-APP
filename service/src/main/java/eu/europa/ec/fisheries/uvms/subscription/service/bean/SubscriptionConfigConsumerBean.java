@@ -48,7 +48,7 @@ public class SubscriptionConfigConsumerBean extends AbstractConsumer implements 
 
     @Override
     public String getDestinationName() {
-        return MessageConstants.QUEUE_SPATIAL;
+        return MessageConstants.QUEUE_SUBSCRIPTION;
     }
 
 }
