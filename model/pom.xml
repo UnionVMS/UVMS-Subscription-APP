@@ -14,7 +14,6 @@
         <wsdl.contract.name>SubscriptionModuleService</wsdl.contract.name>
         <wsdl.source.name>AssetDataSourceService</wsdl.source.name>
         <binding.xml>binding-date.xml</binding.xml>
-        <uvms.commons.version>3.3-W14J8</uvms.commons.version>
     </properties>
 
     <dependencies>

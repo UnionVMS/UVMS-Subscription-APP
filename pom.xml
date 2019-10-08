@@ -27,7 +27,7 @@
 
 
         <spatial.model.version>1.0.10</spatial.model.version>
-        <audit.model.version>4.0.6</audit.model.version>
+        <audit.model.version>4.0.10</audit.model.version>
 
         <hibernate.version>4.3.11.Final</hibernate.version>
         <lombok.version>1.16.18</lombok.version>
@@ -38,9 +38,9 @@
         <maven.ejb.plugin.ejb.version>3.1</maven.ejb.plugin.ejb.version>
 
         <!-- UVMS Libraries -->
-        <uvms.config.version>4.1-W14J8</uvms.config.version>
-        <usm4uvms.version>4.0.14-W14-J8</usm4uvms.version>
-        <uvms.commons.version>3.3-W14J8</uvms.commons.version>
+        <uvms.config.version>4.2-SNAPSHOT</uvms.config.version>
+        <usm4uvms.version>4.0.15.1-SNAPSHOT</usm4uvms.version>
+        <uvms.commons.version>3.4-SNAPSHOT</uvms.commons.version>
 
         <defaultLibBundleDir>APP-INF/lib</defaultLibBundleDir>
         <netbeans.hint.jdkPlatform>JDK_1.8</netbeans.hint.jdkPlatform>
