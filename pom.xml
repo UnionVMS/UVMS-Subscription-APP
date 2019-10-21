@@ -3,15 +3,15 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
     <artifactId>subscription</artifactId>
-    <version>1.4.5-SNAPSHOT</version>
+    <version>${uvms.subscription.module.version}</version>
     <packaging>pom</packaging>
 
-    <parent>
-        <groupId>fish.focus.uvms.maven</groupId>
-        <artifactId>uvms-pom</artifactId>
-        <relativePath />
-        <version>1.21</version>
-    </parent>
+  <parent>
+    <groupId>eu.europa.ec.fisheries.uvms</groupId>
+    <artifactId>mare-pom</artifactId>
+    <version>1.6.0-MARE</version>
+    <relativePath />
+  </parent>
 
     <scm>
         <url>${scm.url}</url>
@@ -25,22 +25,22 @@
 
         <docker.dev.version>3.24.0</docker.dev.version>
 
+        <spatial.model.version>${uvms.spatial.model.version}</spatial.model.version>
+        <audit.model.version>${uvms.audit.module.version}</audit.model.version>
+        <user.model.version>${uvms.user.module.version}</user.model.version>
 
-        <spatial.model.version>1.0.10</spatial.model.version>
-        <audit.model.version>4.0.10</audit.model.version>
+        <uvms.test.version>0.0.4</uvms.test.version>
+
+        <!-- UVMS Libraries -->
+        <uvms.config.version>${uvms.config.library.version}</uvms.config.version>
+        <usm4uvms.version>${uvms.uvms4usm.version}</usm4uvms.version>
+        <uvms.commons.version>${uvms.commonsLibrary.version}</uvms.commons.version>
 
         <hibernate.version>4.3.11.Final</hibernate.version>
         <lombok.version>1.16.18</lombok.version>
         <mapstruct.version>1.2.0.Final</mapstruct.version>
-        <uvms.test.version>0.0.4</uvms.test.version>
-        <user.model.version>2.0.8</user.model.version>
         <javaee.version>8.0</javaee.version>
         <maven.ejb.plugin.ejb.version>3.1</maven.ejb.plugin.ejb.version>
-
-        <!-- UVMS Libraries -->
-        <uvms.config.version>4.2-SNAPSHOT</uvms.config.version>
-        <usm4uvms.version>4.0.15.1-SNAPSHOT</usm4uvms.version>
-        <uvms.commons.version>3.4-SNAPSHOT</uvms.commons.version>
 
         <defaultLibBundleDir>APP-INF/lib</defaultLibBundleDir>
         <netbeans.hint.jdkPlatform>JDK_1.8</netbeans.hint.jdkPlatform>
