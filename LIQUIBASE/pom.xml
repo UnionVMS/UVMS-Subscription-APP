@@ -4,10 +4,10 @@
     <parent>
         <groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
         <artifactId>subscription</artifactId>
-        <version>1.4.5-SNAPSHOT</version>
+        <version>${uvms.subscription.module.version}</version>
     </parent>
 
-    <artifactId>liquibase</artifactId>
+    <artifactId>subscription-liquibase</artifactId>
     <packaging>pom</packaging>
 
     <properties>
