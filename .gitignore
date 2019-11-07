@@ -9,3 +9,7 @@ container-conf/lib/*
 /rest/src/main/webapp/apidocs/
 /rest/nb-configuration.xml
 .flattened-pom.xml
+.project
+.classpath
+.settings/
+pom.xml.versionsBackup
