@@ -41,6 +41,7 @@ import javax.inject.Inject;
 import javax.interceptor.Interceptors;
 import javax.jms.TextMessage;
 import javax.validation.constraints.NotNull;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +90,6 @@ public class SubscriptionServiceBean extends BaseSubscriptionBean {
      * @param query filter criteria to retrieve subscriptions to be triggered
      * @return SubscriptionPermissionResponse
      */
-    @SuppressWarnings("unchecked")
     public SubscriptionPermissionResponse hasActiveSubscriptions(SubscriptionDataQuery query) {
         SubscriptionPermissionResponse response = new SubscriptionPermissionResponse();
 /*        Map<String, Object> stringObjectMap = CustomMapper.mapCriteriaToQueryParameters(query);
@@ -127,13 +127,11 @@ public class SubscriptionServiceBean extends BaseSubscriptionBean {
         Map<String, Object> map = objectMapper.convertValue(parameters, Map.class);
         map.put("strict", false); // only use LIKE query
 
-        @SuppressWarnings("unchecked")
-        Map<ColumnType, DirectionType> orderMap = new HashMap<>();
-        orderMap.put(orderByDto.getColumn(), orderByDto.getDirection());
+        Map<ColumnType, DirectionType> orderMap = Collections.singletonMap(orderByDto.getColumn(), orderByDto.getDirection());
 
         List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(map, orderMap,  -1 , -1);
 
-        Integer countResults = 0;
+        int countResults = 0;
 
         if (CollectionUtils.isNotEmpty(subscriptionEntities)){
             countResults = subscriptionEntities.size();

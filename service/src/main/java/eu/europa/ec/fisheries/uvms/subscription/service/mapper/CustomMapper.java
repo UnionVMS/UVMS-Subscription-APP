@@ -18,12 +18,16 @@ import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class CustomMapper {
+
+    private static final String UNKNOWN = "UNKNOWN";
 
     private CustomMapper(){
 
@@ -87,64 +91,41 @@ public class CustomMapper {
 
     public static List<SubscriptionEntity> enrichSubscriptionList(List<SubscriptionEntity> resultList, List<Organisation> organisationList) {
 
-        boolean isOrgAvailable;
-        boolean isChannelAvailable;
-        boolean isEndPointAvailable;
-
         if (organisationList == null || organisationList.isEmpty()) {
             return resultList;
         }
-        for (SubscriptionEntity subscription : resultList){
-            isOrgAvailable = false;
-             for (Organisation orgDomain: organisationList){
-                if (subscription.getOrganisation() == orgDomain.getId()) {
-                    isOrgAvailable = true;
-                    isEndPointAvailable = false;
-                    if (orgDomain.getParentOrganisation() != null
-                            && !StringUtils.isEmpty( orgDomain.getParentOrganisation() )) {
 
-                        StringBuilder sb = new StringBuilder();
-                        sb.append( orgDomain.getParentOrganisation() );
-                        sb.append( " / " ).append( orgDomain.getName() );
-                        subscription.setOrganisationName( sb.toString() );
-                    }else
-                        subscription.setOrganisationName( orgDomain.getName());
+        Map<Long, Organisation> organisationMap = organisationList.stream().collect(Collectors.toMap(Organisation::getId, o -> o));
 
-                    for (EndPoint endPoint : orgDomain.getEndPoints()) {
-                        if (subscription.getEndPoint() == endPoint.getId()) {
-                            isEndPointAvailable = true;
-                            isChannelAvailable = false;
-                            subscription.setEndpointName( endPoint.getName() );
-                            for (Channel channel : endPoint.getChannels()) {
-                                if (subscription.getChannel() == channel.getId()) {
-                                    isChannelAvailable = true;
-                                    subscription.setChannelName( channel.getDataFlow() );
-                                }
-                                if(isChannelAvailable)
-                                    break;
-                            }
-                            if(!isChannelAvailable){
-                                subscription.setChannelName( "UNKNOWN" );
-                            }
-                        }
-                        if(isEndPointAvailable)
-                            break;
-                    }
-                    if(!isEndPointAvailable){
-                        subscription.setEndpointName( "UNKNOWN" );
-                        subscription.setChannelName( "UNKNOWN" );
-                    }
-                }
-                if (isOrgAvailable)
-                    break;
+        for (SubscriptionEntity subscription : resultList) {
+            Organisation orgDomain = organisationMap.get(subscription.getOrganisation());
+            if (orgDomain != null) {
+                String fullOrgName = StringUtils.isNotEmpty(orgDomain.getParentOrganisation()) ? orgDomain.getParentOrganisation() + " / " + orgDomain.getName() : orgDomain.getName();
+                subscription.setOrganisationName(fullOrgName);
+                Optional<EndPoint> endpoint = orgDomain.getEndPoints().stream()
+                        .filter(endPoint -> subscription.getEndPoint() == endPoint.getId())
+                        .findFirst();
+                subscription.setEndpointName(endpoint.map(EndPoint::getName).orElse(UNKNOWN));
+                subscription.setChannelName(endpoint
+                        .map(EndPoint::getChannels)
+                        .flatMap(channelForSubscription(subscription))
+                        .map(Channel::getDataFlow)
+                        .orElse(UNKNOWN)
+                );
             }
-            if(!isOrgAvailable){
-                 subscription.setOrganisationName( "UNKNOWN" );
-                 subscription.setEndpointName( "UNKNOWN" );
-                 subscription.setChannelName( "UNKNOWN" );
+            else {
+                subscription.setOrganisationName(UNKNOWN);
+                subscription.setEndpointName(UNKNOWN);
+                subscription.setChannelName(UNKNOWN);
             }
         }
 
         return resultList;
+    }
+
+    private static Function<List<Channel>,Optional<Channel>> channelForSubscription(SubscriptionEntity subscription) {
+        return channels -> channels.stream()
+                .filter(channel -> subscription.getChannel() == channel.getId())
+                .findFirst();
     }
 }
