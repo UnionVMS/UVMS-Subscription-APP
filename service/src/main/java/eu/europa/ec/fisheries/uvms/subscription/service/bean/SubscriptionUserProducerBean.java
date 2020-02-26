@@ -16,14 +16,8 @@ import eu.europa.ec.fisheries.uvms.commons.message.impl.AbstractProducer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
-
-import javax.jms.Queue;
-
-
-import static eu.europa.ec.fisheries.uvms.commons.message.impl.JMSUtils.lookupQueue;
 
 @Stateless
 @LocalBean
@@ -32,7 +26,7 @@ import static eu.europa.ec.fisheries.uvms.commons.message.impl.JMSUtils.lookupQu
 public class SubscriptionUserProducerBean extends AbstractProducer {
 
     @Override
-    public String getDestinationName(){{
-        return MessageConstants.QUEUE_USM;  }
+    public String getDestinationName() {
+        return MessageConstants.QUEUE_USM;
     }
 }

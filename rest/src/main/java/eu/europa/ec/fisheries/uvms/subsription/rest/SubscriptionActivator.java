@@ -10,13 +10,12 @@
 
 package eu.europa.ec.fisheries.uvms.subsription.rest;
 
+import eu.europa.ec.fisheries.uvms.subsription.rest.resource.SubscriptionResource;
+
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 import java.util.HashSet;
 import java.util.Set;
-
-import eu.europa.ec.fisheries.uvms.rest.security.UnionVMSFeatureFilter;
-import eu.europa.ec.fisheries.uvms.subsription.rest.resource.SubscriptionResource;
 
 @ApplicationPath("/rest")
 public class SubscriptionActivator extends Application {

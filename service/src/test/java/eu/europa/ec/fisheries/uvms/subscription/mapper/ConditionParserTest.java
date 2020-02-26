@@ -20,6 +20,8 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.SubCriteriaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.ValueType;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class ConditionParserTest {
 
     @Test
@@ -47,7 +49,6 @@ public class ConditionParserTest {
         conditionEntity.setCompositeType(CompositeType.NONE);
         subscription.addCondition(conditionEntity);
 
-        System.out.println(SubscriptionParser.parseCondition(ConditionType.END, subscription));
-
+        assertEquals("(ownerParty == \"BEL\") || (ownerParty != \"FRA\")", (SubscriptionParser.parseCondition(ConditionType.END, subscription)));
     }
 }

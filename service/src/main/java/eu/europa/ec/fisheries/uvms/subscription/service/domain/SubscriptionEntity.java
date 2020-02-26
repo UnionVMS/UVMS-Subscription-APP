@@ -12,8 +12,6 @@ package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
 import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.END_OF_TIME;
 import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.nowUTC;
-import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.BY_NAME;
-import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
 import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.EnumType.STRING;
@@ -61,7 +59,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Table(name = "subscription")
 @NamedQueries({
-        @NamedQuery(name = LIST_SUBSCRIPTION, query =
+        @NamedQuery(name = SubscriptionEntity.LIST_SUBSCRIPTION, query =
                 "SELECT DISTINCT s FROM SubscriptionEntity s " +
                 "LEFT JOIN FETCH s.conditions c " +
                 "LEFT JOIN FETCH s.areas a " +
@@ -77,7 +75,7 @@ import lombok.NoArgsConstructor;
                 "((:description is NULL) OR (UPPER(cast(s.description as string)) LIKE CONCAT('%', UPPER(cast(:description as string)), '%'))) AND " +
                 "(cast(:startDate as timestamp) <= s.validityPeriod.startDate OR cast(:endDate as timestamp) <= s.validityPeriod.endDate) "
         ),
-        @NamedQuery(name = BY_NAME, query = "SELECT s FROM SubscriptionEntity s " +
+        @NamedQuery(name = SubscriptionEntity.BY_NAME, query = "SELECT s FROM SubscriptionEntity s " +
                 "LEFT JOIN FETCH s.conditions c " +
                 "LEFT JOIN FETCH s.areas a " +
                 "WHERE s.name = :name")

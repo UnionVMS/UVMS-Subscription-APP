@@ -32,8 +32,6 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionRes
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -96,4 +94,3 @@ public class SubscriptionMessageConsumerBean implements MessageListener {
         }
     }
 }
-
