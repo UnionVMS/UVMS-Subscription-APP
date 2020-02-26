@@ -15,8 +15,8 @@
         <liquibase.update.phase>test</liquibase.update.phase>
         <liquibase.spatial.version>1.2.1</liquibase.spatial.version>
     </properties>
-    <profiles>
 
+    <profiles>
         <profile>
             <id>postgres</id>
             <activation>
@@ -135,6 +135,7 @@
             </properties>
         </profile>
     </profiles>
+
     <build>
         <pluginManagement>
             <plugins>

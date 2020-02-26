@@ -17,7 +17,6 @@
     </properties>
     
     <dependencies>
-
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>subscription-service</artifactId>
@@ -60,8 +59,7 @@
             </plugin>
         </plugins>
     </build>
-    
-     
+
     <profiles>
         <profile>
             <id>generate-rest-doc</id>
@@ -125,5 +123,4 @@
             </build>
         </profile>        
     </profiles>  
-
 </project>

@@ -12,7 +12,6 @@
     <packaging>ejb</packaging>
     
     <properties>
-    
         <!-- PROPERTIES USED FOR LOGBACK -->
         <application.name>${project.parent.artifactId}</application.name> 
         <application.version>${project.parent.version}</application.version>
