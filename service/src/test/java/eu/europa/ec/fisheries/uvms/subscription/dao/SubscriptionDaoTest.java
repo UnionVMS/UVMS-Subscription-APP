@@ -12,15 +12,15 @@ package eu.europa.ec.fisheries.uvms.subscription.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.random;
-import static junitparams.JUnitParamsRunner.$;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import javax.persistence.EntityTransaction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ninja_squad.dbsetup.DbSetup;
@@ -41,21 +41,20 @@ import eu.europa.ec.fisheries.wsdl.user.types.Channel;
 import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import lombok.SneakyThrows;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(JUnitParamsRunner.class)
 public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
 
     private SubscriptionDao daoUnderTest = new SubscriptionDao(em);
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    @Before
+    @BeforeEach
     public void prepare(){
         Operation operation = sequenceOf(
                 DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_CONDITION, INSERT_AREA);
@@ -64,8 +63,8 @@ public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
         dbSetup.launch();
     }
 
-    @Test
-    @Parameters(method = "dataQuery")
+    @ParameterizedTest
+    @MethodSource("dataQuery")
     public void testListSubscriptionForModuleAuthorization(SubscriptionDataQuery dataQuery, int expected){
         Map<String, Object> map = CustomMapper.mapCriteriaToQueryParameters(dataQuery); // FIXME add startEndDate logic from rest
         map.put("strict", true);
@@ -73,34 +72,34 @@ public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
         assertEquals(expected, subscriptionEntities.size());
     }
 
-    protected Object[] dataQuery(){
-        return $(
-                $(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_1(), 1),
-                $(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_2(), 0),
-                $(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_3(), 0)
+    private static Stream<Arguments> dataQuery() {
+        return Stream.of(
+                Arguments.of(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_1(), 1),
+                Arguments.of(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_2(), 0),
+                Arguments.of(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_3(), 0)
         );
     }
 
-    @Test
-    @Parameters(method = "queryParameters")
+    @ParameterizedTest
+    @MethodSource("queryParameters")
     public void testListSubscription(QueryParameterDto queryParameters, int expected){
-
+        @SuppressWarnings("unchecked")
         Map<String, Object> map = objectMapper.convertValue(queryParameters, Map.class);
         map.put("strict", false);
-        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(map, new HashMap<ColumnType, DirectionType>(),-1, -1);
+        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(map, new HashMap<>(),-1, -1);
         assertEquals(expected, subscriptionEntities.size());
     }
 
-    protected Object[] queryParameters(){
-        return $(
-                $(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
-                $(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
-                $(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
-                $(QueryParameterDto.builder().build(), 4),
-                $(QueryParameterDto.builder().messageType(MessageType.FLUX_FA_QUERY_MESSAGE).organisation(new Long(1)).build(), 1),
-                $(QueryParameterDto.builder().enabled(true).build(), 3),
-                $(QueryParameterDto.builder().channel(new Long(1)).organisation(new Long(1)).name("subscription4").build(), 0),
-                $(QueryParameterDto.builder().name("sub").enabled(true).build(), 2)
+    protected static Stream<Arguments> queryParameters(){
+        return Stream.of(
+                Arguments.of(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
+                Arguments.of(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
+                Arguments.of(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
+                Arguments.of(QueryParameterDto.builder().build(), 4),
+                Arguments.of(QueryParameterDto.builder().messageType(MessageType.FLUX_FA_QUERY_MESSAGE).organisation(new Long(1)).build(), 1),
+                Arguments.of(QueryParameterDto.builder().enabled(true).build(), 3),
+                Arguments.of(QueryParameterDto.builder().channel(new Long(1)).organisation(new Long(1)).name("subscription4").build(), 0),
+                Arguments.of(QueryParameterDto.builder().name("sub").enabled(true).build(), 2)
         );
     }
 
@@ -247,5 +246,4 @@ public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
         organisationList.add( org3 );
         return organisationList;
     }
-
 }

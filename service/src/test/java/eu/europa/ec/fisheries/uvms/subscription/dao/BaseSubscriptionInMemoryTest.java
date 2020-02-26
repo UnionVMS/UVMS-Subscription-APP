@@ -11,7 +11,6 @@
 package eu.europa.ec.fisheries.uvms.subscription.dao;
 
 import com.ninja_squad.dbsetup.operation.Operation;
-import eu.europa.ec.fisheries.uvms.BaseDAOTest;
 import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
 
 import static com.ninja_squad.dbsetup.Operations.*;
@@ -40,5 +39,4 @@ public abstract class BaseSubscriptionInMemoryTest extends BaseDAOTest {
     @Override protected String getPersistenceUnitName() {
         return "testPU";
     }
-
 }

@@ -10,6 +10,8 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.mapper;
 
+import static org.junit.Assert.assertEquals;
+
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.CompositeType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.ConditionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.ConditionType;
@@ -18,9 +20,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionParser;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubCriteriaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.ValueType;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
 
 public class ConditionParserTest {
 
