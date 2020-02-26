@@ -11,7 +11,7 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.mapper;
 
 import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.UI_FORMATTER;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 
@@ -21,11 +21,9 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
-import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
 import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SubscriptionMapperTest {
 
@@ -35,7 +33,7 @@ public class SubscriptionMapperTest {
     private Date startDate;
     private Date endDate;
 
-    @Before
+    @BeforeEach
     public void before(){
 
         dto = new SubscriptionDto();
@@ -102,6 +100,5 @@ public class SubscriptionMapperTest {
         assertEquals(dto.getOrganisation(), entity.getOrganisation());
         assertEquals(dto.getActive(), entity.isEnabled());
         assertEquals(dto.getAccessibility(), entity.getAccessibility());
-
     }
 }

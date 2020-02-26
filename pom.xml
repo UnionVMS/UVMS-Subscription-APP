@@ -29,7 +29,7 @@
 		<audit.model.version>${uvms.audit.module.version}</audit.model.version>
 		<user.model.version>${uvms.user.module.version}</user.model.version>
 
-		<uvms.test.version>0.0.4</uvms.test.version>
+		<uvms.test.version>0.0.9</uvms.test.version>
 
 		<!-- UVMS Libraries -->
 		<uvms.config.version>${uvms.config.library.version}</uvms.config.version>
@@ -45,6 +45,11 @@
 		<defaultLibBundleDir>APP-INF/lib</defaultLibBundleDir>
 		<netbeans.hint.jdkPlatform>JDK_1.8</netbeans.hint.jdkPlatform>
 		<hibernate.version>5.1.9.Final</hibernate.version>
+
+		<version.junit.jupiter>5.6.0</version.junit.jupiter>
+		<version.ninja.squad>2.1.0</version.ninja.squad>
+
+		<focus-pom.maven.surefire.plugin.version>2.22.2</focus-pom.maven.surefire.plugin.version>
 	</properties>
 
 	<dependencies>
@@ -185,6 +190,32 @@
 				<groupId>org.projectlombok</groupId>
 				<artifactId>lombok</artifactId>
 				<version>${lombok.version}</version>
+			</dependency>
+
+			<!-- TEST -->
+			<dependency>
+				<groupId>com.ninja-squad</groupId>
+				<artifactId>DbSetup</artifactId>
+				<version>${version.ninja.squad}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter-engine</artifactId>
+				<version>${version.junit.jupiter}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter-api</artifactId>
+				<version>${version.junit.jupiter}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter-params</artifactId>
+				<version>${version.junit.jupiter}</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
