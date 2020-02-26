@@ -8,7 +8,7 @@
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.europe.ec.fisheries.uvms.subscription.mapper;
+package eu.europa.ec.fisheries.uvms.subscription.mapper;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.CompositeType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.ConditionEntity;
