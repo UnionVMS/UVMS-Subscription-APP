@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>eu.europa.ec.fisheries.uvms</groupId>
 		<artifactId>mare-pom</artifactId>
-		<version>1.6.0-MARE-SNAPSHOT</version>
+		<version>1.7.0-MARE-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 
@@ -46,8 +46,11 @@
 		<netbeans.hint.jdkPlatform>JDK_1.8</netbeans.hint.jdkPlatform>
 		<hibernate.version>5.1.9.Final</hibernate.version>
 
+		<version.hibernate.validator>6.1.2.Final</version.hibernate.validator>
 		<version.junit.jupiter>5.6.0</version.junit.jupiter>
+		<version.mockito>3.3.0</version.mockito>
 		<version.ninja.squad>2.1.0</version.ninja.squad>
+		<version.weld-junit5>2.0.1.Final</version.weld-junit5>
 
 		<focus-pom.maven.surefire.plugin.version>2.22.2</focus-pom.maven.surefire.plugin.version>
 	</properties>
@@ -151,6 +154,10 @@
 						<groupId>commons-logging</groupId>
 						<artifactId>commons-logging</artifactId>
 					</exclusion>
+					<exclusion>
+						<groupId>org.mockito</groupId>
+						<artifactId>mockito-all</artifactId>
+					</exclusion>
 				</exclusions>
 			</dependency>
 
@@ -200,6 +207,30 @@
 				<scope>test</scope>
 			</dependency>
 			<dependency>
+				<groupId>org.glassfish</groupId>
+				<artifactId>javax.el</artifactId>
+				<version>3.0.1-b11</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-validator</artifactId>
+				<version>${version.hibernate.validator}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-validator-cdi</artifactId>
+				<version>${version.hibernate.validator}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.jboss.weld</groupId>
+				<artifactId>weld-junit5</artifactId>
+				<version>${version.weld-junit5}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
 				<groupId>org.junit.jupiter</groupId>
 				<artifactId>junit-jupiter-engine</artifactId>
 				<version>${version.junit.jupiter}</version>
@@ -215,6 +246,18 @@
 				<groupId>org.junit.jupiter</groupId>
 				<artifactId>junit-jupiter-params</artifactId>
 				<version>${version.junit.jupiter}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>${version.mockito}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-junit-jupiter</artifactId>
+				<version>${version.mockito}</version>
 				<scope>test</scope>
 			</dependency>
 		</dependencies>

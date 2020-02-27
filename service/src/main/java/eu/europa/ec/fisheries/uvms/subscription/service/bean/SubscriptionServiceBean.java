@@ -10,12 +10,16 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
+import static eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper.mapToAuditLog;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.MessageType.FLUX_FA_QUERY_MESSAGE;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.NO;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.YES;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils;
 import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
-import eu.europa.ec.fisheries.uvms.commons.service.interceptor.ValidationInterceptor;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.*;
@@ -33,39 +37,31 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.EJB;
-import javax.ejb.LocalBean;
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.interceptor.Interceptors;
 import javax.jms.TextMessage;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper.mapToAuditLog;
-import static eu.europa.ec.fisheries.wsdl.subscription.module.MessageType.FLUX_FA_QUERY_MESSAGE;
-import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.NO;
-import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.YES;
-
-@Stateless
-@LocalBean
+@ApplicationScoped
 @Slf4j
-public class SubscriptionServiceBean extends BaseSubscriptionBean {
+@Transactional
+class SubscriptionServiceBean implements SubscriptionService {
 
     private static final String SUBSCRIPTION = "SUBSCRIPTION";
+
+    @Inject
     private SubscriptionDao subscriptionDAO;
 
-    @EJB
-    private SubscriptionProducerBean producer;
-
-    @EJB
+    @Inject
     private SubscriptionUserConsumerBean subscriptionUserConsumerBean;
 
-    @EJB
+    @Inject
     private SubscriptionUserProducerBean subscriptionUserProducerBean;
 
     @Inject
@@ -73,23 +69,18 @@ public class SubscriptionServiceBean extends BaseSubscriptionBean {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    @EJB
+    @Inject
     private SubscriptionAuditProducer auditProducer;
 
-    @EJB
+    @Inject
     private SubscriptionProducerBean subscriptionProducer;
-
-    @PostConstruct
-    public void init() {
-        initEntityManager();
-        subscriptionDAO = new SubscriptionDao(em);
-    }
 
     /**
      * Check if the incoming message has a valid subscription
      * @param query filter criteria to retrieve subscriptions to be triggered
      * @return SubscriptionPermissionResponse
      */
+    @Override
     public SubscriptionPermissionResponse hasActiveSubscriptions(SubscriptionDataQuery query) {
         SubscriptionPermissionResponse response = new SubscriptionPermissionResponse();
 /*        Map<String, Object> stringObjectMap = CustomMapper.mapCriteriaToQueryParameters(query);
@@ -108,15 +99,16 @@ public class SubscriptionServiceBean extends BaseSubscriptionBean {
     }
 
     /**
-     * List subscriptions. Used over REST service.
+     * List subscriptions.
+     *
      * @param parameters the query parameters
      * @param pagination the pagination parameters
      * @return page of listSubscriptions results
      */
+    @Override
     @SneakyThrows
-    @Interceptors(ValidationInterceptor.class)
-    public SubscriptionListResponseDto listSubscriptions(@NotNull QueryParameterDto parameters, @NotNull PaginationDto pagination,
-                                                         @NotNull OrderByDto orderByDto, String scopeName, String roleName, String requester) {
+    public SubscriptionListResponseDto listSubscriptions(@Valid @NotNull QueryParameterDto parameters, @Valid @NotNull PaginationDto pagination,
+                                                         @Valid @NotNull OrderByDto orderByDto, String scopeName, String roleName, String requester) {
 
         SubscriptionListResponseDto responseDto = new SubscriptionListResponseDto();
 
@@ -167,19 +159,18 @@ public class SubscriptionServiceBean extends BaseSubscriptionBean {
         return responseDto;
     }
 
-
+    @Override
     @SneakyThrows
-    @Interceptors(ValidationInterceptor.class)
-    public SubscriptionDto create(@NotNull SubscriptionDto subscription, @NotNull String currentUser) {
+    public SubscriptionDto create(@Valid @NotNull SubscriptionDto subscription, @NotNull String currentUser) {
         SubscriptionEntity entity = mapper.mapDtoToEntity(subscription);
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
         sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.CREATE.name(), saved.getId().toString(), currentUser));
         return mapper.mapEntityToDto(saved);
     }
 
+    @Override
     @SneakyThrows
-    @Interceptors(ValidationInterceptor.class)
-    public SubscriptionDto update(@NotNull SubscriptionDto subscription, @NotNull String currentUser) {
+    public SubscriptionDto update(@Valid @NotNull SubscriptionDto subscription, @NotNull String currentUser) {
         SubscriptionEntity entityById = subscriptionDAO.findEntityById(SubscriptionEntity.class, subscription.getId());
 
         if (entityById == null){
@@ -191,18 +182,18 @@ public class SubscriptionServiceBean extends BaseSubscriptionBean {
         return mapper.mapEntityToDto(subscriptionEntity);
     }
 
+    @Override
     @SneakyThrows
-    @Interceptors(ValidationInterceptor.class)
     public void delete(@NotNull Long id, @NotNull String currentUser) {
         subscriptionDAO.deleteEntity(SubscriptionEntity.class, id);
         sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), String.valueOf(id), currentUser));
     }
 
-    public void sendLogToAudit(String log) throws MessageException {
+    private void sendLogToAudit(String log) throws MessageException {
         auditProducer.sendModuleMessage(log, subscriptionProducer.getDestination());
     }
 
-    @Interceptors(ValidationInterceptor.class)
+    @Override
     public SubscriptionEntity findSubscriptionByName(@NotNull final String name) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("name", name);

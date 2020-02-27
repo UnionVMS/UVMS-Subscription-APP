@@ -10,8 +10,8 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
-import javax.ejb.EJB;
 import javax.ejb.Singleton;
+import javax.inject.Inject;
 import java.io.InputStream;
 
 import eu.europa.ec.fisheries.uvms.init.AbstractModuleInitializerBean;
@@ -19,8 +19,8 @@ import eu.europa.ec.fisheries.uvms.init.AbstractModuleInitializerBean;
 @Singleton
 public class SubscriptionInitializerBean extends AbstractModuleInitializerBean {
 
-    @EJB
-    private PropertiesBean properties;
+    @Inject
+    private Properties properties;
 
     @Override
     protected InputStream getDeploymentDescriptorRequest() {

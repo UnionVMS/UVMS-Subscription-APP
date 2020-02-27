@@ -1,4 +1,4 @@
-package eu.europa.ec.fisheries.uvms.subscription.dao;
+package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;

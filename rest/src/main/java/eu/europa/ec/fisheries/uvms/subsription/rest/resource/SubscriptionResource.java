@@ -11,15 +11,15 @@
 package eu.europa.ec.fisheries.uvms.subsription.rest.resource;
 
 import eu.europa.ec.fisheries.uvms.commons.rest.resource.UnionVMSResource;
-import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionServiceBean;
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionService;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListQueryDto;
 import eu.europa.ec.fisheries.uvms.subsription.rest.IUserRoleInterceptor;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -35,7 +35,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
  * @implicitParam authorization|string|header|true||||||jwt token
  */
 @Path("/subscription")
-@Stateless
+@ApplicationScoped
 @Slf4j
 @SuppressWarnings("javadoc")
 public class SubscriptionResource extends UnionVMSResource {
@@ -46,8 +46,8 @@ public class SubscriptionResource extends UnionVMSResource {
     @HeaderParam("roleName")
     private String roleName;
 
-    @EJB
-    private SubscriptionServiceBean service;
+    @Inject
+    private SubscriptionService service;
 
     /**
      * Search for subscription matching the given criteria.
