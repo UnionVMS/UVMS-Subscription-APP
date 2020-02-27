@@ -11,19 +11,17 @@
 package eu.europa.ec.fisheries.uvms.subsription.rest.resource;
 
 import eu.europa.ec.fisheries.uvms.commons.rest.resource.UnionVMSResource;
-import eu.europa.ec.fisheries.uvms.commons.service.interceptor.ValidationInterceptor;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionServiceBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListQueryDto;
 import eu.europa.ec.fisheries.uvms.subsription.rest.IUserRoleInterceptor;
-import eu.europa.ec.fisheries.uvms.subsription.rest.filter.SubscriptionServiceExceptionHandler;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.interceptor.Interceptors;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -39,21 +37,14 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 @Path("/subscription")
 @Stateless
 @Slf4j
-@Interceptors(SubscriptionServiceExceptionHandler.class)
 @SuppressWarnings("javadoc")
 public class SubscriptionResource extends UnionVMSResource {
-
-    @HeaderParam("authorization")
-    private String authorization;
 
     @HeaderParam("scopeName")
     private String scopeName;
 
     @HeaderParam("roleName")
     private String roleName;
-
-    @Context
-    private HttpServletRequest servletRequest;
 
     @EJB
     private SubscriptionServiceBean service;
@@ -68,10 +59,9 @@ public class SubscriptionResource extends UnionVMSResource {
     @Consumes(value = {APPLICATION_JSON})
     @Produces(value = {APPLICATION_JSON})
     @Path("list")
-    @Interceptors(ValidationInterceptor.class)
     @IUserRoleInterceptor(requiredUserRole = {SubscriptionFeaturesEnum.VIEW_SUBSCRIPTION})
-    public Response listSubscriptions(@NotNull SubscriptionListQueryDto dto) {
-        return createSuccessResponse(service.listSubscriptions(dto.getQueryParameters(), dto.getPagination(), dto.getOrderBy(), scopeName, roleName,servletRequest.getRemoteUser()));
+    public Response listSubscriptions(@Context HttpServletRequest request, @Valid SubscriptionListQueryDto dto) {
+        return createSuccessResponse(service.listSubscriptions(dto.getQueryParameters(), dto.getPagination(), dto.getOrderBy(), scopeName, roleName, request.getRemoteUser()));
     }
 
     /**
@@ -84,8 +74,7 @@ public class SubscriptionResource extends UnionVMSResource {
     @Path("/{name}")
     @Produces(APPLICATION_JSON)
     @IUserRoleInterceptor(requiredUserRole = {SubscriptionFeaturesEnum.VIEW_SUBSCRIPTION})
-    @Interceptors(ValidationInterceptor.class)
-    public Response findByName(@NotNull @PathParam(value = "name") String name) {
+    public Response findByName(@Context HttpServletRequest request, @Valid @NotNull @PathParam(value = "name") String name) {
         return createSuccessResponse(service.findSubscriptionByName(name));
     }
 
@@ -99,9 +88,8 @@ public class SubscriptionResource extends UnionVMSResource {
     @Consumes(value = {APPLICATION_JSON})
     @Produces(value = {APPLICATION_JSON})
     @IUserRoleInterceptor(requiredUserRole = {SubscriptionFeaturesEnum.MANAGE_SUBSCRIPTION})
-    @Interceptors(ValidationInterceptor.class)
-    public Response create(@NotNull SubscriptionDto subscription) {
-        return createSuccessResponse(service.create(subscription, servletRequest.getRemoteUser()));
+    public Response create(@Context HttpServletRequest request, @Valid @NotNull SubscriptionDto subscription) {
+        return createSuccessResponse(service.create(subscription, request.getRemoteUser()));
     }
 
     /**
@@ -114,9 +102,8 @@ public class SubscriptionResource extends UnionVMSResource {
     @Consumes(value = {APPLICATION_JSON})
     @Produces(value = {APPLICATION_JSON})
     @IUserRoleInterceptor(requiredUserRole = {SubscriptionFeaturesEnum.MANAGE_SUBSCRIPTION})
-    @Interceptors(ValidationInterceptor.class)
-    public Response update(@NotNull SubscriptionDto subscription) {
-        return createSuccessResponse(service.update(subscription, servletRequest.getRemoteUser()));
+    public Response update(@Context HttpServletRequest request, @Valid @NotNull SubscriptionDto subscription) {
+        return createSuccessResponse(service.update(subscription, request.getRemoteUser()));
     }
 
     /**
@@ -129,9 +116,8 @@ public class SubscriptionResource extends UnionVMSResource {
     @Path("/{id}")
     @Produces(APPLICATION_JSON)
     @IUserRoleInterceptor(requiredUserRole = {SubscriptionFeaturesEnum.MANAGE_SUBSCRIPTION})
-    @Interceptors(ValidationInterceptor.class)
-    public Response delete(@NotNull @PathParam("id") Long id) {
-        service.delete(id, servletRequest.getRemoteUser());
+    public Response delete(@Context HttpServletRequest request, @Valid @NotNull @PathParam("id") Long id) {
+        service.delete(id, request.getRemoteUser());
         return createSuccessResponse();
     }
 }

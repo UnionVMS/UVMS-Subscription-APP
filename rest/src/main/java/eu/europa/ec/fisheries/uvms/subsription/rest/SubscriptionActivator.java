@@ -10,6 +10,9 @@
 
 package eu.europa.ec.fisheries.uvms.subsription.rest;
 
+import eu.europa.ec.fisheries.uvms.commons.rest.filter.EncodingResponseFilter;
+import eu.europa.ec.fisheries.uvms.subsription.rest.exceptionmap.ValidationExceptionMapper;
+import eu.europa.ec.fisheries.uvms.subsription.rest.filter.SubscriptionServiceExceptionHandler;
 import eu.europa.ec.fisheries.uvms.subsription.rest.resource.SubscriptionResource;
 
 import javax.ws.rs.ApplicationPath;
@@ -25,6 +28,9 @@ public class SubscriptionActivator extends Application {
 
     public SubscriptionActivator() {
         set.add(SubscriptionResource.class);
+        set.add(SubscriptionServiceExceptionHandler.class);
+        set.add(EncodingResponseFilter.class);
+        set.add(ValidationExceptionMapper.class);
     }
 
     @Override
@@ -36,5 +42,4 @@ public class SubscriptionActivator extends Application {
     public Set<Object> getSingletons() {
         return singletons;
     }
-
 }
