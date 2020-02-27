@@ -48,4 +48,12 @@
         <url-pattern>/rest/*</url-pattern>
     </filter-mapping>
 
+	<filter>
+		<filter-name>AuthorizationFilter</filter-name>
+		<filter-class>eu.europa.ec.fisheries.uvms.rest.security.AuthorizationFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>AuthorizationFilter</filter-name>
+		<url-pattern>/rest/*</url-pattern>
+	</filter-mapping>
 </web-app>
