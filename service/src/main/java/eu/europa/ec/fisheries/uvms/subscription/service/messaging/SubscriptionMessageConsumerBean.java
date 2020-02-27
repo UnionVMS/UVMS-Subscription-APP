@@ -25,13 +25,14 @@ import static eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils.unMarsh
 
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
-import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionServiceBean;
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionService;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionBaseRequest;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataRequest;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
+import javax.inject.Inject;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -51,8 +52,8 @@ public class SubscriptionMessageConsumerBean implements MessageListener {
     @EJB
     private SubscriptionProducerBean subscriptionProducer;
 
-    @EJB
-    private SubscriptionServiceBean subscriptionService;
+    @Inject
+    private SubscriptionService subscriptionService;
 
     @Override
     public void onMessage(Message message) {

@@ -8,7 +8,7 @@
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.europa.ec.fisheries.uvms.subscription.dao;
+package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.random;
@@ -26,7 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
-import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.ColumnType;
@@ -48,9 +47,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class SubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
+public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
-    private SubscriptionDao daoUnderTest = new SubscriptionDao(em);
+    private SubscriptionDaoImpl daoUnderTest = new SubscriptionDaoImpl(em);
 
     private ObjectMapper objectMapper = new ObjectMapper();
 

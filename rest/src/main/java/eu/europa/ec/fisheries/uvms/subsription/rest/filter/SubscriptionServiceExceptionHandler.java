@@ -26,7 +26,7 @@ public class SubscriptionServiceExceptionHandler extends UnionVMSResource implem
     @Override
     @Produces("application/json")
     public Response toResponse(ServiceException exception) {
-        log.error("Something went wrong invoking the rest service of the sales module.", exception);
+        log.error("Something went wrong invoking the rest service of the subscription module.", exception);
         return createErrorResponse(exception.getMessage());
     }
 }

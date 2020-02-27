@@ -10,10 +10,15 @@ details. You should have received a copy of the GNU General Public License along
 */
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
+import javax.enterprise.inject.Produces;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-public abstract class BaseSubscriptionBean {
+@ApplicationScoped
+public class EntityManagerProducer {
 
     protected EntityManager em;
 
@@ -24,7 +29,8 @@ public abstract class BaseSubscriptionBean {
     // @PersistenceContext(unitName = "subscriptionPUOracle")
     protected EntityManager oracle;
 
-    protected void initEntityManager() {
+    @PostConstruct
+    void initEntityManager() {
         String dbDialect = System.getProperty("db.dialect");
         if ("oracle".equalsIgnoreCase(dbDialect)) {
             em = oracle;
@@ -33,7 +39,9 @@ public abstract class BaseSubscriptionBean {
         }
     }
 
-    protected EntityManager getEntityManager() {
+    @Produces
+    @RequestScoped
+    EntityManager getEntityManager() {
         return em;
     }
 }

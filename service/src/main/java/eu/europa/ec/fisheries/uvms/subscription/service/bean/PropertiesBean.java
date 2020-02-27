@@ -12,50 +12,35 @@ details. You should have received a copy of the GNU General Public License along
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.ejb.EJBException;
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.io.UncheckedIOException;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Stateless
+@ApplicationScoped
 @Slf4j
-public class PropertiesBean {
+class PropertiesBean implements Properties {
 
-    private Properties props;
-    private AtomicInteger accessCount = new AtomicInteger(0);
+    private java.util.Properties props;
 
     @PostConstruct
-    public void startup() {
-
+    void startup() {
         log.debug("In PropertiesBean(Singleton)::startup()");
 
         try {
             InputStream propsStream =
                     PropertiesBean.class.getResourceAsStream("/config.properties");
-            props = new Properties();
+            props = new java.util.Properties();
 
             props.load(propsStream);
         } catch (IOException e) {
-            throw new EJBException("PropertiesBean initialization error", e);
+            throw new UncheckedIOException("PropertiesBean initialization error", e);
         }
     }
 
     public String getProperty(final String name) {
-        accessCount.incrementAndGet();
         return props.getProperty(name);
-    }
-
-    public int getAccessCount() {
-        return accessCount.get();
-    }
-
-    @PreDestroy
-    private void shutdown() {
-        log.debug("In PropertiesBean(Singleton)::shutdown()");
     }
 }

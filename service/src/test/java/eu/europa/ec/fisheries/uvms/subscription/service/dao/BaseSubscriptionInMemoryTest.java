@@ -8,7 +8,7 @@
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.europa.ec.fisheries.uvms.subscription.dao;
+package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import com.ninja_squad.dbsetup.operation.Operation;
 import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
