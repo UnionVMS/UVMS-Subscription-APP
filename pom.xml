@@ -373,6 +373,5 @@
 		<module>LIQUIBASE</module>
 		<module>rest</module>
 		<module>service</module>
-		<module>module</module>
 	</modules>
 </project>
