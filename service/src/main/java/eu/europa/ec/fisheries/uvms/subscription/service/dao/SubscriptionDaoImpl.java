@@ -33,7 +33,7 @@ import org.apache.commons.collections.MapUtils;
 
 @ApplicationScoped
 @Slf4j
-class SubscriptionDaoImpl extends AbstractDAO<SubscriptionEntity> implements SubscriptionDao {
+class SubscriptionDaoImpl implements SubscriptionDao {
 
     private static final String START_DATE = "startDate";
     private static final String END_DATE = "endDate";
@@ -46,14 +46,8 @@ class SubscriptionDaoImpl extends AbstractDAO<SubscriptionEntity> implements Sub
     }
 
     @Override
-    public EntityManager getEntityManager() {
-        return em;
-    }
-
-    @Override
     @SneakyThrows
     public List<SubscriptionEntity> listSubscriptions(@Valid @NotNull Map<String, Object> queryParameters, @Valid @NotNull Map<ColumnType, DirectionType> orderBy, @Valid @NotNull Integer firstResult, @Valid @NotNull Integer maxResult) {
-
         String queryString = em.createNamedQuery(LIST_SUBSCRIPTION).unwrap(org.hibernate.Query.class).getQueryString();
 
         List<SubscriptionEntity> resultList = null;
@@ -68,7 +62,7 @@ class SubscriptionDaoImpl extends AbstractDAO<SubscriptionEntity> implements Sub
             builder.append("id ASC");
         }
 
-        TypedQuery<SubscriptionEntity> selectQuery = getEntityManager().createQuery(builder.toString(), SubscriptionEntity.class);
+        TypedQuery<SubscriptionEntity> selectQuery = em.createQuery(builder.toString(), SubscriptionEntity.class);
 
         Object startDate = queryParameters.get(START_DATE);
         Object endDate = queryParameters.get(END_DATE);
@@ -105,15 +99,32 @@ class SubscriptionDaoImpl extends AbstractDAO<SubscriptionEntity> implements Sub
     }
 
     @Override
-    @SneakyThrows
-    public SubscriptionEntity byName(@Valid @NotNull Map<String, Object> queryParameters){
+    public SubscriptionEntity byName(@Valid @NotNull Map<String, Object> queryParameters) {
+        TypedQuery<SubscriptionEntity> query = em.createNamedQuery(SubscriptionEntity.BY_NAME, SubscriptionEntity.class);
+        queryParameters.forEach(query::setParameter);
+        query.setMaxResults(1);
+        return query.getResultList().stream().findFirst().orElse(null);
+    }
 
-        SubscriptionEntity entity = null;
-
-        List<SubscriptionEntity> entityByNamedQuery = findEntityByNamedQuery(SubscriptionEntity.class, SubscriptionEntity.BY_NAME, queryParameters, 1);
-        if (CollectionUtils.isNotEmpty(entityByNamedQuery)){
-            entity = entityByNamedQuery.get(0);
-        }
+    @Override
+    public SubscriptionEntity createEntity(SubscriptionEntity entity) {
+        em.persist(entity);
         return entity;
+    }
+
+    @Override
+    public SubscriptionEntity findById(Long id) {
+        return em.find(SubscriptionEntity.class, id);
+    }
+
+    @Override
+    public SubscriptionEntity update(SubscriptionEntity entity) {
+        return em.merge(entity);
+    }
+
+    @Override
+    public void delete(Long id) {
+        Object ref = em.getReference(SubscriptionEntity.class, id);
+        em.remove(ref);
     }
 }

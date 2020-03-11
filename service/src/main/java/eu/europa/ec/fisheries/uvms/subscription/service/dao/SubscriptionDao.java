@@ -10,8 +10,16 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.ColumnType;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.DirectionType;
 
-public interface SubscriptionDao extends DAO<SubscriptionEntity> {
+public interface SubscriptionDao {
 	List<SubscriptionEntity> listSubscriptions(@Valid @NotNull Map<String, Object> queryParameters, @Valid @NotNull Map<ColumnType, DirectionType> orderBy, @Valid @NotNull Integer firstResult, @Valid @NotNull Integer maxResult);
 
 	SubscriptionEntity byName(@Valid @NotNull Map<String, Object> queryParameters);
+
+	SubscriptionEntity createEntity(SubscriptionEntity entity);
+
+	SubscriptionEntity findById(Long id);
+
+	SubscriptionEntity update(SubscriptionEntity entity);
+
+	void delete(Long id);
 }
