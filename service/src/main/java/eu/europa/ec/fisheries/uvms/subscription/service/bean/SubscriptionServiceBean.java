@@ -171,13 +171,13 @@ class SubscriptionServiceBean implements SubscriptionService {
     @Override
     @SneakyThrows
     public SubscriptionDto update(@Valid @NotNull SubscriptionDto subscription, @NotNull String currentUser) {
-        SubscriptionEntity entityById = subscriptionDAO.findEntityById(SubscriptionEntity.class, subscription.getId());
+        SubscriptionEntity entityById = subscriptionDAO.findById(subscription.getId());
 
         if (entityById == null){
             throw new IllegalArgumentException("Unable to update entity: not found");
         }
         mapper.updateEntity(subscription, entityById);
-        SubscriptionEntity subscriptionEntity = subscriptionDAO.updateEntity(entityById);
+        SubscriptionEntity subscriptionEntity = subscriptionDAO.update(entityById);
         sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), subscriptionEntity.getId().toString(), currentUser));
         return mapper.mapEntityToDto(subscriptionEntity);
     }
@@ -185,7 +185,7 @@ class SubscriptionServiceBean implements SubscriptionService {
     @Override
     @SneakyThrows
     public void delete(@NotNull Long id, @NotNull String currentUser) {
-        subscriptionDAO.deleteEntity(SubscriptionEntity.class, id);
+        subscriptionDAO.delete(id);
         sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), String.valueOf(id), currentUser));
     }
 

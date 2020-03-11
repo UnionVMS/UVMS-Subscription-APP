@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import javax.persistence.EntityTransaction;
+import javax.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -106,7 +107,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     @SneakyThrows
     public void testCreateSubscriptionWithArea(){
 
-        int sizeBefore = daoUnderTest.findAllEntity(SubscriptionEntity.class).size();
+        int sizeBefore = findAllSubscriptions().size();
         EntityTransaction tx = em.getTransaction();
         tx.begin();
 
@@ -117,10 +118,10 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
         em.flush();
 
-        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.findAllEntity(SubscriptionEntity.class);
+        List<SubscriptionEntity> subscriptionEntities = findAllSubscriptions();
         assertEquals(sizeBefore + 1, subscriptionEntities.size());
 
-        SubscriptionEntity entityById = daoUnderTest.findEntityById(SubscriptionEntity.class, id);
+        SubscriptionEntity entityById = daoUnderTest.findById(id);
         assertEquals(subscription, entityById);
     }
 
@@ -130,7 +131,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
 
-        SubscriptionEntity subscription = daoUnderTest.findEntityById(SubscriptionEntity.class, 1L);
+        SubscriptionEntity subscription = daoUnderTest.findById(1L);
         assertEquals(3, subscription.getAreas().size());
 
         AreaEntity area = new AreaEntity();
@@ -141,7 +142,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
         em.flush();
 
-        daoUnderTest.findEntityById(SubscriptionEntity.class, 1L);
+        daoUnderTest.findById(1L);
         assertEquals(4, subscription.getAreas().size());
     }
 
@@ -151,7 +152,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
 
-        SubscriptionEntity subscription = daoUnderTest.findEntityById(SubscriptionEntity.class, 1L);
+        SubscriptionEntity subscription = daoUnderTest.findById(1L);
         assertEquals(3, subscription.getAreas().size());
 
         AreaEntity next = subscription.getAreas().iterator().next();
@@ -159,15 +160,14 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
         em.flush();
 
-        daoUnderTest.findEntityById(SubscriptionEntity.class, 1L);
+        daoUnderTest.findById(1L);
         assertEquals(2, subscription.getAreas().size());
     }
-
 
     @Test
     @SneakyThrows
     public void testListSubscriptionForEnrichment(){
-        List<SubscriptionEntity> subscriptionList = daoUnderTest.findAllEntity(SubscriptionEntity.class);
+        List<SubscriptionEntity> subscriptionList = findAllSubscriptions();
         List<SubscriptionEntity> subscriptionEntityList = CustomMapper.enrichSubscriptionList(subscriptionList, fetchAllOrganisations() );
 
         for(SubscriptionEntity subscription: subscriptionEntityList){
@@ -178,6 +178,11 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
             assertNotNull( subscription.getChannelName() );
             assertNotNull( subscription.getEndpointName() );
         }
+    }
+
+    private List<SubscriptionEntity> findAllSubscriptions() {
+        TypedQuery<SubscriptionEntity> query = em.createQuery("SELECT s FROM SubscriptionEntity s", SubscriptionEntity.class);
+        return query.getResultList();
     }
 
     private static List<Organisation> fetchAllOrganisations() {
