@@ -16,19 +16,28 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
-import eu.europa.ec.fisheries.uvms.commons.service.dao.AbstractDAO;
+import eu.europa.ec.fisheries.uvms.commons.domain.DateRange_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.ColumnType;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.DirectionType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ColumnType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.DirectionType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 
 @ApplicationScoped
@@ -96,6 +105,41 @@ class SubscriptionDaoImpl implements SubscriptionDao {
             log.error(e.getLocalizedMessage(),e);
         }
         return resultList;
+    }
+
+    @Override
+    public List<SubscriptionEntity> listSubscriptions(@Valid @NotNull SubscriptionListQuery subscriptionListParams) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<SubscriptionEntity> query = cb.createQuery(SubscriptionEntity.class);
+        applyCriteria(query, subscriptionListParams.getCriteria());
+        return em.createQuery(query)
+                .setFirstResult((subscriptionListParams.getPagination().getOffset() - 1) * subscriptionListParams.getPagination().getPageSize())
+                .setMaxResults(subscriptionListParams.getPagination().getPageSize())
+                .getResultList();
+    }
+
+    @Override
+    public Long count(@Valid @NotNull SubscriptionSearchCriteria criteria) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        Root<SubscriptionEntity> root = query.from(SubscriptionEntity.class);
+        query.select(cb.count(root));
+        applyCriteria(query, criteria);
+        return em.createQuery(query).getSingleResult();
+    }
+
+    private void applyCriteria(CriteriaQuery<?> query, SubscriptionSearchCriteria criteria) {
+        Root<SubscriptionEntity> subscription = query.from(SubscriptionEntity.class);
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        List<Predicate> predicates = new ArrayList<>();
+        // implement period correctly!
+        if (criteria.getStartDate() != null) {
+            predicates.add(cb.greaterThanOrEqualTo(subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.startDate), Date.from(criteria.getStartDate().toInstant())));
+        }
+        if (criteria.getEndDate() != null) {
+            predicates.add(cb.greaterThanOrEqualTo(subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.startDate), Date.from(criteria.getEndDate().toInstant())));
+        }
+        // ...
     }
 
     @Override

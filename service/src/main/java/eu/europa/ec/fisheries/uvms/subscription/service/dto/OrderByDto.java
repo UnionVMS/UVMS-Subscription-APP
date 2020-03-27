@@ -10,11 +10,13 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
-import static eu.europa.ec.fisheries.uvms.subscription.service.dto.ColumnType.*;
-import static eu.europa.ec.fisheries.uvms.subscription.service.dto.DirectionType.ASC;
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ColumnType.*;
+import static eu.europa.ec.fisheries.uvms.subscription.service.domain.search.DirectionType.ASC;
 
 import javax.validation.constraints.NotNull;
 
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ColumnType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.DirectionType;
 import lombok.Data;
 
 @Data

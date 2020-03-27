@@ -8,30 +8,12 @@
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.europa.ec.fisheries.uvms.subscription.service.dto;
+package eu.europa.ec.fisheries.uvms.subscription.service.domain.search;
 
-public enum ColumnType {
+/**
+ * Direction of ordering.
+ */
+public enum DirectionType {
 
-    NAME("name"),
-    DESCRIPTION("description"),
-    START_DATE("startDate"),
-    END_DATE("endDate"),
-    END_POINT("endPoint"),
-    CHANNEL("channel"),
-    ORGANISATION("organisation"),
-    ENABLED("enabled"),
-    MESSAGE_TYPE("messageType"),
-    SUBSCRIPTION_TYPE("subscriptionType"),
-    TRIGGER_TYPE("triggerType"),
-    SUB_ID("id");
-
-    private String propertyName;
-
-    ColumnType(String propertyName) {
-        this.propertyName = propertyName;
-    }
-
-    public String propertyName() {
-        return propertyName;
-    }
+    ASC, DESC
 }

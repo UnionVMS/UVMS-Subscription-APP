@@ -5,13 +5,17 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
-import eu.europa.ec.fisheries.uvms.commons.service.dao.DAO;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.ColumnType;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.DirectionType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ColumnType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.DirectionType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 
 public interface SubscriptionDao {
 	List<SubscriptionEntity> listSubscriptions(@Valid @NotNull Map<String, Object> queryParameters, @Valid @NotNull Map<ColumnType, DirectionType> orderBy, @Valid @NotNull Integer firstResult, @Valid @NotNull Integer maxResult);
+	List<SubscriptionEntity> listSubscriptions(@Valid @NotNull SubscriptionListQuery subscriptionListParams);
+
+	Long count(@Valid @NotNull SubscriptionSearchCriteria criteria);
 
 	SubscriptionEntity byName(@Valid @NotNull Map<String, Object> queryParameters);
 

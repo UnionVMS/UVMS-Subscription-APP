@@ -22,6 +22,8 @@ import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ColumnType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.DirectionType;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.*;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;

@@ -32,11 +32,11 @@ public class SubscriptionListQueryDto {
 
     private QueryParameterDto queryParameters = new QueryParameterDto();
 
+    @Valid
+    private OrderByDto orderBy = new OrderByDto();
+
     @JsonIgnore
     public boolean isEmpty() {
         return this.equals(empty);
     }
-
-    @Valid
-    private OrderByDto orderBy = new OrderByDto();
 }
