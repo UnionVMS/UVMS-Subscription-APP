@@ -16,7 +16,6 @@ import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.EnumType.STRING;
 import static javax.persistence.GenerationType.AUTO;
-import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
 
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -37,7 +36,6 @@ import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
@@ -197,22 +195,6 @@ public class SubscriptionEntity implements Serializable {
             validityPeriod.setEndDate(END_OF_TIME.toDate());
         }
         setGuid(UUID.randomUUID().toString());
-    }
-
-    public static SubscriptionEntity random(){
-        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
-        subscriptionEntity.setChannel(new Random().nextLong());
-        subscriptionEntity.setDescription(randomAlphabetic(200));
-        subscriptionEntity.setEndPoint(new Random().nextLong());
-        subscriptionEntity.setName(randomAlphabetic(40));
-        subscriptionEntity.setOrganisation(new Random().nextLong());
-        subscriptionEntity.setEnabled(new Random().nextBoolean());
-        subscriptionEntity.setMessageType(MessageType.values()[new Random().nextInt(MessageType.values().length)]);
-        subscriptionEntity.setStateType(StateType.values()[new Random().nextInt(StateType.values().length)]);
-        subscriptionEntity.setTriggerType(TriggerType.values()[new Random().nextInt(TriggerType.values().length)]);
-        subscriptionEntity.setSubscriptionType(SubscriptionType.values()[new Random().nextInt(SubscriptionType.values().length)]);
-        subscriptionEntity.setAccessibility(AccessibilityType.values()[new Random().nextInt(AccessibilityType.values().length)]);
-        return subscriptionEntity;
     }
 
     public String toExpression(ConditionType type){

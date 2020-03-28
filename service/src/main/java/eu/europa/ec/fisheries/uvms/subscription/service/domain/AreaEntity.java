@@ -82,12 +82,4 @@ public class AreaEntity {
     private void prepersist() {
         setGuid(UUID.randomUUID().toString());
     }
-
-    public static AreaEntity random(){
-        AreaEntity areaEntity = new AreaEntity();
-        areaEntity.setValue(RandomStringUtils.randomAlphabetic(100));
-        areaEntity.setAreaValueType(AreaValueType.values()[new Random().nextInt(AreaValueType.values().length)]);
-        areaEntity.setAreaType(AreaType.values()[new Random().nextInt(AreaType.values().length)]);
-        return areaEntity;
-    }
 }

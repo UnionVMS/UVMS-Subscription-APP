@@ -11,7 +11,6 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
-import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.random;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -111,8 +110,8 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
 
-        SubscriptionEntity subscription = random();
-        subscription.addArea(AreaEntity.random());
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.addArea(SubscriptionTestHelper.randomArea());
 
         Long id = daoUnderTest.createEntity(subscription).getId();
 
