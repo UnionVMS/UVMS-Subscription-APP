@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 
+import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AccessibilityType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.StateType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
@@ -84,7 +85,7 @@ public class SubscriptionMapperTest {
     @Test
     public void testUpdateEntity(){
 
-        SubscriptionEntity entity = SubscriptionEntity.random();
+        SubscriptionEntity entity = SubscriptionTestHelper.random();
 
         mapper.updateEntity(dto, entity);
 

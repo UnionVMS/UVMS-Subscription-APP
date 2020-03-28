@@ -12,6 +12,7 @@ package eu.europa.ec.fisheries.uvms.subscription.mapper;
 
 import static org.junit.Assert.assertEquals;
 
+import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.CompositeType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.ConditionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.ConditionType;
@@ -27,7 +28,7 @@ public class ConditionParserTest {
     @Test
     public void testParseCondition(){
 
-        SubscriptionEntity subscription = SubscriptionEntity.random();
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
         ConditionEntity conditionEntity = new ConditionEntity();
         conditionEntity.setStartOperator("(");
         //conditionEntity.setCriteriaType(CriteriaType.FLUX_REPORT_DOCUMENT);
