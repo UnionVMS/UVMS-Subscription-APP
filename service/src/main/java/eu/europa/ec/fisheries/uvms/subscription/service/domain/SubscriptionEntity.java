@@ -183,8 +183,17 @@ public class SubscriptionEntity implements Serializable {
     }
 
     @PrePersist
+    private void prePersist() {
+        fixValidityPeriod();
+        setGuid(UUID.randomUUID().toString());
+    }
+
     @PreUpdate
-    private void prepersistOrPreUpdate() {
+    private void preUpdate() {
+        fixValidityPeriod();
+    }
+
+    private void fixValidityPeriod() {
         if (validityPeriod == null){
             validityPeriod = new DateRange(new Date(), new Date(Long.MAX_VALUE));
         }
@@ -194,10 +203,5 @@ public class SubscriptionEntity implements Serializable {
         if (validityPeriod.getEndDate() == null){
             validityPeriod.setEndDate(END_OF_TIME.toDate());
         }
-        setGuid(UUID.randomUUID().toString());
-    }
-
-    public String toExpression(ConditionType type){
-        return SubscriptionParser.parseCondition(type, this);
     }
 }
