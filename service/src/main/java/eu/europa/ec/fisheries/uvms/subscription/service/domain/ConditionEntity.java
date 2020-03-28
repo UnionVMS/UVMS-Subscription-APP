@@ -87,5 +87,4 @@ public class ConditionEntity implements Serializable {
     @Enumerated(STRING)
     @Column(name = "composite_type")
     private CompositeType compositeType;
-
 }
