@@ -17,7 +17,6 @@ import java.util.Date;
 
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AccessibilityType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.StateType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType;
@@ -35,8 +34,7 @@ public class SubscriptionMapperTest {
     private Date endDate;
 
     @BeforeEach
-    public void before(){
-
+    public void before() {
         dto = new SubscriptionDto();
 
         startDate = UI_FORMATTER.parseDateTime("2016-08-01T11:50:16").toDate();
@@ -48,7 +46,7 @@ public class SubscriptionMapperTest {
         dto.setName("name");
         dto.setChannel(new Long( 1 ));
         dto.setDescription("description");
-        dto.setTriggerType(TriggerType.AUTO);
+        dto.setTriggerType(TriggerType.SCHEDULER);
         dto.setOrganisation(new Long( 1 ));
         dto.setActive(true);
         dto.setDelay("1,1,1");
@@ -56,30 +54,23 @@ public class SubscriptionMapperTest {
         dto.setSubscriptionType(SubscriptionType.TX_PULL);
         dto.setMessageType(MessageType.FLUX_FA_REPORT_MESSAGE);
         dto.setAccessibility(AccessibilityType.PRIVATE);
-
-
     }
 
     @Test
-    public void testMapDtoToEntity(){
-
+    public void testMapDtoToEntity() {
         SubscriptionEntity entity = mapper.mapDtoToEntity(dto);
 
-        assertEquals(TriggerType.AUTO, entity.getTriggerType());
-        assertEquals(true, entity.isEnabled());
-        assertEquals(new Long(1), entity.getOrganisation());
-        assertEquals(new Long(1), entity.getChannel());
+        assertEquals(TriggerType.SCHEDULER, entity.getExecution().getTriggerType());
+        assertEquals(true, entity.isActive());
+        assertEquals(new Long(1), entity.getOutput().getSubscriber().getOrganisationId());
+        assertEquals(new Long(1), entity.getOutput().getSubscriber().getChannelId());
         assertEquals("name", entity.getName());
-        assertEquals(SubscriptionType.TX_PULL, entity.getSubscriptionType());
-        assertEquals(MessageType.FLUX_FA_REPORT_MESSAGE, entity.getMessageType());
-        assertEquals(StateType.INACTIVE, entity.getStateType());
+//        assertEquals(SubscriptionType.TX_PULL, entity.getSubscriptionType());
+        assertEquals(MessageType.FLUX_FA_REPORT_MESSAGE, entity.getExecution().getTriggerType());
         assertEquals("description", entity.getDescription());
-        assertEquals("1,1,1", entity.getDelay());
         assertEquals(startDate, entity.getValidityPeriod().getStartDate());
         assertEquals(endDate, entity.getValidityPeriod().getEndDate());
-        assertEquals(new Long(2), entity.getEndPoint());
-        assertEquals(AccessibilityType.PRIVATE, entity.getAccessibility());
-
+        assertEquals(new Long(2), entity.getOutput().getSubscriber().getEndpointId());
     }
 
     @Test
@@ -89,17 +80,15 @@ public class SubscriptionMapperTest {
 
         mapper.updateEntity(dto, entity);
 
-        assertEquals(dto.getMessageType(), entity.getMessageType());
-        assertEquals(dto.getChannel(), entity.getChannel());
-        assertEquals(dto.getDelay(), entity.getDelay());
+        assertEquals(dto.getMessageType(), entity.getExecution().getTriggerType());
+        assertEquals(dto.getChannel(), entity.getOutput().getSubscriber().getChannelId());
         assertEquals(dto.getStartDate(), entity.getValidityPeriod().getStartDate());
         assertEquals(dto.getEndDate(), entity.getValidityPeriod().getEndDate());
-        assertEquals(dto.getTriggerType(), entity.getTriggerType());
+        assertEquals(dto.getTriggerType(), entity.getExecution().getTriggerType());
         assertEquals(dto.getName(), entity.getName());
         assertEquals(dto.getDescription(), entity.getDescription());
-        assertEquals(dto.getEndPoint(), entity.getEndPoint());
-        assertEquals(dto.getOrganisation(), entity.getOrganisation());
-        assertEquals(dto.getActive(), entity.isEnabled());
-        assertEquals(dto.getAccessibility(), entity.getAccessibility());
+        assertEquals(dto.getEndPoint(), entity.getOutput().getSubscriber().getEndpointId());
+        assertEquals(dto.getOrganisation(), entity.getOutput().getSubscriber().getOrganisationId());
+        assertEquals(dto.getActive(), entity.isActive());
     }
 }

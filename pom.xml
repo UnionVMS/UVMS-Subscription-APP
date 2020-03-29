@@ -38,7 +38,7 @@
 
 		<hibernate.version>4.3.11.Final</hibernate.version>
 		<lombok.version>1.16.18</lombok.version>
-		<mapstruct.version>1.2.0.Final</mapstruct.version>
+		<mapstruct.version>1.3.1.Final</mapstruct.version>
 		<javaee.version>8.0</javaee.version>
 		<maven.ejb.plugin.ejb.version>3.1</maven.ejb.plugin.ejb.version>
 

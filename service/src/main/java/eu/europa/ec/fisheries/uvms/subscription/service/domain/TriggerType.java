@@ -20,8 +20,13 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
+/**
+ * Type of trigger of a subscription.
+ */
 public enum TriggerType {
-
-    AUTO, MANUAL, UNKNOWN
-
+    MANUAL,
+    SCHEDULER,
+    INC_FA_REPORT,
+    INC_FA_QUERY,
+    INC_POSITION
 }

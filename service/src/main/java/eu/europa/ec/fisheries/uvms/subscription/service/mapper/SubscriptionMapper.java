@@ -12,21 +12,23 @@ package eu.europa.ec.fisheries.uvms.subscription.service.mapper;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListDto;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Mappings;
 
-@Mapper(uses = CustomMapper.class, componentModel = "cdi")
+@Mapper(componentModel = "cdi")
 public interface SubscriptionMapper {
 
-    @Mappings({@Mapping(target = "startDate", source = "validityPeriod.startDate"), @Mapping(target = "endDate", source = "validityPeriod.endDate"), @Mapping(target = "active", source = "enabled"), @Mapping(ignore = true, target = "conditions"), @Mapping(ignore = true, target = "areas")}) SubscriptionDto mapEntityToDto(SubscriptionEntity subscription);
+    @Mappings({@Mapping(target = "startDate", source = "validityPeriod.startDate"), @Mapping(target = "endDate", source = "validityPeriod.endDate"), @Mapping(ignore = true, target = "conditions"), @Mapping(ignore = true, target = "areas")}) SubscriptionDto mapEntityToDto(SubscriptionEntity subscription);
 
-    @InheritInverseConfiguration @Mappings({@Mapping(target = "stateType", constant = "INACTIVE"), @Mapping(ignore = true, target = "conditions"), @Mapping(ignore = true, target = "areas"),}) SubscriptionEntity mapDtoToEntity(SubscriptionDto subscription);
+    @InheritInverseConfiguration @Mappings({/*@Mapping(target = "stateType", constant = "INACTIVE"), @Mapping(ignore = true, target = "conditions"), @Mapping(ignore = true, target = "areas"),*/}) SubscriptionEntity mapDtoToEntity(SubscriptionDto subscription);
 
-    @Mappings({@Mapping(source = "startDate", target = "validityPeriod.startDate"), @Mapping(source = "endDate", target = "validityPeriod.endDate"), @Mapping(source = "active", target = "enabled"), @Mapping(ignore = true, target = "conditions"), @Mapping(ignore = true, target = "guid"), @Mapping(ignore = true, target = "areas"), @Mapping(ignore = true, target = "stateType"),
+    @Mappings({@Mapping(source = "startDate", target = "validityPeriod.startDate"), @Mapping(source = "endDate", target = "validityPeriod.endDate"), /*@Mapping(source = "active", target = "enabled"), @Mapping(ignore = true, target = "conditions"), @Mapping(ignore = true, target = "guid"), @Mapping(ignore = true, target = "areas"), @Mapping(ignore = true, target = "stateType"),*/
 
     }) void updateEntity(SubscriptionDto dto, @MappingTarget SubscriptionEntity entity);
 
+    SubscriptionListDto asListDto(SubscriptionEntity entity);
 }

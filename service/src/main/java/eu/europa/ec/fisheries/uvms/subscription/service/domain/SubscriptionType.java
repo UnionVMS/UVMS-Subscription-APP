@@ -10,6 +10,7 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
+@Deprecated
 public enum SubscriptionType {
 
     TX_PULL, TX_PUSH, UNKNOWN

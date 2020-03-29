@@ -10,7 +10,9 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
+/**
+ * Accessibility of subscriptions.
+ */
 public enum AccessibilityType {
-
-    SCOPE, PRIVATE, PUBLIC, UNKNOWN
+    SCOPE, PUBLIC
 }

@@ -14,12 +14,10 @@ import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
 
 import java.util.Random;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.AccessibilityType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.StateType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.CriteriaType;
@@ -117,19 +115,19 @@ public class SubscriptionTestHelper {
         return dataQuery;
     }
 
-    public static SubscriptionEntity random(){
+    public static SubscriptionEntity random() {
+        Random rnd = new Random();
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
-        subscriptionEntity.setChannel(new Random().nextLong());
+        SubscriptionOutput output = new SubscriptionOutput();
+        SubscriptionSubscriber subscriber = new SubscriptionSubscriber();
+        subscriber.setChannelId(rnd.nextLong());
+        subscriber.setEndpointId(rnd.nextLong());
+        subscriber.setOrganisationId(rnd.nextLong());
+        output.setSubscriber(subscriber);
+        subscriptionEntity.setOutput(output);
         subscriptionEntity.setDescription(randomAlphabetic(200));
-        subscriptionEntity.setEndPoint(new Random().nextLong());
         subscriptionEntity.setName(randomAlphabetic(40));
-        subscriptionEntity.setOrganisation(new Random().nextLong());
-        subscriptionEntity.setEnabled(new Random().nextBoolean());
-        subscriptionEntity.setMessageType(MessageType.values()[new Random().nextInt(MessageType.values().length)]);
-        subscriptionEntity.setStateType(StateType.values()[new Random().nextInt(StateType.values().length)]);
-        subscriptionEntity.setTriggerType(TriggerType.values()[new Random().nextInt(TriggerType.values().length)]);
-        subscriptionEntity.setSubscriptionType(SubscriptionType.values()[new Random().nextInt(SubscriptionType.values().length)]);
-        subscriptionEntity.setAccessibility(AccessibilityType.values()[new Random().nextInt(AccessibilityType.values().length)]);
+        subscriptionEntity.setActive(rnd.nextBoolean());
         return subscriptionEntity;
     }
 

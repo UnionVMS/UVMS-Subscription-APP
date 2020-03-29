@@ -10,6 +10,7 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
+@Deprecated
 public enum StateType {
 
     ACTIVE, INACTIVE, STAND_BY, EXECUTING, UNKNOWN

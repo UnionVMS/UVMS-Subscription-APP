@@ -84,4 +84,112 @@
         <addForeignKeyConstraint baseColumnNames="subscription_id" baseTableName="condition" constraintName="fk_om5bdiadsxse0i02kiyleyy7k" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="subscription"/>
     </changeSet>
 
+    <changeSet id="UNIONVMS-9999-subscription" author="nikospara">
+        <dropIndex tableName="subscription" indexName="idx_subscription" />
+        <renameColumn tableName="subscription" oldColumnName="enabled" newColumnName="active" />
+        <renameColumn tableName="subscription" oldColumnName="organisation" newColumnName="organisation_id" />
+        <renameColumn tableName="subscription" oldColumnName="end_point" newColumnName="endpoint_id" />
+        <renameColumn tableName="subscription" oldColumnName="channel" newColumnName="channel_id" />
+        <addColumn tableName="subscription">
+            <column name="alert" type="BOOLEAN" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outgoing_msg_type" type="VARCHAR(20)" defaultValue="NONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="logbook" type="BOOLEAN" />
+            <column name="consolidated" type="BOOLEAN" />
+            <column name="vessel_ids" type="INT" />
+            <column name="gen_new_report_id" type="BOOLEAN" />
+            <column name="history" type="INT" />
+            <column name="frequency" type="INT" />
+            <column name="immediate" type="BOOLEAN" />
+            <column name="time_expr" type="VARCHAR(20)" />
+        </addColumn>
+
+        <rollback>
+            <renameColumn tableName="subscription" oldColumnName="active" newColumnName="enabled" />
+            <renameColumn tableName="subscription" oldColumnName="organisation_id" newColumnName="organisation" />
+            <renameColumn tableName="subscription" oldColumnName="endpoint_id" newColumnName="end_point" />
+            <renameColumn tableName="subscription" oldColumnName="channel_id" newColumnName="channel" />
+            <dropColumn tableName="subscription" columnName="alert" />
+            <dropColumn tableName="subscription" columnName="outgoing_msg_type" />
+            <dropColumn tableName="subscription" columnName="logbook" />
+            <dropColumn tableName="subscription" columnName="consolidated" />
+            <dropColumn tableName="subscription" columnName="vessel_ids" />
+            <dropColumn tableName="subscription" columnName="gen_new_report_id" />
+            <dropColumn tableName="subscription" columnName="history" />
+            <dropColumn tableName="subscription" columnName="frequency" />
+            <dropColumn tableName="subscription" columnName="immediate" />
+            <dropColumn tableName="subscription" columnName="time_expr" />
+            <createIndex indexName="idx_subscription" tableName="subscription">
+                <column name="name"/>
+                <column name="description"/>
+                <column name="channel"/>
+                <column name="end_point"/>
+                <column name="message_type"/>
+                <column name="subscription_type"/>
+                <column name="organisation"/>
+                <column name="accessibility"/>
+                <column name="end_date"/>
+                <column name="start_date"/>
+                <column name="enabled"/>
+                <column name="state_type"/>
+            </createIndex>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="UNIONVMS-9999-helper-tables" author="nikospara">
+        <createTable tableName="subscription_emails">
+            <column name="subscription_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="index" type="INT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="subscription_emails" baseColumnNames="subscription_id" constraintName="FK_SUBSCRIPTION_EMAILS_SUBSCRIPTION" referencedTableName="subscription" referencedColumnNames="id" />
+    </changeSet>
+
+    <!-- ENABLE LATER...
+    <changeSet id="UNIONVMS-9999-subscription-dead-columns" author="nikospara">
+        <dropColumn tableName="subscription" columnName="subscription_type" />
+        <dropColumn tableName="subscription" columnName="message_type" />
+        <dropUniqueConstraint tableName="subscription" constraintName="uk_4olkrsd7yct4foeqt404bgr0f" />
+        <dropColumn tableName="subscription" columnName="subscription_guid" />
+        <dropColumn tableName="subscription" columnName="accessibility" />
+        <dropColumn tableName="subscription" columnName="delay" />
+        <dropColumn tableName="subscription" columnName="state_type" />
+
+        <rollback>
+            <addColumn tableName="subscription">
+                <column name="subscription_type" type="VARCHAR(255)" defaultValue="TX_PULL">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="message_type" type="VARCHAR(255)" defaultValue="FLUX_FA_REPORT_MESSAGE">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="subscription_guid" type="VARCHAR(36)" />
+                <column name="accessibility" type="VARCHAR(255)" defaultValue="UNKNOWN">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="delay" type="VARCHAR(255)"/>
+                <column name="state_type" type="VARCHAR(255)" defaultValue="INACTIVE">
+                    <constraints nullable="false"/>
+                </column>
+            </addColumn>
+            <sql dbms="postgresql">
+                <comment>The GUID is not used anyway, so a random value is good enough</comment>
+                UPDATE Subscription SET subscription_guid=concat(uuid_generate_v4(),'');
+            </sql>
+            <addUniqueConstraint columnNames="subscription_guid" constraintName="uk_4olkrsd7yct4foeqt404bgr0f" tableName="subscription"/>
+            <dropDefaultValue tableName="subscription" columnName="subscription_type" />
+            <dropDefaultValue tableName="subscription" columnName="message_type" />
+            <dropDefaultValue tableName="subscription" columnName="state_type" />
+        </rollback>
+    </changeSet>
+    -->
 </databaseChangeLog>
