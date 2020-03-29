@@ -87,7 +87,7 @@ public class SubscriptionServiceBeanTest {
 		s.setOrganisation(ORGANISATION_ID);
 		s.setEndPoint(ENDPOINT_ID);
 		s.setChannel(CHANNEL_ID);
-		s.setTriggerType(TriggerType.AUTO);
+		s.setTriggerType(TriggerType.SCHEDULER);
 		s.setMessageType(MessageType.FLUX_FA_QUERY_MESSAGE);
 		s.setSubscriptionType(SubscriptionType.TX_PULL);
 		s.setStartDate(new Date());
@@ -104,7 +104,7 @@ public class SubscriptionServiceBeanTest {
 		assertEquals(ORGANISATION_ID, result.getOrganisation());
 		assertEquals(ENDPOINT_ID, result.getEndPoint());
 		assertEquals(CHANNEL_ID, result.getChannel());
-		assertEquals(TriggerType.AUTO, result.getTriggerType());
+		assertEquals(TriggerType.SCHEDULER, result.getTriggerType());
 		assertEquals(MessageType.FLUX_FA_QUERY_MESSAGE, result.getMessageType());
 		assertEquals(SubscriptionType.TX_PULL, result.getSubscriptionType());
 		assertEquals(s.getStartDate(), result.getStartDate());

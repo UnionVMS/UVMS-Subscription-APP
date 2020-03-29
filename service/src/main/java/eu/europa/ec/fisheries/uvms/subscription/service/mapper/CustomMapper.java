@@ -10,14 +10,21 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.mapper;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListDto;
 import eu.europa.ec.fisheries.wsdl.subscription.module.*;
 import eu.europa.ec.fisheries.wsdl.user.types.Channel;
 import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,15 +32,27 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@ApplicationScoped
 public class CustomMapper {
 
     private static final String UNKNOWN = "UNKNOWN";
 
-    private CustomMapper(){
+    private SubscriptionMapper mapper;
 
+    /**
+     * Default constructor, required by frameworks.
+     */
+    @SuppressWarnings("unused")
+    CustomMapper() {
+        // NOOP
     }
 
-    public static Map<String, Object> mapCriteriaToQueryParameters(SubscriptionDataQuery query) {
+    @Inject
+    public CustomMapper(SubscriptionMapper mapper) {
+        this.mapper = mapper;
+    }
+
+    public Map<String, Object> mapCriteriaToQueryParameters(SubscriptionDataQuery query) {
 
         Map<String, Object> queryParameters = new HashMap<>();
 
@@ -86,27 +105,27 @@ public class CustomMapper {
         }
 
         return queryParameters;
-
     }
 
-    public static List<SubscriptionEntity> enrichSubscriptionList(List<SubscriptionEntity> resultList, List<Organisation> organisationList) {
+    public List<SubscriptionListDto> enrichSubscriptionList(List<SubscriptionEntity> resultList, List<Organisation> organisationList) {
 
         if (organisationList == null || organisationList.isEmpty()) {
-            return resultList;
+            return Collections.emptyList();
         }
 
-        Map<Long, Organisation> organisationMap = organisationList.stream().collect(Collectors.toMap(Organisation::getId, o -> o));
+        Map<Long, Organisation> organisationMap = organisationList.stream().collect(Collectors.toMap(Organisation::getId, Function.identity()));
 
-        for (SubscriptionEntity subscription : resultList) {
-            Organisation orgDomain = organisationMap.get(subscription.getOrganisation());
+        return resultList.stream().map(subscription -> {
+            SubscriptionListDto dto = mapper.asListDto(subscription);
+            Organisation orgDomain = Optional.ofNullable(subscription.getOutput()).map(SubscriptionOutput::getSubscriber).map(SubscriptionSubscriber::getOrganisationId).map(organisationMap::get).orElse(null);
             if (orgDomain != null) {
                 String fullOrgName = StringUtils.isNotEmpty(orgDomain.getParentOrganisation()) ? orgDomain.getParentOrganisation() + " / " + orgDomain.getName() : orgDomain.getName();
-                subscription.setOrganisationName(fullOrgName);
+                dto.setOrganisationName(fullOrgName);
                 Optional<EndPoint> endpoint = orgDomain.getEndPoints().stream()
-                        .filter(endPoint -> subscription.getEndPoint() == endPoint.getId())
+                        .filter(ep -> Optional.ofNullable(subscription.getOutput()).map(SubscriptionOutput::getSubscriber).map(SubscriptionSubscriber::getEndpointId).map(id -> id == ep.getId()).orElse(false))
                         .findFirst();
-                subscription.setEndpointName(endpoint.map(EndPoint::getName).orElse(UNKNOWN));
-                subscription.setChannelName(endpoint
+                dto.setEndpointName(endpoint.map(EndPoint::getName).orElse(UNKNOWN));
+                dto.setChannelName(endpoint
                         .map(EndPoint::getChannels)
                         .flatMap(channelForSubscription(subscription))
                         .map(Channel::getDataFlow)
@@ -114,18 +133,18 @@ public class CustomMapper {
                 );
             }
             else {
-                subscription.setOrganisationName(UNKNOWN);
-                subscription.setEndpointName(UNKNOWN);
-                subscription.setChannelName(UNKNOWN);
+                dto.setOrganisationName(UNKNOWN);
+                dto.setEndpointName(UNKNOWN);
+                dto.setChannelName(UNKNOWN);
             }
-        }
-
-        return resultList;
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     private static Function<List<Channel>,Optional<Channel>> channelForSubscription(SubscriptionEntity subscription) {
+        Optional<Long> subscriptionChannelId = Optional.ofNullable(subscription.getOutput()).map(SubscriptionOutput::getSubscriber).map(SubscriptionSubscriber::getChannelId);
         return channels -> channels.stream()
-                .filter(channel -> subscription.getChannel() == channel.getId())
+                .filter(channel -> subscriptionChannelId.map(channelId -> channelId == channel.getId()).orElse(false))
                 .findFirst();
     }
 }

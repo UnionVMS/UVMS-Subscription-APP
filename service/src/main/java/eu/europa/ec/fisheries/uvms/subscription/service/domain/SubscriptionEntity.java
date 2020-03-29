@@ -10,13 +10,11 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
-import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.END_OF_TIME;
-import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.nowUTC;
-import static javax.persistence.CascadeType.ALL;
-import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.EnumType.STRING;
 import static javax.persistence.GenerationType.AUTO;
 
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -25,25 +23,13 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
-import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionParser;
-import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -85,123 +71,49 @@ public class SubscriptionEntity implements Serializable {
     public static final String BY_NAME = "subscription.byName";
 
     @Id
+    @Column(name = "id")
     @GeneratedValue(strategy = AUTO)
     private Long id;
+//
+//    @OneToMany(mappedBy = "subscription", cascade = ALL, orphanRemoval = true)
+//    @Valid
+//    private Set<ConditionEntity> conditions = new HashSet<>();
+//
+//    @OneToMany(mappedBy = "subscription", cascade = MERGE, orphanRemoval = true)
+//    @Valid
+//    private Set<AreaEntity> areas = new HashSet<>();
 
-    @NotNull
-    @Enumerated(STRING)
-    @Column(name = "subscription_type")
-    private SubscriptionType subscriptionType;
-
-    @NotNull
-    @Enumerated(STRING)
-    @Column(name = "message_type")
-    private MessageType messageType;
-
-    @OneToMany(mappedBy = "subscription", cascade = ALL, orphanRemoval = true)
-    @Valid
-    private Set<ConditionEntity> conditions = new HashSet<>();
-
-    @OneToMany(mappedBy = "subscription", cascade = MERGE, orphanRemoval = true)
-    @Valid
-    private Set<AreaEntity> areas = new HashSet<>();
-
-    @Column(unique = true)
+    @Column(unique = true, name = "name")
     @NotNull
     private String name;
 
-    @Size(min = 36, max = 36)
-    @Column(name = "subscription_guid", unique = true)
-    @NotNull
-    private String guid;
-
-    @NotNull
     @Enumerated(STRING)
+    @Column(name = "accessibility")
     private AccessibilityType accessibility;
 
+    @Column(name = "description")
     private String description;
 
+    @Column(name = "active")
     @NotNull
-    @JsonProperty("isActive")
-    private boolean enabled;
+    private boolean active;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "startDate", column = @Column(name = "start_date")),
+            @AttributeOverride(name = "endDate", column = @Column(name = "end_date"))
+    })
+    @Valid
+    private DateRange validityPeriod = new DateRange(new Date(), new Date(Long.MAX_VALUE));
 
     @Embedded
     @Valid
-    @JsonUnwrapped
-    private DateRange validityPeriod = new DateRange(new Date(), new Date(Long.MAX_VALUE));
+    private SubscriptionOutput output;
 
-    @NotNull
-    private Long organisation;
+    @Embedded
+    @Valid
+    private SubscriptionExecution execution;
 
-    @Transient
-    private String organisationName;
-
-    @Transient
-    private String endpointName;
-
-    @Transient
-    private String channelName;
-
-    @NotNull
-    @Column(name = "end_point")
-    private Long endPoint;
-
-    @NotNull
-    @JsonProperty("communicationChannel")
-    private Long channel;
-
-    @Enumerated(STRING)
-    @NotNull
-    @Column(name = "trigger_type")
-    private TriggerType triggerType;
-
-    private String delay;
-
-    @Enumerated(STRING)
-    @NotNull
-    @Column(name = "state_type")
-    private StateType stateType;
-
-    public void addCondition(ConditionEntity condition) {
-        conditions.add(condition);
-        condition.setSubscription(this);
-    }
-
-    public void addArea(AreaEntity area) {
-        areas.add(area);
-        area.setSubscription(this);
-    }
-
-    public void removeCondition(ConditionEntity condition) {
-        conditions.remove(condition);
-        condition.setSubscription(null);
-    }
-
-    public void removeArea(AreaEntity area) {
-        areas.remove(area);
-        area.setSubscription(null);
-    }
-
-    @PrePersist
-    private void prePersist() {
-        fixValidityPeriod();
-        setGuid(UUID.randomUUID().toString());
-    }
-
-    @PreUpdate
-    private void preUpdate() {
-        fixValidityPeriod();
-    }
-
-    private void fixValidityPeriod() {
-        if (validityPeriod == null){
-            validityPeriod = new DateRange(new Date(), new Date(Long.MAX_VALUE));
-        }
-        if (validityPeriod.getStartDate() == null){
-            validityPeriod.setStartDate(nowUTC().toDate());
-        }
-        if (validityPeriod.getEndDate() == null){
-            validityPeriod.setEndDate(END_OF_TIME.toDate());
-        }
-    }
+    // TODO: Start conditions
+    // TODO: Stop conditions
 }

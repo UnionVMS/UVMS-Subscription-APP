@@ -16,7 +16,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import lombok.Data;
 
 @Data
@@ -27,6 +26,5 @@ public class SubscriptionListResponseDto {
     private Integer totalNumberOfPages = null;
 
     @JsonProperty("subscriptionList")
-    private List<SubscriptionEntity> list;
-
+    private List<SubscriptionListDto> list;
 }

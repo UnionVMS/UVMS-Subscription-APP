@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 @Slf4j
@@ -76,6 +77,9 @@ class SubscriptionServiceBean implements SubscriptionService {
 
     @Inject
     private SubscriptionProducerBean subscriptionProducer;
+
+    @Inject
+    private CustomMapper customMapper;
 
     /**
      * Check if the incoming message has a valid subscription
@@ -147,10 +151,11 @@ class SubscriptionServiceBean implements SubscriptionService {
 
             List<Organisation> organisationList = responseMessage.getOrganisation();
 
-            responseDto.setList(CustomMapper.enrichSubscriptionList(subscriptionEntities,organisationList));
+            responseDto.setList(customMapper.enrichSubscriptionList(subscriptionEntities,organisationList));
 
-        }else
-            responseDto.setList( subscriptionEntities );
+        } else {
+            responseDto.setList(subscriptionEntities.stream().map(mapper::asListDto).collect(Collectors.toList()));
+        }
 
         if (firstResult >= 0) {
             responseDto.setCurrentPage(page);
