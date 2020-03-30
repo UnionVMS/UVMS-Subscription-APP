@@ -84,17 +84,23 @@
         <addForeignKeyConstraint baseColumnNames="subscription_id" baseTableName="condition" constraintName="fk_om5bdiadsxse0i02kiyleyy7k" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="subscription"/>
     </changeSet>
 
-    <changeSet id="UNIONVMS-9999-subscription" author="nikospara">
+    <changeSet id="UNIONVMS-4466-subscription" author="nikospara">
         <dropIndex tableName="subscription" indexName="idx_subscription" />
         <renameColumn tableName="subscription" oldColumnName="enabled" newColumnName="active" />
         <renameColumn tableName="subscription" oldColumnName="organisation" newColumnName="organisation_id" />
         <renameColumn tableName="subscription" oldColumnName="end_point" newColumnName="endpoint_id" />
         <renameColumn tableName="subscription" oldColumnName="channel" newColumnName="channel_id" />
+        <update tableName="subscription">
+            <column name="message_type" value="NONE" />
+        </update>
+        <update tableName="subscription">
+            <column name="accessibility" value="PUBLIC" />
+        </update>
+        <dropDefaultValue tableName="subscription" columnName="accessibility" />
+        <modifyDataType tableName="subscription" columnName="accessibility" newDataType="VARCHAR(10)" />
+        <modifyDataType tableName="subscription" columnName="message_type" newDataType="VARCHAR(20)" />
         <addColumn tableName="subscription">
             <column name="alert" type="BOOLEAN" defaultValue="false">
-                <constraints nullable="false"/>
-            </column>
-            <column name="outgoing_msg_type" type="VARCHAR(20)" defaultValue="NONE">
                 <constraints nullable="false"/>
             </column>
             <column name="logbook" type="BOOLEAN" />
@@ -112,8 +118,16 @@
             <renameColumn tableName="subscription" oldColumnName="organisation_id" newColumnName="organisation" />
             <renameColumn tableName="subscription" oldColumnName="endpoint_id" newColumnName="end_point" />
             <renameColumn tableName="subscription" oldColumnName="channel_id" newColumnName="channel" />
+            <modifyDataType tableName="subscription" columnName="message_type" newDataType="VARCHAR(255)" />
+            <update tableName="subscription">
+                <column name="message_type" value="FLUX_FA_REPORT_MESSAGE" />
+            </update>
+            <modifyDataType tableName="subscription" columnName="accessibility" newDataType="VARCHAR(255)" />
+            <addDefaultValue tableName="subscription" columnName="accessibility" defaultValue="UNKNOWN" />
+            <update tableName="subscription">
+                <column name="accessibility" value="UNKNOWN" />
+            </update>
             <dropColumn tableName="subscription" columnName="alert" />
-            <dropColumn tableName="subscription" columnName="outgoing_msg_type" />
             <dropColumn tableName="subscription" columnName="logbook" />
             <dropColumn tableName="subscription" columnName="consolidated" />
             <dropColumn tableName="subscription" columnName="vessel_ids" />
@@ -139,7 +153,7 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="UNIONVMS-9999-helper-tables" author="nikospara">
+    <changeSet id="UNIONVMS-4466-helper-tables" author="nikospara">
         <createTable tableName="subscription_emails">
             <column name="subscription_id" type="BIGINT">
                 <constraints nullable="false"/>
@@ -152,12 +166,21 @@
             </column>
         </createTable>
         <addForeignKeyConstraint baseTableName="subscription_emails" baseColumnNames="subscription_id" constraintName="FK_SUBSCRIPTION_EMAILS_SUBSCRIPTION" referencedTableName="subscription" referencedColumnNames="id" />
+
+        <createTable tableName="email_body">
+            <column name="subscription_id" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="PK_EMAIL_BODY"/>
+            </column>
+            <column name="body" type="CLOB">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="email_body" baseColumnNames="subscription_id" constraintName="FK_EMAIL_BODY_SUBSCRIPTION" referencedTableName="subscription" referencedColumnNames="id" />
     </changeSet>
 
     <!-- ENABLE LATER...
     <changeSet id="UNIONVMS-9999-subscription-dead-columns" author="nikospara">
         <dropColumn tableName="subscription" columnName="subscription_type" />
-        <dropColumn tableName="subscription" columnName="message_type" />
         <dropUniqueConstraint tableName="subscription" constraintName="uk_4olkrsd7yct4foeqt404bgr0f" />
         <dropColumn tableName="subscription" columnName="subscription_guid" />
         <dropColumn tableName="subscription" columnName="accessibility" />

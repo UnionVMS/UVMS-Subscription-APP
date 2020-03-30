@@ -10,21 +10,27 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
+import static com.ninja_squad.dbsetup.Operations.deleteAllFrom;
+import static com.ninja_squad.dbsetup.Operations.insertInto;
+import static com.ninja_squad.dbsetup.Operations.sql;
+import static com.ninja_squad.dbsetup.operation.CompositeOperation.sequenceOf;
+
 import com.ninja_squad.dbsetup.operation.Operation;
 import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
-
-import static com.ninja_squad.dbsetup.Operations.*;
-import static com.ninja_squad.dbsetup.operation.CompositeOperation.sequenceOf;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.OutgoingMessageType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType;
 
 public abstract class BaseSubscriptionInMemoryTest extends BaseDAOTest {
 
     static final Operation DELETE_ALL = sequenceOf(deleteAllFrom("subscription.subscription"));
 
-    static final Operation INSERT_SUBSCRIPTION = sequenceOf(insertInto("subscription.subscription").columns("id", "subscription_guid", "name", "enabled", "organisation", "channel", "end_point", "message_type", "subscription_type", "state_type", "trigger_type", "accessibility", "start_date", "end_date")
-            .values(1L, "1dcc7037-bcf2-4e34-be01-c868beecf87a", "name1", "1", 1, 1, 2, "FLUX_FA_QUERY_MESSAGE", "UNKNOWN", "UNKNOWN", "AUTO", "UNKNOWN", DateUtils.START_OF_TIME.toDate(), DateUtils.END_OF_TIME.toDate())
-            .values(2L, "0dbe00af-a300-4cea-b1d7-1e6826ff8826", "subscription2", "1", 2, 1, 2, "UNKNOWN", "UNKNOWN", "UNKNOWN", "AUTO", "UNKNOWN", DateUtils.START_OF_TIME.toDate(), DateUtils.END_OF_TIME.toDate())
-            .values(3L, "4b25f95f-b3de-4d2e-ad99-dd2fe828a0f0", "subscription3", "1", 3, 1, 4, "UNKNOWN", "UNKNOWN", "UNKNOWN", "AUTO", "UNKNOWN", DateUtils.START_OF_TIME.toDate(), DateUtils.END_OF_TIME.toDate())
-            .values(4L, "14f7dc3c-813e-45d5-8470-3e38192ea5f9", "subscription4", "0", 4, 1, 2, "UNKNOWN", "UNKNOWN", "UNKNOWN", "AUTO", "UNKNOWN", DateUtils.START_OF_TIME.toDate(), DateUtils.END_OF_TIME.toDate()).build(), sql("alter sequence subscription.hibernate_sequence restart with 100000"));
+    static final Operation INSERT_SUBSCRIPTION = sequenceOf(insertInto("subscription.subscription")
+            .columns("id", "name", "active", "trigger_type", "start_date", "end_date", "alert", "message_type")
+            .values(1L, "subscription1", "1", TriggerType.SCHEDULER, DateUtils.START_OF_TIME.toDate(), DateUtils.END_OF_TIME.toDate(), "1", OutgoingMessageType.NONE)
+            .values(2L, "subscription2", "1", TriggerType.SCHEDULER, DateUtils.START_OF_TIME.toDate(), DateUtils.END_OF_TIME.toDate(), "1", OutgoingMessageType.NONE)
+            .values(3L, "subscription3", "1", TriggerType.SCHEDULER, DateUtils.START_OF_TIME.toDate(), DateUtils.END_OF_TIME.toDate(), "1", OutgoingMessageType.NONE)
+            .values(4L, "subscription4", "0", TriggerType.SCHEDULER, DateUtils.START_OF_TIME.toDate(), DateUtils.END_OF_TIME.toDate(), "0", OutgoingMessageType.NONE).build(),
+            sql("alter sequence subscription.hibernate_sequence restart with 100000"));
 
     static final Operation INSERT_CONDITION = sequenceOf(insertInto("subscription.condition").columns("id", "position", "subscription_id", "message_type", "criteria_type", "sub_criteria_type", "value_type", "value", "condition_type")
             .values(1L, 1L, 1, "FLUX_FA_REPORT_MESSAGE", "SENDER", "ORGANISATION", "UNKNOWN", "BEL", "START").build()

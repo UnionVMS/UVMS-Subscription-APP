@@ -14,16 +14,13 @@ public enum ColumnType {
 
     NAME("name"),
     DESCRIPTION("description"),
-    START_DATE("startDate"),
-    END_DATE("endDate"),
-    END_POINT("endPoint"),
+    STARTDATE("startDate"),
+    ENDDATE("endDate"),
+    ENDPOINT("endPoint"),
     CHANNEL("channel"),
     ORGANISATION("organisation"),
-    ENABLED("enabled"),
-    MESSAGE_TYPE("messageType"),
-    SUBSCRIPTION_TYPE("subscriptionType"),
-    TRIGGER_TYPE("triggerType"),
-    SUB_ID("id");
+    MESSAGETYPE("messageType"),
+    ID("id");
 
     private String propertyName;
 

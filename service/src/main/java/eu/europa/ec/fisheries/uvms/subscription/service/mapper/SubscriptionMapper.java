@@ -22,7 +22,7 @@ import org.mapstruct.Mappings;
 @Mapper(componentModel = "cdi")
 public interface SubscriptionMapper {
 
-    @Mappings({@Mapping(target = "startDate", source = "validityPeriod.startDate"), @Mapping(target = "endDate", source = "validityPeriod.endDate"), @Mapping(ignore = true, target = "conditions"), @Mapping(ignore = true, target = "areas")}) SubscriptionDto mapEntityToDto(SubscriptionEntity subscription);
+    @Mappings({@Mapping(target = "startDate", source = "validityPeriod.startDate"), @Mapping(target = "endDate", source = "validityPeriod.endDate"), /*@Mapping(ignore = true, target = "conditions") , @Mapping(ignore = true, target = "areas")*/ }) SubscriptionDto mapEntityToDto(SubscriptionEntity subscription);
 
     @InheritInverseConfiguration @Mappings({/*@Mapping(target = "stateType", constant = "INACTIVE"), @Mapping(ignore = true, target = "conditions"), @Mapping(ignore = true, target = "areas"),*/}) SubscriptionEntity mapDtoToEntity(SubscriptionDto subscription);
 
