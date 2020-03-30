@@ -44,25 +44,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Table(name = "subscription")
 @NamedQueries({
-        @NamedQuery(name = SubscriptionEntity.LIST_SUBSCRIPTION, query =
-                "SELECT DISTINCT s FROM SubscriptionEntity s " +
-                "LEFT JOIN FETCH s.conditions c " +
-                "LEFT JOIN FETCH s.areas a " +
-                " WHERE " +
-                        "((:channel is NULL) OR (((:strict = false) AND UPPER(cast(s.channel as string)) LIKE CONCAT('%', UPPER(cast(:channel as string)), '%')) OR ((:strict = true) AND s.channel = :channel))) AND " +
-                        "((:organisation is NULL) OR (((:strict = false) AND UPPER(cast(s.organisation as string)) LIKE CONCAT('%', UPPER(cast(:organisation as string)), '%')) OR ((:strict = true) AND s.organisation = :organisation))) AND " +
-                        "((:endPoint is NULL) OR (((:strict = false) AND UPPER(cast(s.endPoint as string)) LIKE CONCAT('%', UPPER(cast(:endPoint as string)), '%')) OR ((:strict = true) AND s.endPoint = :endPoint))) AND " +
-                "((:enabled is NULL) OR s.enabled = :enabled) AND " +
-                "((:name is NULL) OR (UPPER(cast(s.name as string)) LIKE CONCAT('%', UPPER(cast(:name as string)), '%'))) AND " +
-                "((:subscriptionType is NULL) OR (UPPER(cast(s.subscriptionType as string)) = UPPER(cast(:subscriptionType as string)))) AND " +
-                "((:messageType is NULL) OR (UPPER(cast(s.messageType as string)) LIKE CONCAT('%', UPPER(cast(:messageType as string)), '%'))) AND " +
-                "((:accessibility is NULL) OR (UPPER(cast(s.accessibility as string)) = UPPER(cast(:accessibility as string)))) AND " +
-                "((:description is NULL) OR (UPPER(cast(s.description as string)) LIKE CONCAT('%', UPPER(cast(:description as string)), '%'))) AND " +
-                "(cast(:startDate as timestamp) <= s.validityPeriod.startDate OR cast(:endDate as timestamp) <= s.validityPeriod.endDate) "
-        ),
         @NamedQuery(name = SubscriptionEntity.BY_NAME, query = "SELECT s FROM SubscriptionEntity s " +
-                "LEFT JOIN FETCH s.conditions c " +
-                "LEFT JOIN FETCH s.areas a " +
+                //"LEFT JOIN FETCH s.conditions c " +
+                //"LEFT JOIN FETCH s.areas a " +
                 "WHERE s.name = :name")
 })
 @EqualsAndHashCode(exclude = {"id"})

@@ -13,14 +13,11 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -31,11 +28,8 @@ import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
-import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.PaginationData;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
@@ -45,6 +39,9 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
 import eu.europa.ec.fisheries.wsdl.user.types.Channel;
 import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
+import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
+import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
+import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import lombok.SneakyThrows;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,46 +74,39 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     }
 
     @ParameterizedTest
-    @MethodSource("queryParameters")
-    public void testListSubscription(SubscriptionListQuery query, int expected){
+    @MethodSource("queryParametersWithCriteria")
+    public void testListSubscriptionWithCriteria(SubscriptionListQuery query, int expected){
         List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(query);
         assertEquals(expected, subscriptionEntities.size());
     }
 
-    protected static Stream<Arguments> queryParameters(){
+    protected static Stream<Arguments> queryParametersWithCriteria(){
         return Stream.of(
-                Arguments.of(createQuery("subscription3", null, null, null, null, "", null, null, null),1),
-                Arguments.of(createQuery("", null, null, null, 11L, "", null, null, null),4),
-                Arguments.of(createQuery("", null, null, null, null, "", null, null, null),4),
-                Arguments.of(createQuery("3", null, null, null, null, "", null, null, null),1),
-                Arguments.of(createQuery("subscription2", null, null, null, null, "", null, null, OutgoingMessageType.FA_QUERY),1),
-                Arguments.of(createQuery("", true, null, null, null, "", null, null, null),3),
-                Arguments.of(createQuery("subscription4", false, 11L, null, 11L, "", null, null, null),1),
-                Arguments.of(createQuery("", true, null, null, null, "tade", null, null, null),2)
+                Arguments.of(SubscriptionTestHelper.createQuery("subscription3", null, null, null, null, "", null, null, null, null, null),1),
+                Arguments.of(SubscriptionTestHelper.createQuery("", null, null, null, 11L, "", null, null, null, null, null),4),
+                Arguments.of(SubscriptionTestHelper.createQuery("", null, null, null, null, "", null, null, null, null, null),4),
+                Arguments.of(SubscriptionTestHelper.createQuery("3", null, null, null, null, "", null, null, null, null, null),1),
+                Arguments.of(SubscriptionTestHelper.createQuery("subscription2", null, null, null, null, "", null, null, OutgoingMessageType.FA_QUERY, null, null),1),
+                Arguments.of(SubscriptionTestHelper.createQuery("", true, null, null, null, "", null, null, null, null, null),3),
+                Arguments.of(SubscriptionTestHelper.createQuery("subscription4", false, 11L, null, 11L, "", null, null, null, null, null),1),
+                Arguments.of(SubscriptionTestHelper.createQuery("", true, null, null, null, "tade", null, null, null, null, null),2)
         );
     }
 
-    protected static SubscriptionListQuery createQuery(String name, Boolean active, Long organisation, Long endpoint, Long channel,
-                                                       String description, ZonedDateTime startDate, ZonedDateTime endDate, OutgoingMessageType messageType) {
-        SubscriptionListQuery query = mock(SubscriptionListQuery.class);
-        SubscriptionSearchCriteria searchCriteria = mock(SubscriptionSearchCriteria.class);
-        PaginationData pagination = mock(PaginationData.class);
+    @ParameterizedTest
+    @MethodSource("queryParametersWithOrderingAsc")
+    public void testListSubscriptionWithOrderingAsc(SubscriptionListQuery query, long firstResultId, long lastResultId){
+        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(query);
+        assertEquals(firstResultId, subscriptionEntities.get(0).getId());
+        assertEquals(lastResultId, subscriptionEntities.get(subscriptionEntities.size()-1).getId());
+    }
 
-        when(searchCriteria.getName()).thenReturn(name);
-        when(searchCriteria.getActive()).thenReturn(active);
-        when(searchCriteria.getOrganisation()).thenReturn(organisation);
-        when(searchCriteria.getEndPoint()).thenReturn(endpoint);
-        when(searchCriteria.getChannel()).thenReturn(channel);
-        when(searchCriteria.getDescription()).thenReturn(description);
-        when(searchCriteria.getStartDate()).thenReturn(startDate);
-        when(searchCriteria.getEndDate()).thenReturn(endDate);
-        when(searchCriteria.getMessageType()).thenReturn(messageType);
-        when(pagination.getPageSize()).thenReturn(25);
-        when(pagination.getOffset()).thenReturn(1);
-        when(query.getPagination()).thenReturn(pagination);
-        when(query.getCriteria()).thenReturn(searchCriteria);
-
-        return query;
+    protected static Stream<Arguments> queryParametersWithOrderingAsc(){
+        return Stream.of(
+                Arguments.of(SubscriptionTestHelper.createQuery("", null, null, null, null, "", null, null, null, DirectionType.ASC, ColumnType.NAME), 1L, 4L),
+                Arguments.of(SubscriptionTestHelper.createQuery("", null, null, null, null, "", null, null, null, DirectionType.ASC, ColumnType.DESCRIPTION), 1L, 4L),
+                Arguments.of(SubscriptionTestHelper.createQuery("", null, null, null, null, "", null, null, null, DirectionType.ASC, ColumnType.MESSAGETYPE), 2L, 4L)
+        );
     }
 
     @Test

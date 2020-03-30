@@ -68,9 +68,9 @@ class SubscriptionDaoImpl implements SubscriptionDao {
         if(orderByData != null) {
             CriteriaBuilder cb = em.getCriteriaBuilder();
             if (DirectionType.ASC.equals(orderByData.getDirection())) {
-                query.orderBy(cb.asc(getColumn(subscription, orderByData.getField())));
+                query.orderBy(cb.asc(getColumn(subscription, orderByData.getField())), cb.asc(subscription.get(SubscriptionEntity_.id)));
             } else if (DirectionType.DESC.equals(orderByData.getDirection())) {
-                query.orderBy(cb.desc(getColumn(subscription, orderByData.getField())));
+                query.orderBy(cb.desc(getColumn(subscription, orderByData.getField())), cb.desc(subscription.get(SubscriptionEntity_.id)));
             }
         }
     }
@@ -91,8 +91,6 @@ class SubscriptionDaoImpl implements SubscriptionDao {
                 return subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.subscriber).get(SubscriptionSubscriber_.channelId);
             case ORGANISATION:
                 return subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.subscriber).get(SubscriptionSubscriber_.organisationId);
-            case ACTIVE:
-                return subscription.get(SubscriptionEntity_.active);
             case MESSAGETYPE:
                 return subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.messageType);
             default:

@@ -12,12 +12,11 @@ import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 
 public interface SubscriptionDao {
-	List<SubscriptionEntity> listSubscriptions(@Valid @NotNull Map<String, Object> queryParameters, @Valid @NotNull Map<ColumnType, DirectionType> orderBy, @Valid @NotNull Integer firstResult, @Valid @NotNull Integer maxResult);
 	List<SubscriptionEntity> listSubscriptions(@Valid @NotNull SubscriptionListQuery subscriptionListParams);
 
 	Long count(@Valid @NotNull SubscriptionSearchCriteria criteria);
 
-	SubscriptionEntity byName(@Valid @NotNull Map<String, Object> queryParameters);
+	Boolean valueExists(@NotNull String name);
 
 	SubscriptionEntity createEntity(SubscriptionEntity entity);
 
