@@ -11,10 +11,19 @@
 package eu.europa.ec.fisheries.uvms.subscription.helper;
 
 import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.time.ZonedDateTime;
 import java.util.Random;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.OrderByData;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.PaginationData;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
+import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
+import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
@@ -28,6 +37,35 @@ public class SubscriptionTestHelper {
 
     private SubscriptionTestHelper(){
 
+    }
+
+    public static SubscriptionListQuery createQuery(String name, Boolean active, Long organisation, Long endpoint, Long channel,
+                                                    String description, ZonedDateTime startDate, ZonedDateTime endDate, OutgoingMessageType messageType, DirectionType direction, ColumnType field) {
+        SubscriptionListQuery query = mock(SubscriptionListQuery.class);
+        SubscriptionSearchCriteria searchCriteria = mock(SubscriptionSearchCriteria.class);
+        PaginationData pagination = mock(PaginationData.class);
+        OrderByData<ColumnType> order = mock(OrderByData.class);
+
+        when(searchCriteria.getName()).thenReturn(name);
+        when(searchCriteria.getActive()).thenReturn(active);
+        when(searchCriteria.getOrganisation()).thenReturn(organisation);
+        when(searchCriteria.getEndPoint()).thenReturn(endpoint);
+        when(searchCriteria.getChannel()).thenReturn(channel);
+        when(searchCriteria.getDescription()).thenReturn(description);
+        when(searchCriteria.getStartDate()).thenReturn(startDate);
+        when(searchCriteria.getEndDate()).thenReturn(endDate);
+        when(searchCriteria.getMessageType()).thenReturn(messageType);
+        when(query.getCriteria()).thenReturn(searchCriteria);
+
+        when(pagination.getPageSize()).thenReturn(25);
+        when(pagination.getOffset()).thenReturn(1);
+        when(query.getPagination()).thenReturn(pagination);
+
+        when(order.getDirection()).thenReturn(direction);
+        when(order.getField()).thenReturn(field);
+        when(query.getOrderBy()).thenReturn(order);
+
+        return query;
     }
 
     public static SubscriptionEntity random() {
