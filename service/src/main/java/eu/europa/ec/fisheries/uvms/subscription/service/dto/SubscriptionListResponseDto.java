@@ -23,7 +23,8 @@ import lombok.Data;
 public class SubscriptionListResponseDto {
 
     private Integer currentPage = null;
-    private Integer totalNumberOfPages = null;
+    private Long totalNumberOfPages = null;
+    private Long totalCount = null;
 
     @JsonProperty("subscriptionList")
     private List<SubscriptionListDto> list;

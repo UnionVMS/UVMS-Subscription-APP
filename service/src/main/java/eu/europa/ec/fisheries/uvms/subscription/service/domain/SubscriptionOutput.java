@@ -1,11 +1,14 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
+import static javax.persistence.EnumType.STRING;
+
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Embeddable;
 import javax.persistence.Embedded;
+import javax.persistence.Enumerated;
 import javax.persistence.JoinColumn;
 import javax.persistence.OrderColumn;
 import javax.validation.constraints.NotNull;
@@ -37,9 +40,10 @@ public class SubscriptionOutput implements Serializable {
 	@Column(name = "email")
 	private List<String> emails = new ArrayList<>();
 
-	@Column(name = "outgoing_msg_type")
+	@Column(name = "message_type")
 	@NotNull
-	private OutgoingMessageType type;
+	@Enumerated(STRING)
+	private OutgoingMessageType messageType;
 
 	@Embedded
 	private SubscriptionSubscriber subscriber;
