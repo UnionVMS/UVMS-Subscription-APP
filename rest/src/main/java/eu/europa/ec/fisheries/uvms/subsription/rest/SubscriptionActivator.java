@@ -31,6 +31,7 @@ public class SubscriptionActivator extends Application {
         set.add(SubscriptionServiceExceptionHandler.class);
         set.add(EncodingResponseFilter.class);
         set.add(ValidationExceptionMapper.class);
+        set.add(ObjectMapperContextResolver.class);
     }
 
     @Override
