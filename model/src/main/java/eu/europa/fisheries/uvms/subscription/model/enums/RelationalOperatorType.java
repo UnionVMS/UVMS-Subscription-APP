@@ -8,24 +8,9 @@
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.europa.ec.fisheries.uvms.subscription.service.dto;
+package eu.europa.fisheries.uvms.subscription.model.enums;
 
-import static eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ColumnType.*;
-import static eu.europa.ec.fisheries.uvms.subscription.service.domain.search.DirectionType.ASC;
+public enum RelationalOperatorType {
 
-import javax.validation.constraints.NotNull;
-
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ColumnType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.DirectionType;
-import lombok.Data;
-
-@Data
-public class OrderByDto {
-
-    @NotNull
-    private ColumnType column = SUB_ID;
-
-    @NotNull
-    private DirectionType direction = ASC;
-
+    EQ, NE, GT, GE, LT, LE, UNKNOWN
 }

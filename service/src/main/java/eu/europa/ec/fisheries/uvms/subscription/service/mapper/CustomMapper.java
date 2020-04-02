@@ -12,18 +12,6 @@ package eu.europa.ec.fisheries.uvms.subscription.service.mapper;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-
-import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListDto;
-import eu.europa.ec.fisheries.wsdl.subscription.module.*;
-import eu.europa.ec.fisheries.wsdl.user.types.Channel;
-import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
-import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
-import org.apache.commons.lang.StringUtils;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +19,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
+import eu.europa.ec.fisheries.wsdl.subscription.module.CriteriaType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubCriteriaType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataCriteria;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
+import eu.europa.ec.fisheries.wsdl.user.types.Channel;
+import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
+import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
+import org.apache.commons.lang.StringUtils;
 
 @ApplicationScoped
 public class CustomMapper {
@@ -117,6 +120,7 @@ public class CustomMapper {
 
         return resultList.stream().map(subscription -> {
             SubscriptionListDto dto = mapper.asListDto(subscription);
+            Optional.ofNullable(subscription.getOutput()).ifPresent(output -> dto.setMessageType(output.getMessageType().name()));
             Organisation orgDomain = Optional.ofNullable(subscription.getOutput()).map(SubscriptionOutput::getSubscriber).map(SubscriptionSubscriber::getOrganisationId).map(organisationMap::get).orElse(null);
             if (orgDomain != null) {
                 String fullOrgName = StringUtils.isNotEmpty(orgDomain.getParentOrganisation()) ? orgDomain.getParentOrganisation() + " / " + orgDomain.getName() : orgDomain.getName();

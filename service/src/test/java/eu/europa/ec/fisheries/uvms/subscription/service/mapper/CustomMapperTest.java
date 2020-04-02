@@ -15,10 +15,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javax.inject.Inject;
 
+import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
 import eu.europa.ec.fisheries.wsdl.user.types.Channel;
 import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
@@ -171,6 +172,7 @@ public class CustomMapperTest {
 		subscriber.setEndpointId(ENDPOINT_ID);
 		subscriber.setChannelId(CHANNEL_ID);
 		output.setSubscriber(subscriber);
+		output.setMessageType(OutgoingMessageType.NONE);
 		subscription.setOutput(output);
 		return subscription;
 	}

@@ -10,14 +10,12 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
-import static eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity.LIST_SUBSCRIPTION;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.Valid;
@@ -25,20 +23,18 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
-import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity_;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ColumnType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.DirectionType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber_;
+import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
+import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.OrderByData;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.MapUtils;
 
 @ApplicationScoped
 @Slf4j
@@ -55,99 +51,108 @@ class SubscriptionDaoImpl implements SubscriptionDao {
     }
 
     @Override
-    @SneakyThrows
-    public List<SubscriptionEntity> listSubscriptions(@Valid @NotNull Map<String, Object> queryParameters, @Valid @NotNull Map<ColumnType, DirectionType> orderBy, @Valid @NotNull Integer firstResult, @Valid @NotNull Integer maxResult) {
-        String queryString = em.createNamedQuery(LIST_SUBSCRIPTION).unwrap(org.hibernate.Query.class).getQueryString();
-
-        List<SubscriptionEntity> resultList = null;
-
-        StringBuilder builder = new StringBuilder(queryString).append(" ORDER BY s.");
-
-        if (MapUtils.isNotEmpty(orderBy)){
-            Map.Entry<ColumnType, DirectionType> next = orderBy.entrySet().iterator().next();
-            builder.append(next.getKey().propertyName()).append(" ").append(next.getValue().name());
-        }
-        else {
-            builder.append("id ASC");
-        }
-
-        TypedQuery<SubscriptionEntity> selectQuery = em.createQuery(builder.toString(), SubscriptionEntity.class);
-
-        Object startDate = queryParameters.get(START_DATE);
-        Object endDate = queryParameters.get(END_DATE);
-
-        if (startDate != null && endDate == null) {
-            queryParameters.put(END_DATE, DateUtils.END_OF_TIME.toDate());
-        }
-
-        if (endDate != null && startDate == null) {
-            queryParameters.put(START_DATE, DateUtils.START_OF_TIME.toDate());
-        }
-
-        if (endDate == null && startDate == null){
-            queryParameters.put(END_DATE, DateUtils.END_OF_TIME.toDate());
-            queryParameters.put(START_DATE, DateUtils.START_OF_TIME.toDate());
-        }
-
-        for (Map.Entry<String, Object> entry : queryParameters.entrySet()){
-            selectQuery.setParameter(entry.getKey(), entry.getValue());
-        }
-
-        if (firstResult >= 0 && maxResult > 0){
-            selectQuery.setFirstResult(firstResult);
-            selectQuery.setMaxResults(maxResult);
-        }
-
-        try {
-            resultList = selectQuery.getResultList();
-        }
-        catch (Exception e){
-            log.error(e.getLocalizedMessage(),e);
-        }
-        return resultList;
-    }
-
-    @Override
     public List<SubscriptionEntity> listSubscriptions(@Valid @NotNull SubscriptionListQuery subscriptionListParams) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<SubscriptionEntity> query = cb.createQuery(SubscriptionEntity.class);
-        applyCriteria(query, subscriptionListParams.getCriteria());
+        Root<SubscriptionEntity> subscription = query.from(SubscriptionEntity.class);
+        query.select(subscription);
+        applyCriteria(query, subscription, subscriptionListParams.getCriteria());
+        applyOrder(query, subscription, subscriptionListParams.getOrderBy());
         return em.createQuery(query)
                 .setFirstResult((subscriptionListParams.getPagination().getOffset() - 1) * subscriptionListParams.getPagination().getPageSize())
                 .setMaxResults(subscriptionListParams.getPagination().getPageSize())
                 .getResultList();
     }
 
+    private void applyOrder(CriteriaQuery<?> query, Root<SubscriptionEntity> subscription, OrderByData<ColumnType> orderByData) {
+        if(orderByData != null) {
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            if (DirectionType.ASC.equals(orderByData.getDirection())) {
+                query.orderBy(cb.asc(getColumn(subscription, orderByData.getField())));
+            } else if (DirectionType.DESC.equals(orderByData.getDirection())) {
+                query.orderBy(cb.desc(getColumn(subscription, orderByData.getField())));
+            }
+        }
+    }
+
+    private Expression<?> getColumn(Root<SubscriptionEntity> subscription, ColumnType column) {
+        switch (column) {
+            case NAME:
+                return subscription.get(SubscriptionEntity_.name);
+            case DESCRIPTION:
+                return subscription.get(SubscriptionEntity_.description);
+            case STARTDATE:
+                return subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.startDate);
+            case ENDDATE:
+                return subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.endDate);
+            case ENDPOINT:
+                return subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.subscriber).get(SubscriptionSubscriber_.endpointId);
+            case CHANNEL:
+                return subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.subscriber).get(SubscriptionSubscriber_.channelId);
+            case ORGANISATION:
+                return subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.subscriber).get(SubscriptionSubscriber_.organisationId);
+            case ACTIVE:
+                return subscription.get(SubscriptionEntity_.active);
+            case MESSAGETYPE:
+                return subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.messageType);
+            default:
+                return subscription.get(SubscriptionEntity_.id);
+        }
+    }
+
     @Override
     public Long count(@Valid @NotNull SubscriptionSearchCriteria criteria) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Long> query = cb.createQuery(Long.class);
-        Root<SubscriptionEntity> root = query.from(SubscriptionEntity.class);
-        query.select(cb.count(root));
-        applyCriteria(query, criteria);
+        Root<SubscriptionEntity> subscription = query.from(SubscriptionEntity.class);
+        query.select(cb.count(subscription));
+        applyCriteria(query, subscription, criteria);
         return em.createQuery(query).getSingleResult();
     }
 
-    private void applyCriteria(CriteriaQuery<?> query, SubscriptionSearchCriteria criteria) {
-        Root<SubscriptionEntity> subscription = query.from(SubscriptionEntity.class);
+    private void applyCriteria(CriteriaQuery<?> query, Root<SubscriptionEntity> subscription, SubscriptionSearchCriteria criteria) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         List<Predicate> predicates = new ArrayList<>();
-        // implement period correctly!
+        if(!criteria.getName().isEmpty()){
+            predicates.add(cb.like(subscription.get(SubscriptionEntity_.name), "%" + criteria.getName() + "%"));
+        }
+        if(criteria.getActive() != null){
+            predicates.add(cb.equal(subscription.get(SubscriptionEntity_.active), criteria.getActive()));
+        }
+        if(criteria.getOrganisation() != null){
+            predicates.add(cb.equal(subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.subscriber).get(SubscriptionSubscriber_.organisationId), criteria.getOrganisation()));
+        }
+        if(criteria.getEndPoint() != null){
+            predicates.add(cb.equal(subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.subscriber).get(SubscriptionSubscriber_.endpointId), criteria.getEndPoint()));
+        }
+        if(criteria.getChannel() != null){
+            predicates.add(cb.equal(subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.subscriber).get(SubscriptionSubscriber_.channelId), criteria.getChannel()));
+        }
+        if(!criteria.getDescription().isEmpty()){
+            predicates.add(cb.like(subscription.get(SubscriptionEntity_.description),"%" +  criteria.getDescription() + "%"));
+        }
         if (criteria.getStartDate() != null) {
             predicates.add(cb.greaterThanOrEqualTo(subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.startDate), Date.from(criteria.getStartDate().toInstant())));
         }
         if (criteria.getEndDate() != null) {
-            predicates.add(cb.greaterThanOrEqualTo(subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.startDate), Date.from(criteria.getEndDate().toInstant())));
+            predicates.add(cb.lessThanOrEqualTo(subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.endDate), Date.from(criteria.getEndDate().toInstant())));
         }
-        // ...
+        if(criteria.getMessageType() != null){
+            predicates.add(cb.equal(subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.messageType), criteria.getMessageType()));
+        }
+        if(criteria.getAccessibilityType() != null){
+            predicates.add(cb.equal(subscription.get(SubscriptionEntity_.accessibility), criteria.getAccessibilityType()));
+        }
+        query.where(cb.and(predicates.toArray(new Predicate[0])));
     }
 
     @Override
-    public SubscriptionEntity byName(@Valid @NotNull Map<String, Object> queryParameters) {
-        TypedQuery<SubscriptionEntity> query = em.createNamedQuery(SubscriptionEntity.BY_NAME, SubscriptionEntity.class);
-        queryParameters.forEach(query::setParameter);
-        query.setMaxResults(1);
-        return query.getResultList().stream().findFirst().orElse(null);
+    public Boolean valueExists(@NotNull String name) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<String> query = cb.createQuery(String.class);
+        Root<SubscriptionEntity> subscription = query.from(SubscriptionEntity.class);
+        query.select(subscription.get(SubscriptionEntity_.name)).where(cb.equal(subscription.get(SubscriptionEntity_.name), name));
+        return !em.createQuery(query).getResultList().isEmpty();
     }
 
     @Override

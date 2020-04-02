@@ -19,7 +19,7 @@ import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.AccessibilityType;
+import eu.europa.fisheries.uvms.subscription.model.enums.AccessibilityType;
 import lombok.Data;
 
 @Data

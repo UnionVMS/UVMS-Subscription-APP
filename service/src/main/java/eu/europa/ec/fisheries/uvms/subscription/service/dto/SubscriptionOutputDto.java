@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.OutgoingMessageType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionVesselIdentifier;
+import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
 import lombok.Data;
 
 /**

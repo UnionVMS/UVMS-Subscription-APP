@@ -18,6 +18,9 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
+import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifierEnumSetConverter;
 import lombok.Data;
 
 /**

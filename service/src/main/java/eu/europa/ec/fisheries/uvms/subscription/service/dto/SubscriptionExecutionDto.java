@@ -3,7 +3,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import lombok.Data;
 
 /**

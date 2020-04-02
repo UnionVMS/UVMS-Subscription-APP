@@ -8,27 +8,9 @@
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.europa.ec.fisheries.uvms.subscription.service.domain.search;
+package eu.europa.fisheries.uvms.subscription.model.enums;
 
-public enum ColumnType {
+public enum LogicOperatorType {
 
-    NAME("name"),
-    DESCRIPTION("description"),
-    STARTDATE("startDate"),
-    ENDDATE("endDate"),
-    ENDPOINT("endPoint"),
-    CHANNEL("channel"),
-    ORGANISATION("organisation"),
-    MESSAGETYPE("messageType"),
-    ID("id");
-
-    private String propertyName;
-
-    ColumnType(String propertyName) {
-        this.propertyName = propertyName;
-    }
-
-    public String propertyName() {
-        return propertyName;
-    }
+    AND, OR, NONE
 }

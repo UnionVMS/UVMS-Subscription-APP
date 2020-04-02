@@ -8,24 +8,9 @@
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.europa.ec.fisheries.uvms.subscription.service.dto;
+package eu.europa.fisheries.uvms.subscription.model.enums;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+public enum CompositeType {
 
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-
-@Data
-@JsonInclude(NON_NULL)
-public class SubscriptionListResponseDto {
-
-    private Integer currentPage = null;
-    private Long totalNumberOfPages = null;
-    private Long totalCount = null;
-
-    @JsonProperty("subscriptionList")
-    private List<SubscriptionListDto> list;
+    NONE, AND, OR, UNKNOWN
 }

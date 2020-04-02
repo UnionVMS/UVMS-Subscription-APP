@@ -2,7 +2,8 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dto.search;
 
 import java.time.ZonedDateTime;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.enums.AccessibilityType;
+import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,4 +23,5 @@ public class SubscriptionSearchCriteriaImpl implements SubscriptionSearchCriteri
     ZonedDateTime startDate;
     ZonedDateTime endDate;
     OutgoingMessageType messageType;
+    AccessibilityType accessibilityType;
 }

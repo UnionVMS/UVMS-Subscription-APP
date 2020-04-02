@@ -27,7 +27,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import java.util.Random;
 import java.util.UUID;
 
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
@@ -39,7 +38,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.lang.RandomStringUtils;
 
 @Table(name = "area")
 @Entity

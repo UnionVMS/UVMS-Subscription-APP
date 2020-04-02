@@ -9,20 +9,19 @@ import static org.mockito.Mockito.when;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.validation.ConstraintViolationException;
-
 import java.util.Date;
 
-import eu.europa.ec.fisheries.uvms.commons.service.exception.ServiceException;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.AccessibilityType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType;
+import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDTO;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
-import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import org.hibernate.validator.cdi.ValidationExtension;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
@@ -77,36 +76,44 @@ public class SubscriptionServiceBeanTest {
 	}
 
 	@Test
-	void testCreate() throws ServiceException {
-		SubscriptionDto s = new SubscriptionDto();
+	void testCreate() {
+		SubscriptionDto dto = new SubscriptionDto();
 		// make sure it is valid
-		s.setId(SUBSCR_ID);
-		s.setName(SUBSCR_NAME);
-		s.setAccessibility(AccessibilityType.PRIVATE);
-		s.setActive(Boolean.TRUE);
-		s.setOrganisation(ORGANISATION_ID);
-		s.setEndPoint(ENDPOINT_ID);
-		s.setChannel(CHANNEL_ID);
-		s.setTriggerType(TriggerType.SCHEDULER);
-		s.setMessageType(MessageType.FLUX_FA_QUERY_MESSAGE);
-		s.setSubscriptionType(SubscriptionType.TX_PULL);
-		s.setStartDate(new Date());
+		dto.setId(SUBSCR_ID);
+		dto.setName(SUBSCR_NAME);
+		dto.setActive(Boolean.TRUE);
+
+		SubscriptionOutputDto output = new SubscriptionOutputDto();
+		output.setMessageType(OutgoingMessageType.FA_QUERY);
+
+		SubscriptionSubscriberDTO subscriber = new SubscriptionSubscriberDTO();
+		subscriber.setOrganisationId(ORGANISATION_ID);
+		subscriber.setEndpointId(ENDPOINT_ID);
+		subscriber.setChannelId(CHANNEL_ID);
+
+		output.setSubscriber(subscriber);
+		dto.setOutput(output);
+
+		SubscriptionExecutionDto execution = new SubscriptionExecutionDto();
+		execution.setTriggerType(TriggerType.SCHEDULER);
+
+		dto.setExecution(execution);
+
+		dto.setStartDate(new Date());
 
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 
-		SubscriptionDto result = sut.create(s, CURRENT_USER_NAME);
+		SubscriptionDto result = sut.create(dto, CURRENT_USER_NAME);
 
 		assertNotNull(result);
 		assertEquals(SUBSCR_ID, result.getId());
 		assertEquals(SUBSCR_NAME, result.getName());
-		assertEquals(AccessibilityType.PRIVATE, result.getAccessibility());
 		assertEquals(Boolean.TRUE, result.getActive());
-		assertEquals(ORGANISATION_ID, result.getOrganisation());
-		assertEquals(ENDPOINT_ID, result.getEndPoint());
-		assertEquals(CHANNEL_ID, result.getChannel());
-		assertEquals(TriggerType.SCHEDULER, result.getTriggerType());
-		assertEquals(MessageType.FLUX_FA_QUERY_MESSAGE, result.getMessageType());
-		assertEquals(SubscriptionType.TX_PULL, result.getSubscriptionType());
-		assertEquals(s.getStartDate(), result.getStartDate());
+		assertEquals(ORGANISATION_ID, result.getOutput().getSubscriber().getOrganisationId());
+		assertEquals(ENDPOINT_ID, result.getOutput().getSubscriber().getEndpointId());
+		assertEquals(CHANNEL_ID, result.getOutput().getSubscriber().getChannelId());
+		assertEquals(TriggerType.SCHEDULER, result.getExecution().getTriggerType());
+		assertEquals(OutgoingMessageType.FA_QUERY, result.getOutput().getMessageType());
+		assertEquals(dto.getStartDate(), result.getStartDate());
 	}
 }
