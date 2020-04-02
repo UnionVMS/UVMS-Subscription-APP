@@ -11,6 +11,7 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 
+@Deprecated
 public enum SubscriptionListQueryParameterType {
     STARTDATE, ENDDATE, MESSAGETYPE
 }

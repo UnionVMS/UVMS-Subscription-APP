@@ -8,9 +8,9 @@
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.europa.ec.fisheries.uvms.subscription.service.domain;
+package eu.europa.fisheries.uvms.subscription.model.enums;
 
-public enum LogicOperatorType {
+public enum ConditionType {
 
-    AND, OR, NONE
+    START, END, UNKNOWN
 }

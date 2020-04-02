@@ -24,6 +24,9 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
+import eu.europa.fisheries.uvms.subscription.model.enums.CompositeType;
+import eu.europa.fisheries.uvms.subscription.model.enums.ConditionType;
+import eu.europa.fisheries.uvms.subscription.model.enums.RelationalOperatorType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.CriteriaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubCriteriaType;

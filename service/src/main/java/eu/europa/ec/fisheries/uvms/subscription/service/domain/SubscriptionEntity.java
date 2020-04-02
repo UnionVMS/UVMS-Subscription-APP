@@ -30,6 +30,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
+import eu.europa.fisheries.uvms.subscription.model.enums.AccessibilityType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

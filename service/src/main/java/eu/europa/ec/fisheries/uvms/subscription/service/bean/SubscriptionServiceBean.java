@@ -15,16 +15,24 @@ import static eu.europa.ec.fisheries.wsdl.subscription.module.MessageType.FLUX_F
 import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.NO;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.YES;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.jms.TextMessage;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils;
-import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ColumnType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.DirectionType;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.*;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListResponseDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
@@ -37,19 +45,6 @@ import eu.europa.ec.fisheries.wsdl.user.module.FindOrganisationsResponse;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.jms.TextMessage;
-import javax.transaction.Transactional;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 @Slf4j
@@ -107,37 +102,20 @@ class SubscriptionServiceBean implements SubscriptionService {
     /**
      * List subscriptions.
      *
-     * @param parameters the query parameters
-     * @param pagination the pagination parameters
+     * @param queryParams the query parameters
      * @return page of listSubscriptions results
      */
     @Override
     @SneakyThrows
-    public SubscriptionListResponseDto listSubscriptions(@Valid @NotNull QueryParameterDto parameters, @Valid @NotNull PaginationDto pagination,
-                                                         @Valid @NotNull OrderByDto orderByDto, String scopeName, String roleName, String requester) {
+    public SubscriptionListResponseDto listSubscriptions(@Valid @NotNull SubscriptionListQuery queryParams, String scopeName, String roleName, String requester) {
 
         SubscriptionListResponseDto responseDto = new SubscriptionListResponseDto();
+        Integer pageSize = queryParams.getPagination().getPageSize();
+        Integer page = queryParams.getPagination().getOffset();
 
-        Integer pageSize = pagination.getPageSize();
-        Integer page = pagination.getOffset();
+        Long totalCount = subscriptionDAO.count(queryParams.getCriteria());
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> map = objectMapper.convertValue(parameters, Map.class);
-        map.put("strict", false); // only use LIKE query
-
-        Map<ColumnType, DirectionType> orderMap = Collections.singletonMap(orderByDto.getColumn(), orderByDto.getDirection());
-
-        List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(map, orderMap,  -1 , -1);
-
-        int countResults = 0;
-
-        if (CollectionUtils.isNotEmpty(subscriptionEntities)){
-            countResults = subscriptionEntities.size();
-        }
-
-        int firstResult = (page - 1) * pageSize;
-
-        subscriptionEntities = subscriptionDAO.listSubscriptions(map, orderMap, firstResult , pageSize);
+        List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(queryParams);
 
         String getAllOrganisationRequest = UserModuleRequestMapper.mapToGetAllOrganisationRequest(scopeName, roleName, requester);
 
@@ -157,11 +135,11 @@ class SubscriptionServiceBean implements SubscriptionService {
             responseDto.setList(subscriptionEntities.stream().map(mapper::asListDto).collect(Collectors.toList()));
         }
 
-        if (firstResult >= 0) {
-            responseDto.setCurrentPage(page);
-            int totalNumberOfPages = (countResults / pageSize);
-            responseDto.setTotalNumberOfPages(totalNumberOfPages + 1);
-        }
+        responseDto.setCurrentPage(page);
+        long totalNumberOfPages = (totalCount / pageSize);
+        responseDto.setTotalNumberOfPages(totalNumberOfPages + 1);
+        responseDto.setTotalCount(totalCount);
+
 
         return responseDto;
     }
@@ -201,9 +179,7 @@ class SubscriptionServiceBean implements SubscriptionService {
     }
 
     @Override
-    public SubscriptionEntity findSubscriptionByName(@NotNull final String name) {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("name", name);
-        return subscriptionDAO.byName(parameters);
+    public Boolean valueExists(@NotNull final String name) {
+        return subscriptionDAO.valueExists(name);
     }
 }

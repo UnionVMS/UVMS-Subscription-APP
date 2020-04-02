@@ -17,8 +17,8 @@ import static com.ninja_squad.dbsetup.operation.CompositeOperation.sequenceOf;
 
 import com.ninja_squad.dbsetup.operation.Operation;
 import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.OutgoingMessageType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType;
+import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 
 public abstract class BaseSubscriptionInMemoryTest extends BaseDAOTest {
 

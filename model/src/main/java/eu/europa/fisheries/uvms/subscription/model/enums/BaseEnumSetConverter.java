@@ -1,4 +1,4 @@
-package eu.europa.ec.fisheries.uvms.subscription.service.domain;
+package eu.europa.fisheries.uvms.subscription.model.enums;
 
 import javax.persistence.AttributeConverter;
 import java.util.AbstractCollection;

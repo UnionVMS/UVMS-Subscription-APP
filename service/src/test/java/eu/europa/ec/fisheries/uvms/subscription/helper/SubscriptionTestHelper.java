@@ -15,17 +15,12 @@ import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
 import java.util.Random;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
+import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.CriteriaType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubCriteriaType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataCriteria;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
-import eu.europa.ec.fisheries.wsdl.subscription.module.ValueType;
 import org.apache.commons.lang.RandomStringUtils;
 
 
@@ -33,86 +28,6 @@ public class SubscriptionTestHelper {
 
     private SubscriptionTestHelper(){
 
-    }
-
-    public static SubscriptionDataQuery getSubscriptionDataQueryFaQuery_1(){
-        SubscriptionDataQuery dataQuery = new SubscriptionDataQuery();
-
-        dataQuery.setMessageType(MessageType.FLUX_FA_QUERY_MESSAGE);
-
-        SubscriptionDataCriteria organisation = new SubscriptionDataCriteria();
-        organisation.setCriteria(CriteriaType.SENDER);
-        organisation.setSubCriteria(SubCriteriaType.ORGANISATION);
-        organisation.setValue("1");
-
-        SubscriptionDataCriteria startDate = new SubscriptionDataCriteria();
-        startDate.setCriteria(CriteriaType.VALIDITY_PERIOD);
-        startDate.setSubCriteria(SubCriteriaType.START_DATE);
-        startDate.setValueType(ValueType.YYYY_MM_DD_T_HH_MM_SS_SSSZ);
-        startDate.setValue("2017-07-01T02:00:00.000+02:00");
-
-        dataQuery.getCriteria().add(organisation);
-        //dataQuery.getCriteria().add(startDate);FIXME
-
-        return dataQuery;
-    }
-
-    public static SubscriptionDataQuery getSubscriptionDataQueryFaQuery_2(){
-        SubscriptionDataQuery dataQuery = new SubscriptionDataQuery();
-
-        dataQuery.setMessageType(MessageType.FLUX_FA_QUERY_MESSAGE);
-
-        SubscriptionDataCriteria organisation = new SubscriptionDataCriteria();
-        organisation.setCriteria(CriteriaType.SENDER);
-        organisation.setSubCriteria(SubCriteriaType.ORGANISATION);
-        organisation.setValue("3");
-
-        SubscriptionDataCriteria startDate = new SubscriptionDataCriteria();
-        startDate.setCriteria(CriteriaType.VALIDITY_PERIOD);
-        startDate.setSubCriteria(SubCriteriaType.START_DATE);
-        startDate.setValueType(ValueType.YYYY_MM_DD_T_HH_MM_SS_SSSZ);
-        startDate.setValue("2017-07-01T02:00:00.000+02:00");
-
-        SubscriptionDataCriteria endDate = new SubscriptionDataCriteria();
-        endDate.setCriteria(CriteriaType.VALIDITY_PERIOD);
-        endDate.setValueType(ValueType.YYYY_MM_DD_T_HH_MM_SS_SSSZ);
-        endDate.setSubCriteria(SubCriteriaType.END_DATE);
-        endDate.setValue("2018-07-01T02:00:00.000+02:00");
-
-        dataQuery.getCriteria().add(organisation);
-        //dataQuery.getCriteria().add(startDate); FIXME
-        //dataQuery.getCriteria().add(endDate);FIXME
-
-        return dataQuery;
-    }
-
-    public static SubscriptionDataQuery getSubscriptionDataQueryFaQuery_3(){
-        SubscriptionDataQuery dataQuery = new SubscriptionDataQuery();
-
-        dataQuery.setMessageType(MessageType.FLUX_FA_QUERY_MESSAGE);
-
-        SubscriptionDataCriteria organisation = new SubscriptionDataCriteria();
-        organisation.setCriteria(CriteriaType.SENDER);
-        organisation.setSubCriteria(SubCriteriaType.ORGANISATION);
-        organisation.setValue("4");
-
-        SubscriptionDataCriteria startDate = new SubscriptionDataCriteria();
-        startDate.setCriteria(CriteriaType.VALIDITY_PERIOD);
-        startDate.setSubCriteria(SubCriteriaType.START_DATE);
-        startDate.setValueType(ValueType.YYYY_MM_DD_T_HH_MM_SS_SSSZ);
-        startDate.setValue("2017-07-01T02:00:00.000+02:00");
-
-        SubscriptionDataCriteria endDate = new SubscriptionDataCriteria();
-        endDate.setCriteria(CriteriaType.VALIDITY_PERIOD);
-        endDate.setValueType(ValueType.YYYY_MM_DD_T_HH_MM_SS_SSSZ);
-        endDate.setSubCriteria(SubCriteriaType.END_DATE);
-        endDate.setValue("2018-07-01T02:00:00.000+02:00");
-
-        dataQuery.getCriteria().add(organisation);
-        dataQuery.getCriteria().add(startDate);
-        dataQuery.getCriteria().add(endDate);
-
-        return dataQuery;
     }
 
     public static SubscriptionEntity random() {
@@ -124,6 +39,7 @@ public class SubscriptionTestHelper {
         subscriber.setEndpointId(rnd.nextLong());
         subscriber.setOrganisationId(rnd.nextLong());
         output.setSubscriber(subscriber);
+        output.setMessageType(OutgoingMessageType.NONE);
         subscriptionEntity.setOutput(output);
         subscriptionEntity.setDescription(randomAlphabetic(200));
         subscriptionEntity.setName(randomAlphabetic(40));

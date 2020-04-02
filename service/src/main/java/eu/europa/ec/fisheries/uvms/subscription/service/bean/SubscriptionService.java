@@ -5,10 +5,10 @@ import javax.validation.constraints.NotNull;
 
 import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.OrderByDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.QueryParameterDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListResponseDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListResponseDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.OrderByDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.QueryParameterDto;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
 import lombok.SneakyThrows;

@@ -12,7 +12,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.mapper;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

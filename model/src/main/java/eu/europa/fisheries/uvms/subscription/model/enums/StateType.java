@@ -8,9 +8,11 @@
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.europa.ec.fisheries.uvms.subscription.service.domain;
+package eu.europa.fisheries.uvms.subscription.model.enums;
 
-public enum RelationalOperatorType {
+@Deprecated
+public enum StateType {
 
-    EQ, NE, GT, GE, LT, LE, UNKNOWN
+    ACTIVE, INACTIVE, STAND_BY, EXECUTING, UNKNOWN
+
 }

@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 
 import java.io.Serializable;
 
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import lombok.Data;
 
 /**

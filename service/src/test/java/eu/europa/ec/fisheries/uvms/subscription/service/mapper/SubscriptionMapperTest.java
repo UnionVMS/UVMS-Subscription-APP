@@ -12,16 +12,18 @@ package eu.europa.ec.fisheries.uvms.subscription.service.mapper;
 
 import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.UI_FORMATTER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.AccessibilityType;
+import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggerType;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
-import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -39,38 +41,42 @@ public class SubscriptionMapperTest {
 
         startDate = UI_FORMATTER.parseDateTime("2016-08-01T11:50:16").toDate();
         endDate = UI_FORMATTER.parseDateTime("2017-08-01T11:50:16").toDate();
-
         dto.setStartDate(startDate);
         dto.setEndDate(endDate);
-
         dto.setName("name");
-        dto.setChannel(new Long( 1 ));
         dto.setDescription("description");
-        dto.setTriggerType(TriggerType.SCHEDULER);
-        dto.setOrganisation(new Long( 1 ));
         dto.setActive(true);
-        dto.setDelay("1,1,1");
-        dto.setEndPoint(new Long(2));
-        dto.setSubscriptionType(SubscriptionType.TX_PULL);
-        dto.setMessageType(MessageType.FLUX_FA_REPORT_MESSAGE);
-        dto.setAccessibility(AccessibilityType.PRIVATE);
+
+        SubscriptionSubscriberDTO subscriber = new SubscriptionSubscriberDTO();
+        subscriber.setEndpointId(2L);
+        subscriber.setOrganisationId(1L);
+        subscriber.setChannelId(1L);
+
+        SubscriptionOutputDto output = new SubscriptionOutputDto();
+        output.setMessageType(OutgoingMessageType.FA_REPORT);
+        output.setSubscriber(subscriber);
+
+        SubscriptionExecutionDto execution = new SubscriptionExecutionDto();
+        execution.setTriggerType(TriggerType.SCHEDULER);
+
+        dto.setOutput(output);
+        dto.setExecution(execution);
     }
 
     @Test
     public void testMapDtoToEntity() {
         SubscriptionEntity entity = mapper.mapDtoToEntity(dto);
 
-        assertEquals(TriggerType.SCHEDULER, entity.getExecution().getTriggerType());
-        assertEquals(true, entity.isActive());
-        assertEquals(new Long(1), entity.getOutput().getSubscriber().getOrganisationId());
-        assertEquals(new Long(1), entity.getOutput().getSubscriber().getChannelId());
-        assertEquals("name", entity.getName());
-//        assertEquals(SubscriptionType.TX_PULL, entity.getSubscriptionType());
-        assertEquals(MessageType.FLUX_FA_REPORT_MESSAGE, entity.getExecution().getTriggerType());
-        assertEquals("description", entity.getDescription());
         assertEquals(startDate, entity.getValidityPeriod().getStartDate());
         assertEquals(endDate, entity.getValidityPeriod().getEndDate());
-        assertEquals(new Long(2), entity.getOutput().getSubscriber().getEndpointId());
+        assertEquals("name", entity.getName());
+        assertEquals("description", entity.getDescription());
+        assertTrue(entity.isActive());
+        assertEquals(2L, entity.getOutput().getSubscriber().getEndpointId());
+        assertEquals(1L, entity.getOutput().getSubscriber().getOrganisationId());
+        assertEquals(1L, entity.getOutput().getSubscriber().getChannelId());
+        assertEquals(OutgoingMessageType.FA_REPORT, entity.getOutput().getMessageType());
+        assertEquals(TriggerType.SCHEDULER, entity.getExecution().getTriggerType());
     }
 
     @Test
@@ -80,15 +86,15 @@ public class SubscriptionMapperTest {
 
         mapper.updateEntity(dto, entity);
 
-        assertEquals(dto.getMessageType(), entity.getExecution().getTriggerType());
-        assertEquals(dto.getChannel(), entity.getOutput().getSubscriber().getChannelId());
+        assertEquals(dto.getOutput().getMessageType(), entity.getOutput().getMessageType());
+        assertEquals(dto.getOutput().getSubscriber().getChannelId(), entity.getOutput().getSubscriber().getChannelId());
         assertEquals(dto.getStartDate(), entity.getValidityPeriod().getStartDate());
         assertEquals(dto.getEndDate(), entity.getValidityPeriod().getEndDate());
-        assertEquals(dto.getTriggerType(), entity.getExecution().getTriggerType());
+        assertEquals(dto.getExecution().getTriggerType(), entity.getExecution().getTriggerType());
         assertEquals(dto.getName(), entity.getName());
         assertEquals(dto.getDescription(), entity.getDescription());
-        assertEquals(dto.getEndPoint(), entity.getOutput().getSubscriber().getEndpointId());
-        assertEquals(dto.getOrganisation(), entity.getOutput().getSubscriber().getOrganisationId());
+        assertEquals(dto.getOutput().getSubscriber().getEndpointId(), entity.getOutput().getSubscriber().getEndpointId());
+        assertEquals(dto.getOutput().getSubscriber().getOrganisationId(), entity.getOutput().getSubscriber().getOrganisationId());
         assertEquals(dto.getActive(), entity.isActive());
     }
 }

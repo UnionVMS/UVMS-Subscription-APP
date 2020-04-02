@@ -13,93 +13,110 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import javax.enterprise.inject.Produces;
+import javax.inject.Inject;
 import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
+import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
+import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ColumnType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.DirectionType;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.QueryParameterDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.PaginationData;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
+import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
+import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.user.types.Channel;
 import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
-import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import lombok.SneakyThrows;
+import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+@EnableAutoWeld
 public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
     private SubscriptionDaoImpl daoUnderTest = new SubscriptionDaoImpl(em);
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
+    @Produces
+    private SubscriptionMapper mapper = new SubscriptionMapperImpl();
+
+    @Inject
+    private CustomMapper customMapper;
+
     @BeforeEach
     public void prepare(){
         Operation operation = sequenceOf(
-                DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_CONDITION, INSERT_AREA);
+                DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_CONDITION, INSERT_AREA
+        );
 
         DbSetup dbSetup = new DbSetup(new DataSourceDestination(ds), operation);
-        dbSetup.launch();
-    }
-
-    @ParameterizedTest
-    @MethodSource("dataQuery")
-    public void testListSubscriptionForModuleAuthorization(SubscriptionDataQuery dataQuery, int expected){
-//        Map<String, Object> map = CustomMapper.mapCriteriaToQueryParameters(dataQuery); // FIXME add startEndDate logic from rest
-//        map.put("strict", true);
-//        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(map, new HashMap<ColumnType, DirectionType>(),-1, -1);
-//        assertEquals(expected, subscriptionEntities.size());
-    }
-
-    private static Stream<Arguments> dataQuery() {
-        return Stream.of(
-                Arguments.of(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_1(), 1),
-                Arguments.of(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_2(), 0),
-                Arguments.of(SubscriptionTestHelper.getSubscriptionDataQueryFaQuery_3(), 0)
-        );
+        dbSetupTracker.launchIfNecessary(dbSetup);
     }
 
     @ParameterizedTest
     @MethodSource("queryParameters")
-    public void testListSubscription(QueryParameterDto queryParameters, int expected){
-        @SuppressWarnings("unchecked")
-        Map<String, Object> map = objectMapper.convertValue(queryParameters, Map.class);
-        map.put("strict", false);
-        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(map, new HashMap<>(),-1, -1);
+    public void testListSubscription(SubscriptionListQuery query, int expected){
+        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(query);
         assertEquals(expected, subscriptionEntities.size());
     }
 
     protected static Stream<Arguments> queryParameters(){
         return Stream.of(
-                Arguments.of(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
-                Arguments.of(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
-                Arguments.of(QueryParameterDto.builder().channel(new Long(1)).build(), 4),
-                Arguments.of(QueryParameterDto.builder().build(), 4),
-                Arguments.of(QueryParameterDto.builder().messageType(MessageType.FLUX_FA_QUERY_MESSAGE).organisation(new Long(1)).build(), 1),
-                Arguments.of(QueryParameterDto.builder().enabled(true).build(), 3),
-                Arguments.of(QueryParameterDto.builder().channel(new Long(1)).organisation(new Long(1)).name("subscription4").build(), 0),
-                Arguments.of(QueryParameterDto.builder().name("sub").enabled(true).build(), 2)
+                Arguments.of(createQuery("subscription3", null, null, null, null, "", null, null, null),1),
+                Arguments.of(createQuery("", null, null, null, 11L, "", null, null, null),4),
+                Arguments.of(createQuery("", null, null, null, null, "", null, null, null),4),
+                Arguments.of(createQuery("3", null, null, null, null, "", null, null, null),1),
+                Arguments.of(createQuery("subscription2", null, null, null, null, "", null, null, OutgoingMessageType.FA_QUERY),1),
+                Arguments.of(createQuery("", true, null, null, null, "", null, null, null),3),
+                Arguments.of(createQuery("subscription4", false, 11L, null, 11L, "", null, null, null),1),
+                Arguments.of(createQuery("", true, null, null, null, "tade", null, null, null),2)
         );
+    }
+
+    protected static SubscriptionListQuery createQuery(String name, Boolean active, Long organisation, Long endpoint, Long channel,
+                                                       String description, ZonedDateTime startDate, ZonedDateTime endDate, OutgoingMessageType messageType) {
+        SubscriptionListQuery query = mock(SubscriptionListQuery.class);
+        SubscriptionSearchCriteria searchCriteria = mock(SubscriptionSearchCriteria.class);
+        PaginationData pagination = mock(PaginationData.class);
+
+        when(searchCriteria.getName()).thenReturn(name);
+        when(searchCriteria.getActive()).thenReturn(active);
+        when(searchCriteria.getOrganisation()).thenReturn(organisation);
+        when(searchCriteria.getEndPoint()).thenReturn(endpoint);
+        when(searchCriteria.getChannel()).thenReturn(channel);
+        when(searchCriteria.getDescription()).thenReturn(description);
+        when(searchCriteria.getStartDate()).thenReturn(startDate);
+        when(searchCriteria.getEndDate()).thenReturn(endDate);
+        when(searchCriteria.getMessageType()).thenReturn(messageType);
+        when(pagination.getPageSize()).thenReturn(25);
+        when(pagination.getOffset()).thenReturn(1);
+        when(query.getPagination()).thenReturn(pagination);
+        when(query.getCriteria()).thenReturn(searchCriteria);
+
+        return query;
     }
 
     @Test
@@ -166,17 +183,17 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     @Test
     @SneakyThrows
     public void testListSubscriptionForEnrichment(){
-//        List<SubscriptionEntity> subscriptionList = findAllSubscriptions();
-//        List<SubscriptionEntity> subscriptionEntityList = CustomMapper.enrichSubscriptionList(subscriptionList, fetchAllOrganisations() );
-//
-//        for(SubscriptionEntity subscription: subscriptionEntityList){
-//            System.out.println(subscription.getOrganisationName() +
-//                    " - " + subscription.getChannelName() +
-//                    " - " + subscription.getEndpointName() );
-//            assertNotNull( subscription.getOrganisationName() );
-//            assertNotNull( subscription.getChannelName() );
-//            assertNotNull( subscription.getEndpointName() );
-//        }
+        List<SubscriptionEntity> subscriptionList = findAllSubscriptions();
+        List<SubscriptionListDto> subscriptionEntityList = customMapper.enrichSubscriptionList(subscriptionList, fetchAllOrganisations() );
+
+        for(SubscriptionListDto subscription: subscriptionEntityList){
+            System.out.println(subscription.getOrganisationName() +
+                    " - " + subscription.getChannelName() +
+                    " - " + subscription.getEndpointName() );
+            assertNotNull( subscription.getOrganisationName() );
+            assertNotNull( subscription.getChannelName() );
+            assertNotNull( subscription.getEndpointName() );
+        }
     }
 
     private List<SubscriptionEntity> findAllSubscriptions() {

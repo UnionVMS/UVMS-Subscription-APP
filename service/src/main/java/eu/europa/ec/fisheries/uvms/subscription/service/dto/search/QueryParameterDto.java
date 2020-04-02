@@ -8,11 +8,11 @@
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.europa.ec.fisheries.uvms.subscription.service.dto;
+package eu.europa.ec.fisheries.uvms.subscription.service.dto.search;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.AccessibilityType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionType;
+import eu.europa.fisheries.uvms.subscription.model.enums.AccessibilityType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,6 +24,7 @@ import java.util.Date;
 import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.DATE_TIME_UI_FORMAT;
 
+@Deprecated
 @Data
 @Builder
 @NoArgsConstructor

@@ -10,41 +10,39 @@
 
 package eu.europa.ec.fisheries.uvms.subsription.rest.resource;
 
-import eu.europa.ec.fisheries.uvms.commons.rest.resource.UnionVMSResource;
-import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionService;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListQueryDto;
-import eu.europa.ec.fisheries.uvms.subsription.rest.IUserRoleInterceptor;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum;
-import lombok.extern.slf4j.Slf4j;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import eu.europa.ec.fisheries.uvms.commons.rest.resource.UnionVMSResource;
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionService;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionListQueryImpl;
+import eu.europa.ec.fisheries.uvms.subsription.rest.IUserRoleInterceptor;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * @implicitParam roleName|string|header|true||||||
- * @implicitParam scopeName|string|header|true|EC|||||
- * @implicitParam authorization|string|header|true||||||jwt token
- */
+
 @Path("/subscription")
 @ApplicationScoped
 @Slf4j
-@SuppressWarnings("javadoc")
 public class SubscriptionResource extends UnionVMSResource {
-
-    @HeaderParam("scopeName")
-    private String scopeName;
-
-    @HeaderParam("roleName")
-    private String roleName;
 
     @Inject
     private SubscriptionService service;
@@ -52,16 +50,19 @@ public class SubscriptionResource extends UnionVMSResource {
     /**
      * Search for subscription matching the given criteria.
      *
-     * @param dto criteria to listSubscriptions on
-     * @return @responseType eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionListResponseDto
+     * @param queryParams criteria to listSubscriptions on
+     * @return @responseType eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListResponseDto
      */
     @POST
     @Consumes(value = {APPLICATION_JSON})
     @Produces(value = {APPLICATION_JSON})
     @Path("list")
     @IUserRoleInterceptor(requiredUserRole = {SubscriptionFeaturesEnum.VIEW_SUBSCRIPTION})
-    public Response listSubscriptions(@Context HttpServletRequest request, @Valid SubscriptionListQueryDto dto) {
-        return createSuccessResponse(service.listSubscriptions(dto.getQueryParameters(), dto.getPagination(), dto.getOrderBy(), scopeName, roleName, request.getRemoteUser()));
+    public Response listSubscriptions(@Context HttpServletRequest request,
+                                      @Valid SubscriptionListQueryImpl queryParams,
+                                      @HeaderParam("scopeName") String scopeName,
+                                      @HeaderParam("roleName") String roleName) {
+        return createSuccessResponse(service.listSubscriptions(queryParams, scopeName, roleName, request.getRemoteUser()));
     }
 
     /**
@@ -71,11 +72,11 @@ public class SubscriptionResource extends UnionVMSResource {
      *
      */
     @GET
-    @Path("/{name}")
+    @Path("/exists")
     @Produces(APPLICATION_JSON)
     @IUserRoleInterceptor(requiredUserRole = {SubscriptionFeaturesEnum.VIEW_SUBSCRIPTION})
-    public Response findByName(@Context HttpServletRequest request, @Valid @NotNull @PathParam(value = "name") String name) {
-        return createSuccessResponse(service.findSubscriptionByName(name));
+    public Response exists(@Context HttpServletRequest request, @QueryParam("name") String name) {
+        return createSuccessResponse(service.valueExists(name));
     }
 
     /**

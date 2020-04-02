@@ -1,4 +1,4 @@
-package eu.europa.ec.fisheries.uvms.subscription.service.dto;
+package eu.europa.ec.fisheries.uvms.subscription.service.dto.list;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
@@ -18,5 +18,6 @@ public class SubscriptionListDto {
 	private String organisationName;
 	private String endpointName;
 	private String channelName;
+	private String messageType;
 	private String accessibility;
 }
