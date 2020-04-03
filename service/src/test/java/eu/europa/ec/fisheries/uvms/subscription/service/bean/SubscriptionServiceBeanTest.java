@@ -1,5 +1,6 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -8,12 +9,10 @@ import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import javax.validation.ConstraintViolationException;
+import javax.validation.ValidationException;
 import java.util.Date;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
-import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
-import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
@@ -22,6 +21,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMappe
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
+import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import org.hibernate.validator.cdi.ValidationExtension;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
@@ -69,10 +70,44 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void testCreateWithInvalidArguments() {
 		SubscriptionDto subscription = new SubscriptionDto();
-		assertThrows(ConstraintViolationException.class, () -> sut.create(null, null));
-		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription, null));
-		assertThrows(ConstraintViolationException.class, () -> sut.create(null, "something"));
-		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription, "something"));
+		assertThrows(ValidationException.class, () -> sut.create(null, null));
+		assertThrows(ValidationException.class, () -> sut.create(subscription, null));
+		assertThrows(ValidationException.class, () -> sut.create(null, "something"));
+		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+	}
+
+	@Test
+	void testCreateWithValidArguments() {
+		SubscriptionDto dto = new SubscriptionDto();
+		// make sure it is valid
+		dto.setId(SUBSCR_ID);
+		dto.setName(SUBSCR_NAME);
+		dto.setActive(Boolean.TRUE);
+
+		SubscriptionOutputDto output = new SubscriptionOutputDto();
+		output.setMessageType(OutgoingMessageType.FA_QUERY);
+
+		SubscriptionSubscriberDTO subscriber = new SubscriptionSubscriberDTO();
+		subscriber.setOrganisationId(ORGANISATION_ID);
+		subscriber.setEndpointId(ENDPOINT_ID);
+		subscriber.setChannelId(CHANNEL_ID);
+
+		output.setSubscriber(subscriber);
+		output.setConsolidated(true);
+		output.setHistory(1);
+		output.setLogbook(true);
+
+		SubscriptionExecutionDto execution = new SubscriptionExecutionDto();
+		execution.setTriggerType(TriggerType.SCHEDULER);
+		execution.setFrequency(1);
+		execution.setTimeExpression("time");
+
+		dto.setExecution(execution);
+
+		dto.setStartDate(new Date());
+		dto.setOutput(output);
+		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+		assertDoesNotThrow(() -> sut.create(dto, "something"));
 	}
 
 	@Test
@@ -92,10 +127,15 @@ public class SubscriptionServiceBeanTest {
 		subscriber.setChannelId(CHANNEL_ID);
 
 		output.setSubscriber(subscriber);
+		output.setConsolidated(true);
+		output.setHistory(1);
+		output.setLogbook(true);
 		dto.setOutput(output);
 
 		SubscriptionExecutionDto execution = new SubscriptionExecutionDto();
 		execution.setTriggerType(TriggerType.SCHEDULER);
+		execution.setFrequency(1);
+		execution.setTimeExpression("time");
 
 		dto.setExecution(execution);
 
