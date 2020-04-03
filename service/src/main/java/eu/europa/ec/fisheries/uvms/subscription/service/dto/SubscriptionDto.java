@@ -27,7 +27,6 @@ public class SubscriptionDto {
 
     private Long id;
 
-    @NotNull
     private String name;
 
     @NotNull
@@ -35,14 +34,10 @@ public class SubscriptionDto {
 
     private String description;
 
-    @NotNull
-    @JsonProperty("isActive")
     private Boolean active;
 
-    @Valid
     private SubscriptionOutputDto output;
 
-    @Valid
     private SubscriptionExecutionDto execution;
 
     //private List<Object> conditions = new ArrayList<>();

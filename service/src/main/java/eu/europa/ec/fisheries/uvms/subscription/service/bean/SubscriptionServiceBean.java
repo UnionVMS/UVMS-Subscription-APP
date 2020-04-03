@@ -37,6 +37,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
+import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidSubscriptionDto;
 import eu.europa.ec.fisheries.uvms.user.model.mapper.UserModuleRequestMapper;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer;
@@ -146,7 +147,7 @@ class SubscriptionServiceBean implements SubscriptionService {
 
     @Override
     @SneakyThrows
-    public SubscriptionDto create(@Valid @NotNull SubscriptionDto subscription, @NotNull String currentUser) {
+    public SubscriptionDto create(@ValidSubscriptionDto @NotNull SubscriptionDto subscription, @NotNull String currentUser) {
         SubscriptionEntity entity = mapper.mapDtoToEntity(subscription);
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
         sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.CREATE.name(), saved.getId().toString(), currentUser));
@@ -155,7 +156,7 @@ class SubscriptionServiceBean implements SubscriptionService {
 
     @Override
     @SneakyThrows
-    public SubscriptionDto update(@Valid @NotNull SubscriptionDto subscription, @NotNull String currentUser) {
+    public SubscriptionDto update(@ValidSubscriptionDto @NotNull SubscriptionDto subscription, @NotNull String currentUser) {
         SubscriptionEntity entityById = subscriptionDAO.findById(subscription.getId());
 
         if (entityById == null){

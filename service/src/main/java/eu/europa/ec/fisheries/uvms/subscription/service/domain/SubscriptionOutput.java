@@ -39,7 +39,7 @@ public class SubscriptionOutput implements Serializable {
 					@JoinColumn(name = "subscription_id")
 			}
 	)
-	@OrderColumn(name = "list_index")
+	@OrderColumn(name = "index")
 	@Column(name = "email")
 	private List<String> emails = new ArrayList<>();
 

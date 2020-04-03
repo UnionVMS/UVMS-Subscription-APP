@@ -12,10 +12,8 @@ import lombok.Data;
 @Data
 public class SubscriptionExecutionDto {
 
-    @NotNull
     private TriggerType triggerType;
 
-	@Min(0)
     private Integer frequency;
 
 	private Boolean immediate;
