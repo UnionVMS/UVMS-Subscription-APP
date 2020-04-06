@@ -59,7 +59,7 @@ class SubscriptionDaoImpl implements SubscriptionDao {
         applyCriteria(query, subscription, subscriptionListParams.getCriteria());
         applyOrder(query, subscription, subscriptionListParams.getOrderBy());
         return em.createQuery(query)
-                .setFirstResult((subscriptionListParams.getPagination().getOffset() - 1) * subscriptionListParams.getPagination().getPageSize())
+                .setFirstResult(subscriptionListParams.getPagination().getOffset() * subscriptionListParams.getPagination().getPageSize())
                 .setMaxResults(subscriptionListParams.getPagination().getPageSize())
                 .getResultList();
     }
