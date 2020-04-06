@@ -77,6 +77,15 @@ class SubscriptionServiceBean implements SubscriptionService {
     @Inject
     private CustomMapper customMapper;
 
+    @Override
+    public SubscriptionDto get(@NotNull Long id) {
+        SubscriptionEntity entity = subscriptionDAO.findById(id);
+        if (entity == null){
+            throw new IllegalArgumentException("Unable to update entity: not found");
+        }
+        return mapper.mapEntityToDto(entity);
+    }
+
     /**
      * Check if the incoming message has a valid subscription
      * @param query filter criteria to retrieve subscriptions to be triggered

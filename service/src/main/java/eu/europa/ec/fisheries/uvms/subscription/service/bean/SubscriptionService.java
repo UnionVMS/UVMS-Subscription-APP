@@ -18,6 +18,9 @@ public interface SubscriptionService {
 	SubscriptionListResponseDto listSubscriptions(@Valid @NotNull SubscriptionListQuery queryParams, String scopeName, String roleName, String requester);
 
 	@SneakyThrows
+	SubscriptionDto get(@NotNull Long id);
+
+	@SneakyThrows
 	SubscriptionDto create(@ValidSubscriptionDto @NotNull SubscriptionDto subscription, @NotNull String currentUser);
 
 	@SneakyThrows

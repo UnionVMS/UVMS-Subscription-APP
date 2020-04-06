@@ -48,6 +48,20 @@ public class SubscriptionResource extends UnionVMSResource {
     private SubscriptionService service;
 
     /**
+     * Get subscription having given id.
+     *
+     * @param id the subscription id
+     * @return @responseType eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto
+     */
+    @GET
+    @Produces(value = {APPLICATION_JSON})
+    @Path("/{id}")
+    @IUserRoleInterceptor(requiredUserRole = {SubscriptionFeaturesEnum.VIEW_SUBSCRIPTION})
+    public Response listSubscriptions(@Context HttpServletRequest request, @PathParam("id") Long id) {
+        return createSuccessResponse(service.get(id));
+    }
+
+    /**
      * Search for subscription matching the given criteria.
      *
      * @param queryParams criteria to listSubscriptions on
@@ -96,14 +110,17 @@ public class SubscriptionResource extends UnionVMSResource {
     /**
      * Update subscription.
      *
+     * @param id the subscription id
      * @param subscription subscription to update
      * @return updated subscription
      */
     @PUT
+    @Path("/{id}")
     @Consumes(value = {APPLICATION_JSON})
     @Produces(value = {APPLICATION_JSON})
     @IUserRoleInterceptor(requiredUserRole = {SubscriptionFeaturesEnum.MANAGE_SUBSCRIPTION})
-    public Response update(@Context HttpServletRequest request, SubscriptionDto subscription) {
+    public Response update(@Context HttpServletRequest request, @PathParam("id") Long id, SubscriptionDto subscription) {
+        subscription.setId(id);
         return createSuccessResponse(service.update(subscription, request.getRemoteUser()));
     }
 
