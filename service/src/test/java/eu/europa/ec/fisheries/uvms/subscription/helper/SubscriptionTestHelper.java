@@ -44,6 +44,7 @@ public class SubscriptionTestHelper {
         SubscriptionListQuery query = mock(SubscriptionListQuery.class);
         SubscriptionSearchCriteria searchCriteria = mock(SubscriptionSearchCriteria.class);
         PaginationData pagination = mock(PaginationData.class);
+        @SuppressWarnings("unchecked")
         OrderByData<ColumnType> order = mock(OrderByData.class);
 
         when(searchCriteria.getName()).thenReturn(name);
@@ -58,7 +59,7 @@ public class SubscriptionTestHelper {
         when(query.getCriteria()).thenReturn(searchCriteria);
 
         when(pagination.getPageSize()).thenReturn(25);
-        when(pagination.getOffset()).thenReturn(1);
+        when(pagination.getOffset()).thenReturn(0);
         when(query.getPagination()).thenReturn(pagination);
 
         when(order.getDirection()).thenReturn(direction);
