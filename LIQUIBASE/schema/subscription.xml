@@ -178,6 +178,20 @@
         <addForeignKeyConstraint baseTableName="email_body" baseColumnNames="subscription_id" constraintName="FK_EMAIL_BODY_SUBSCRIPTION" referencedTableName="subscription" referencedColumnNames="id" />
     </changeSet>
 
+    <changeSet id="UNIONVMS-4473-remove-notnull-constraints" author="gmanifavas">
+        <dropNotNullConstraint tableName="subscription" columnName="alert" />
+        <dropNotNullConstraint tableName="subscription" columnName="endpoint_id" />
+        <dropNotNullConstraint tableName="subscription" columnName="channel_id" />
+        <dropNotNullConstraint tableName="subscription" columnName="organisation_id" />
+        <dropNotNullConstraint tableName="subscription" columnName="trigger_type" />
+        <dropNotNullConstraint tableName="subscription" columnName="start_date" />
+        <dropNotNullConstraint tableName="subscription" columnName="end_date" />
+        <dropNotNullConstraint tableName="subscription" columnName="accessibility" />
+        <dropNotNullConstraint tableName="subscription" columnName="subscription_guid" />
+        <dropNotNullConstraint tableName="subscription" columnName="state_type" />
+        <dropNotNullConstraint tableName="subscription" columnName="subscription_type" />
+    </changeSet>
+
     <!-- ENABLE LATER...
     <changeSet id="UNIONVMS-9999-subscription-dead-columns" author="nikospara">
         <dropColumn tableName="subscription" columnName="subscription_type" />
