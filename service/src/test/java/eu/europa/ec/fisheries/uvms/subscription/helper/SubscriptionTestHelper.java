@@ -15,6 +15,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.Random;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
@@ -22,6 +23,10 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.OrderByDat
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.PaginationData;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDTO;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
@@ -30,12 +35,13 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutpu
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import org.apache.commons.lang.RandomStringUtils;
 
 
 public class SubscriptionTestHelper {
 
-    private SubscriptionTestHelper(){
+    private SubscriptionTestHelper() {
 
     }
 
@@ -86,11 +92,46 @@ public class SubscriptionTestHelper {
         return subscriptionEntity;
     }
 
-    public static AreaEntity randomArea(){
+    public static AreaEntity randomArea() {
         AreaEntity areaEntity = new AreaEntity();
         areaEntity.setValue(RandomStringUtils.randomAlphabetic(100));
         areaEntity.setAreaValueType(AreaValueType.values()[new Random().nextInt(AreaValueType.values().length)]);
         areaEntity.setAreaType(AreaType.values()[new Random().nextInt(AreaType.values().length)]);
         return areaEntity;
+    }
+
+    public static SubscriptionDto createSubsriptionDto(Long id, String name, Boolean active, OutgoingMessageType messageType,
+                                                       Long organisationId, Long endpointId, Long channelId, Boolean consolidated, Integer history,
+                                                       Boolean logbook, TriggerType triggerType, Integer frequency, String timeExpresssion,
+                                                       Date startDate, Date endDate) {
+        SubscriptionDto dto = new SubscriptionDto();
+        dto.setId(id);
+        dto.setName(name);
+        dto.setActive(active);
+
+        SubscriptionOutputDto output = new SubscriptionOutputDto();
+        output.setMessageType(messageType);
+
+        SubscriptionSubscriberDTO subscriber = new SubscriptionSubscriberDTO();
+        subscriber.setOrganisationId(organisationId);
+        subscriber.setEndpointId(endpointId);
+        subscriber.setChannelId(channelId);
+
+        output.setSubscriber(subscriber);
+        output.setConsolidated(consolidated);
+        output.setHistory(history);
+        output.setLogbook(logbook);
+        dto.setOutput(output);
+
+        SubscriptionExecutionDto execution = new SubscriptionExecutionDto();
+        execution.setTriggerType(triggerType);
+        execution.setFrequency(frequency);
+        execution.setTimeExpression(timeExpresssion);
+        dto.setExecution(execution);
+
+        dto.setStartDate(startDate);
+        dto.setEndDate(endDate);
+
+        return dto;
     }
 }

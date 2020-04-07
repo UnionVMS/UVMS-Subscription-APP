@@ -6,7 +6,6 @@ import javax.validation.constraints.NotNull;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListResponseDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidSubscriptionDto;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
 import lombok.SneakyThrows;
@@ -21,10 +20,10 @@ public interface SubscriptionService {
 	SubscriptionDto get(@NotNull Long id);
 
 	@SneakyThrows
-	SubscriptionDto create(@ValidSubscriptionDto @NotNull SubscriptionDto subscription, @NotNull String currentUser);
+	SubscriptionDto create(@Valid @NotNull SubscriptionDto subscription, @NotNull String currentUser);
 
 	@SneakyThrows
-	SubscriptionDto update(@ValidSubscriptionDto @NotNull SubscriptionDto subscription, @NotNull String currentUser);
+	SubscriptionDto update(@Valid @NotNull SubscriptionDto subscription, @NotNull String currentUser);
 
 	@SneakyThrows
 	void delete(@NotNull Long id, @NotNull String currentUser);

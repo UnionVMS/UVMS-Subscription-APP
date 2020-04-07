@@ -19,6 +19,7 @@ public class SubscriptionOutputDto {
 
 	private List<String> emails = new ArrayList<>();
 
+	@NotNull
 	private OutgoingMessageType messageType;
 
 	private SubscriptionSubscriberDTO subscriber;
