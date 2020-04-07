@@ -12,11 +12,9 @@ import javax.inject.Inject;
 import javax.validation.ValidationException;
 import java.util.Date;
 
+import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDTO;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
@@ -78,68 +76,64 @@ public class SubscriptionServiceBeanTest {
 
 	@Test
 	void testCreateWithValidArguments() {
-		SubscriptionDto dto = new SubscriptionDto();
-		// make sure it is valid
-		dto.setId(SUBSCR_ID);
-		dto.setName(SUBSCR_NAME);
-		dto.setActive(Boolean.TRUE);
-
-		SubscriptionOutputDto output = new SubscriptionOutputDto();
-		output.setMessageType(OutgoingMessageType.FA_QUERY);
-
-		SubscriptionSubscriberDTO subscriber = new SubscriptionSubscriberDTO();
-		subscriber.setOrganisationId(ORGANISATION_ID);
-		subscriber.setEndpointId(ENDPOINT_ID);
-		subscriber.setChannelId(CHANNEL_ID);
-
-		output.setSubscriber(subscriber);
-		output.setConsolidated(true);
-		output.setHistory(1);
-		output.setLogbook(true);
-
-		SubscriptionExecutionDto execution = new SubscriptionExecutionDto();
-		execution.setTriggerType(TriggerType.SCHEDULER);
-		execution.setFrequency(1);
-		execution.setTimeExpression("time");
-
-		dto.setExecution(execution);
-
-		dto.setStartDate(new Date());
-		dto.setOutput(output);
+		SubscriptionDto dto = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, true, TriggerType.SCHEDULER, 1, "time", new Date(), new Date());
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 		assertDoesNotThrow(() -> sut.create(dto, "something"));
 	}
 
 	@Test
+	void createSubscriptionWithNullName() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, null, Boolean.TRUE, OutgoingMessageType.NONE,
+				null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null);
+		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+	}
+	@Test
+	void createSubscriptionWithEmptyName() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, "", Boolean.TRUE, OutgoingMessageType.NONE,
+				null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null);
+		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+	}
+
+	@Test
+	void createSubscriptionWithNullActive() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, null, OutgoingMessageType.NONE,
+				null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null);
+		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+	}
+
+	@Test
+	void createSubscriptionWithNullMessageType() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, null,
+				null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null);
+		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+	}
+
+	@Test
+	void createSubscriptionWithFAQueryMessageTypeAndInvalidSubscriber() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
+				null, null, null, true, 1, true, TriggerType.SCHEDULER, 1, "time", new Date(), new Date());
+		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+	}
+
+	@Test
+	void createSubscriptionWithFAQueryMessageTypeAndInvalidOutput() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null, TriggerType.SCHEDULER, 1, "time", new Date(), new Date());
+		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+	}
+
+	@Test
+	void createSubscriptionWithFAQueryMessageTypeAndSchedulerTriggerTypeAndInvalidExecution() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, true, TriggerType.SCHEDULER, null, null, null, null);
+		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+	}
+
+	@Test
 	void testCreate() {
-		SubscriptionDto dto = new SubscriptionDto();
-		// make sure it is valid
-		dto.setId(SUBSCR_ID);
-		dto.setName(SUBSCR_NAME);
-		dto.setActive(Boolean.TRUE);
-
-		SubscriptionOutputDto output = new SubscriptionOutputDto();
-		output.setMessageType(OutgoingMessageType.FA_QUERY);
-
-		SubscriptionSubscriberDTO subscriber = new SubscriptionSubscriberDTO();
-		subscriber.setOrganisationId(ORGANISATION_ID);
-		subscriber.setEndpointId(ENDPOINT_ID);
-		subscriber.setChannelId(CHANNEL_ID);
-
-		output.setSubscriber(subscriber);
-		output.setConsolidated(true);
-		output.setHistory(1);
-		output.setLogbook(true);
-		dto.setOutput(output);
-
-		SubscriptionExecutionDto execution = new SubscriptionExecutionDto();
-		execution.setTriggerType(TriggerType.SCHEDULER);
-		execution.setFrequency(1);
-		execution.setTimeExpression("time");
-
-		dto.setExecution(execution);
-
-		dto.setStartDate(new Date());
+		SubscriptionDto dto = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, true, TriggerType.SCHEDULER, 1, "time", new Date(), new Date());
 
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 

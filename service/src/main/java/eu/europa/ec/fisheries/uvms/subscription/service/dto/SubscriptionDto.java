@@ -14,30 +14,40 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.DATE_TIME_UI_FORMAT;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europa.fisheries.uvms.subscription.model.enums.AccessibilityType;
+import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidSubscriptionExecutionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidSubscriptionOutputDto;
 import lombok.Data;
 
+/**
+ * Configuration of a subscription data object.
+ */
 @Data
 public class SubscriptionDto {
 
     private Long id;
 
+    @NotEmpty
     private String name;
 
-    @NotNull
     private AccessibilityType accessibility;
 
     private String description;
 
+    @NotNull
     private Boolean active;
 
+    @NotNull
+    @Valid
+    @ValidSubscriptionOutputDto
     private SubscriptionOutputDto output;
 
+    @ValidSubscriptionExecutionDto
     private SubscriptionExecutionDto execution;
 
     //private List<Object> conditions = new ArrayList<>();
