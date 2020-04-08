@@ -12,6 +12,8 @@ package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
 import static eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper.mapToAuditLog;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.MessageType.FLUX_FA_QUERY_MESSAGE;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum.MANAGE_SUBSCRIPTION;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum.VIEW_SUBSCRIPTION;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.NO;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.YES;
 
@@ -24,10 +26,11 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
+import eu.europa.ec.fisheries.uvms.subscription.service.authentication.AuthenticationContext;
+import eu.europa.ec.fisheries.uvms.subscription.service.authorisation.AllowedRoles;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
@@ -65,8 +68,6 @@ class SubscriptionServiceBean implements SubscriptionService {
     @Inject
     private SubscriptionMapper mapper;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
-
     @Inject
     private SubscriptionAuditProducer auditProducer;
 
@@ -76,8 +77,12 @@ class SubscriptionServiceBean implements SubscriptionService {
     @Inject
     private CustomMapper customMapper;
 
+    @Inject
+    private AuthenticationContext authenticationContext;
+
     @Override
-    public SubscriptionDto get(@NotNull Long id) {
+    @AllowedRoles(VIEW_SUBSCRIPTION)
+    public SubscriptionDto findById(@NotNull Long id) {
         SubscriptionEntity entity = subscriptionDAO.findById(id);
         if (entity == null){
             throw new IllegalArgumentException("Unable to update entity: not found");
@@ -116,7 +121,8 @@ class SubscriptionServiceBean implements SubscriptionService {
      */
     @Override
     @SneakyThrows
-    public SubscriptionListResponseDto listSubscriptions(@Valid @NotNull SubscriptionListQuery queryParams, String scopeName, String roleName, String requester) {
+    @AllowedRoles(VIEW_SUBSCRIPTION)
+    public SubscriptionListResponseDto listSubscriptions(@Valid @NotNull SubscriptionListQuery queryParams, String scopeName, String roleName) {
 
         SubscriptionListResponseDto responseDto = new SubscriptionListResponseDto();
         Integer pageSize = queryParams.getPagination().getPageSize();
@@ -126,7 +132,7 @@ class SubscriptionServiceBean implements SubscriptionService {
 
         List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(queryParams);
 
-        String getAllOrganisationRequest = UserModuleRequestMapper.mapToGetAllOrganisationRequest(scopeName, roleName, requester);
+        String getAllOrganisationRequest = UserModuleRequestMapper.mapToGetAllOrganisationRequest(scopeName, roleName, authenticationContext.getUserPrincipal().getName());
 
         String correlationID = subscriptionUserProducerBean.sendModuleMessage(getAllOrganisationRequest, subscriptionUserConsumerBean.getDestination());
 
@@ -155,16 +161,18 @@ class SubscriptionServiceBean implements SubscriptionService {
 
     @Override
     @SneakyThrows
-    public SubscriptionDto create(@Valid @NotNull SubscriptionDto subscription, @NotNull String currentUser) {
+    @AllowedRoles(MANAGE_SUBSCRIPTION)
+    public SubscriptionDto create(@Valid @NotNull SubscriptionDto subscription) {
         SubscriptionEntity entity = mapper.mapDtoToEntity(subscription);
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
-        sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.CREATE.name(), saved.getId().toString(), currentUser));
+        sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.CREATE.name(), saved.getId().toString(), authenticationContext.getUserPrincipal().getName()));
         return mapper.mapEntityToDto(saved);
     }
 
     @Override
     @SneakyThrows
-    public SubscriptionDto update(@Valid @NotNull SubscriptionDto subscription, @NotNull String currentUser) {
+    @AllowedRoles(MANAGE_SUBSCRIPTION)
+    public SubscriptionDto update(@Valid @NotNull SubscriptionDto subscription) {
         SubscriptionEntity entityById = subscriptionDAO.findById(subscription.getId());
 
         if (entityById == null){
@@ -172,15 +180,16 @@ class SubscriptionServiceBean implements SubscriptionService {
         }
         mapper.updateEntity(subscription, entityById);
         SubscriptionEntity subscriptionEntity = subscriptionDAO.update(entityById);
-        sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), subscriptionEntity.getId().toString(), currentUser));
+        sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), subscriptionEntity.getId().toString(), authenticationContext.getUserPrincipal().getName()));
         return mapper.mapEntityToDto(subscriptionEntity);
     }
 
     @Override
     @SneakyThrows
-    public void delete(@NotNull Long id, @NotNull String currentUser) {
+    @AllowedRoles(MANAGE_SUBSCRIPTION)
+    public void delete(@NotNull Long id) {
         subscriptionDAO.delete(id);
-        sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), String.valueOf(id), currentUser));
+        sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), String.valueOf(id), authenticationContext.getUserPrincipal().getName()));
     }
 
     private void sendLogToAudit(String log) throws MessageException {
@@ -188,6 +197,7 @@ class SubscriptionServiceBean implements SubscriptionService {
     }
 
     @Override
+    @AllowedRoles(VIEW_SUBSCRIPTION)
     public Boolean valueExists(@NotNull final String name) {
         return subscriptionDAO.valueExists(name);
     }

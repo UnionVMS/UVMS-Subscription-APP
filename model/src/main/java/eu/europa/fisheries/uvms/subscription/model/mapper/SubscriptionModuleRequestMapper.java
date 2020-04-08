@@ -13,5 +13,6 @@ package eu.europa.fisheries.uvms.subscription.model.mapper;
 /**
  * Created by kovian on 28/12/2017.
  */
+@Deprecated
 public class SubscriptionModuleRequestMapper {
 }

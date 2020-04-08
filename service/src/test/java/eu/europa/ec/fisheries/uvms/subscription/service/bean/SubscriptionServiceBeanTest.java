@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
@@ -13,6 +15,8 @@ import javax.validation.ValidationException;
 import java.util.Date;
 
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
+import eu.europa.ec.fisheries.uvms.subscription.service.authentication.AuthenticationContext;
+import eu.europa.ec.fisheries.uvms.subscription.service.authentication.SubscriptionUser;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
@@ -24,6 +28,7 @@ import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import org.hibernate.validator.cdi.ValidationExtension;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -62,16 +67,24 @@ public class SubscriptionServiceBeanTest {
 	@Produces @Mock
 	private SubscriptionProducerBean subscriptionProducer;
 
+	@Produces @Mock
+	private AuthenticationContext mockAuthenticationContext;
+
 	@Inject
 	private SubscriptionServiceBean sut;
+
+	@BeforeEach
+	void beforeEach() {
+		SubscriptionUser principal = mock(SubscriptionUser.class);
+		lenient().when(principal.getName()).thenReturn(CURRENT_USER_NAME);
+		lenient().when(mockAuthenticationContext.getUserPrincipal()).thenReturn(principal);
+	}
 
 	@Test
 	void testCreateWithInvalidArguments() {
 		SubscriptionDto subscription = new SubscriptionDto();
-		assertThrows(ValidationException.class, () -> sut.create(null, null));
-		assertThrows(ValidationException.class, () -> sut.create(subscription, null));
-		assertThrows(ValidationException.class, () -> sut.create(null, "something"));
-		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+		assertThrows(ValidationException.class, () -> sut.create(null));
+		assertThrows(ValidationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
@@ -79,55 +92,55 @@ public class SubscriptionServiceBeanTest {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
 				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, true, TriggerType.SCHEDULER, 1, "time", new Date(), new Date());
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
-		assertDoesNotThrow(() -> sut.create(dto, "something"));
+		assertDoesNotThrow(() -> sut.create(dto));
 	}
 
 	@Test
 	void createSubscriptionWithNullName() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, null, Boolean.TRUE, OutgoingMessageType.NONE,
 				null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null);
-		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+		assertThrows(ValidationException.class, () -> sut.create(subscription));
 	}
 	@Test
 	void createSubscriptionWithEmptyName() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, "", Boolean.TRUE, OutgoingMessageType.NONE,
 				null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null);
-		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+		assertThrows(ValidationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithNullActive() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, null, OutgoingMessageType.NONE,
 				null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null);
-		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+		assertThrows(ValidationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithNullMessageType() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, null,
 				null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null);
-		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+		assertThrows(ValidationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAQueryMessageTypeAndInvalidSubscriber() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
 				null, null, null, true, 1, true, TriggerType.SCHEDULER, 1, "time", new Date(), new Date());
-		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+		assertThrows(ValidationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAQueryMessageTypeAndInvalidOutput() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
 				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null, TriggerType.SCHEDULER, 1, "time", new Date(), new Date());
-		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+		assertThrows(ValidationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAQueryMessageTypeAndSchedulerTriggerTypeAndInvalidExecution() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
 				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, true, TriggerType.SCHEDULER, null, null, null, null);
-		assertThrows(ValidationException.class, () -> sut.create(subscription, "something"));
+		assertThrows(ValidationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
@@ -137,7 +150,7 @@ public class SubscriptionServiceBeanTest {
 
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 
-		SubscriptionDto result = sut.create(dto, CURRENT_USER_NAME);
+		SubscriptionDto result = sut.create(dto);
 
 		assertNotNull(result);
 		assertEquals(SUBSCR_ID, result.getId());

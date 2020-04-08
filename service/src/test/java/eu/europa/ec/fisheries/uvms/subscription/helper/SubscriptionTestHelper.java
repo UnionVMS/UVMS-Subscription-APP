@@ -14,7 +14,10 @@ import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Random;
 
@@ -41,8 +44,14 @@ import org.apache.commons.lang.RandomStringUtils;
 
 public class SubscriptionTestHelper {
 
+    private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyyMMdd");
+
     private SubscriptionTestHelper() {
 
+    }
+
+    public static SubscriptionListQuery createDateRangeQuery(String startDate, String endDate) {
+        return createQuery(null, null, null, null, null, null, startDate == null ? null : LocalDate.parse(startDate, DTF).atStartOfDay(ZoneId.of("UTC")), endDate == null ? null : LocalDate.parse(endDate, DTF).atStartOfDay(ZoneId.of("UTC")), null, null, null);
     }
 
     public static SubscriptionListQuery createQuery(String name, Boolean active, Long organisation, Long endpoint, Long channel,
@@ -92,6 +101,7 @@ public class SubscriptionTestHelper {
         return subscriptionEntity;
     }
 
+    @SuppressWarnings("unused")
     public static AreaEntity randomArea() {
         AreaEntity areaEntity = new AreaEntity();
         areaEntity.setValue(RandomStringUtils.randomAlphabetic(100));

@@ -9,7 +9,9 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.function.IntBinaryOperator;
 import java.util.function.Supplier;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collector;
 
 /**
@@ -20,8 +22,8 @@ import java.util.stream.Collector;
  */
 public class BaseEnumSetConverter<E extends Enum<E>> implements AttributeConverter<EnumSet<E>, Integer> {
 
-	private static final Function<Enum<?>,Integer> BIT_POSITION = e -> 1 << e.ordinal();
-	private static final BinaryOperator<Integer> OR = (a,b) -> a | b;
+	private static final ToIntFunction<Enum<?>> BIT_POSITION = e -> 1 << e.ordinal();
+	private static final IntBinaryOperator OR = (a,b) -> a | b;
 
 	private class ToEnumSetCollector implements Collector<E, EnumSet<E>, EnumSet<E>> {
 		@Override
@@ -54,7 +56,7 @@ public class BaseEnumSetConverter<E extends Enum<E>> implements AttributeConvert
 		}
 	}
 
-	private Class<E> enumClass;
+	private final Class<E> enumClass;
 
 	public BaseEnumSetConverter(Class<E> enumClass) {
 		Objects.requireNonNull(enumClass);
@@ -63,11 +65,11 @@ public class BaseEnumSetConverter<E extends Enum<E>> implements AttributeConvert
 
 	@Override
 	public Integer convertToDatabaseColumn(EnumSet<E> attribute) {
-		return attribute == null || attribute.isEmpty() ? 0 : attribute.stream().map(BIT_POSITION).reduce(0, OR);
+		return attribute == null || attribute.isEmpty() ? 0 : attribute.stream().mapToInt(BIT_POSITION).reduce(0, OR);
 	}
 
 	@Override
 	public EnumSet<E> convertToEntityAttribute(Integer dbData) {
-		return dbData == null || dbData == 0 ? EnumSet.noneOf(enumClass) : EnumSet.allOf(enumClass).stream().filter(e -> (dbData & BIT_POSITION.apply(e)) != 0).collect(new ToEnumSetCollector());
+		return dbData == null || dbData == 0 ? EnumSet.noneOf(enumClass) : EnumSet.allOf(enumClass).stream().filter(e -> (dbData & BIT_POSITION.applyAsInt(e)) != 0).collect(new ToEnumSetCollector());
 	}
 }
