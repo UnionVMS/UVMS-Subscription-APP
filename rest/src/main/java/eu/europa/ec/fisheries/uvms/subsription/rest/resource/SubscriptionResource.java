@@ -14,9 +14,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -27,15 +25,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 import eu.europa.ec.fisheries.uvms.commons.rest.resource.UnionVMSResource;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionService;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionListQueryImpl;
-import eu.europa.ec.fisheries.uvms.subsription.rest.IUserRoleInterceptor;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -56,9 +51,8 @@ public class SubscriptionResource extends UnionVMSResource {
     @GET
     @Produces(value = {APPLICATION_JSON})
     @Path("/{id}")
-    @IUserRoleInterceptor(requiredUserRole = {SubscriptionFeaturesEnum.VIEW_SUBSCRIPTION})
-    public Response listSubscriptions(@Context HttpServletRequest request, @PathParam("id") Long id) {
-        return createSuccessResponse(service.get(id));
+    public Response get(@PathParam("id") Long id) {
+        return createSuccessResponse(service.findById(id));
     }
 
     /**
@@ -71,12 +65,10 @@ public class SubscriptionResource extends UnionVMSResource {
     @Consumes(value = {APPLICATION_JSON})
     @Produces(value = {APPLICATION_JSON})
     @Path("list")
-    @IUserRoleInterceptor(requiredUserRole = {SubscriptionFeaturesEnum.VIEW_SUBSCRIPTION})
-    public Response listSubscriptions(@Context HttpServletRequest request,
-                                      @Valid SubscriptionListQueryImpl queryParams,
+    public Response listSubscriptions(@Valid SubscriptionListQueryImpl queryParams,
                                       @HeaderParam("scopeName") String scopeName,
                                       @HeaderParam("roleName") String roleName) {
-        return createSuccessResponse(service.listSubscriptions(queryParams, scopeName, roleName, request.getRemoteUser()));
+        return createSuccessResponse(service.listSubscriptions(queryParams, scopeName, roleName));
     }
 
     /**
@@ -88,8 +80,7 @@ public class SubscriptionResource extends UnionVMSResource {
     @GET
     @Path("/exists")
     @Produces(APPLICATION_JSON)
-    @IUserRoleInterceptor(requiredUserRole = {SubscriptionFeaturesEnum.VIEW_SUBSCRIPTION})
-    public Response exists(@Context HttpServletRequest request, @QueryParam("name") String name) {
+    public Response exists(@QueryParam("name") String name) {
         return createSuccessResponse(service.valueExists(name));
     }
 
@@ -102,9 +93,8 @@ public class SubscriptionResource extends UnionVMSResource {
     @POST
     @Consumes(value = {APPLICATION_JSON})
     @Produces(value = {APPLICATION_JSON})
-    @IUserRoleInterceptor(requiredUserRole = {SubscriptionFeaturesEnum.MANAGE_SUBSCRIPTION})
-    public Response create(@Context HttpServletRequest request, SubscriptionDto subscription) {
-        return createSuccessResponse(service.create(subscription, request.getRemoteUser()));
+    public Response create(SubscriptionDto subscription) {
+        return createSuccessResponse(service.create(subscription));
     }
 
     /**
@@ -118,10 +108,9 @@ public class SubscriptionResource extends UnionVMSResource {
     @Path("/{id}")
     @Consumes(value = {APPLICATION_JSON})
     @Produces(value = {APPLICATION_JSON})
-    @IUserRoleInterceptor(requiredUserRole = {SubscriptionFeaturesEnum.MANAGE_SUBSCRIPTION})
-    public Response update(@Context HttpServletRequest request, @PathParam("id") Long id, SubscriptionDto subscription) {
+    public Response update(@PathParam("id") Long id, SubscriptionDto subscription) {
         subscription.setId(id);
-        return createSuccessResponse(service.update(subscription, request.getRemoteUser()));
+        return createSuccessResponse(service.update(subscription));
     }
 
     /**
@@ -133,9 +122,8 @@ public class SubscriptionResource extends UnionVMSResource {
     @DELETE
     @Path("/{id}")
     @Produces(APPLICATION_JSON)
-    @IUserRoleInterceptor(requiredUserRole = {SubscriptionFeaturesEnum.MANAGE_SUBSCRIPTION})
-    public Response delete(@Context HttpServletRequest request, @PathParam("id") Long id) {
-        service.delete(id, request.getRemoteUser());
+    public Response delete(@PathParam("id") Long id) {
+        service.delete(id);
         return createSuccessResponse();
     }
 }

@@ -35,13 +35,11 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.OrderByDat
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @ApplicationScoped
 @Slf4j
 class SubscriptionDaoImpl implements SubscriptionDao {
-
-    private static final String START_DATE = "startDate";
-    private static final String END_DATE = "endDate";
 
     private EntityManager em;
 
@@ -111,7 +109,7 @@ class SubscriptionDaoImpl implements SubscriptionDao {
     private void applyCriteria(CriteriaQuery<?> query, Root<SubscriptionEntity> subscription, SubscriptionSearchCriteria criteria) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         List<Predicate> predicates = new ArrayList<>();
-        if(!criteria.getName().isEmpty()){
+        if(StringUtils.isNotEmpty(criteria.getName())){
             predicates.add(cb.like(subscription.get(SubscriptionEntity_.name), "%" + criteria.getName() + "%"));
         }
         if(criteria.getActive() != null){
@@ -126,14 +124,20 @@ class SubscriptionDaoImpl implements SubscriptionDao {
         if(criteria.getChannel() != null){
             predicates.add(cb.equal(subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.subscriber).get(SubscriptionSubscriber_.channelId), criteria.getChannel()));
         }
-        if(!criteria.getDescription().isEmpty()){
+        if(StringUtils.isNotEmpty(criteria.getDescription())){
             predicates.add(cb.like(subscription.get(SubscriptionEntity_.description),"%" +  criteria.getDescription() + "%"));
         }
         if (criteria.getStartDate() != null) {
-            predicates.add(cb.greaterThanOrEqualTo(subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.startDate), Date.from(criteria.getStartDate().toInstant())));
+            predicates.add(cb.lessThanOrEqualTo(subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.startDate), Date.from(criteria.getStartDate().toInstant())));
+            if (criteria.getEndDate() == null) {
+                predicates.add(cb.greaterThan(subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.endDate), Date.from(criteria.getStartDate().toInstant())));
+            }
         }
         if (criteria.getEndDate() != null) {
-            predicates.add(cb.lessThanOrEqualTo(subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.endDate), Date.from(criteria.getEndDate().toInstant())));
+            predicates.add(cb.greaterThanOrEqualTo(subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.endDate), Date.from(criteria.getEndDate().toInstant())));
+            if (criteria.getStartDate() == null) {
+                predicates.add(cb.lessThan(subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.startDate), Date.from(criteria.getEndDate().toInstant())));
+            }
         }
         if(criteria.getMessageType() != null){
             predicates.add(cb.equal(subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.messageType), criteria.getMessageType()));

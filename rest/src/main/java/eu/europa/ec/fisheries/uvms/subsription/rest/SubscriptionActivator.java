@@ -11,7 +11,9 @@
 package eu.europa.ec.fisheries.uvms.subsription.rest;
 
 import eu.europa.ec.fisheries.uvms.commons.rest.filter.EncodingResponseFilter;
+import eu.europa.ec.fisheries.uvms.subsription.rest.authentication.AuthenticationFilter;
 import eu.europa.ec.fisheries.uvms.subsription.rest.exceptionmap.ConstraintViolationExceptionMapper;
+import eu.europa.ec.fisheries.uvms.subsription.rest.exceptionmap.NotAuthorisedExceptionMapper;
 import eu.europa.ec.fisheries.uvms.subsription.rest.filter.SubscriptionServiceExceptionHandler;
 import eu.europa.ec.fisheries.uvms.subsription.rest.resource.SubscriptionResource;
 
@@ -32,6 +34,8 @@ public class SubscriptionActivator extends Application {
         set.add(EncodingResponseFilter.class);
         set.add(ConstraintViolationExceptionMapper.class);
         set.add(ObjectMapperContextResolver.class);
+        set.add(AuthenticationFilter.class);
+        set.add(NotAuthorisedExceptionMapper.class);
     }
 
     @Override

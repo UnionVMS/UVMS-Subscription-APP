@@ -13,23 +13,16 @@ package eu.europa.ec.fisheries.uvms.subscription.service.mapper;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
-import eu.europa.ec.fisheries.wsdl.subscription.module.CriteriaType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.MessageType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubCriteriaType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataCriteria;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.user.types.Channel;
 import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
@@ -53,61 +46,6 @@ public class CustomMapper {
     @Inject
     public CustomMapper(SubscriptionMapper mapper) {
         this.mapper = mapper;
-    }
-
-    public Map<String, Object> mapCriteriaToQueryParameters(SubscriptionDataQuery query) {
-
-        Map<String, Object> queryParameters = new HashMap<>();
-
-        queryParameters.put("enabled", true);
-        queryParameters.put("endPoint", null);
-        queryParameters.put("subscriptionType", null);
-        queryParameters.put("accessibility", null);
-        queryParameters.put("startDate", null);
-        queryParameters.put("endDate", null);
-        queryParameters.put("channel", null);
-        queryParameters.put("name", null);
-        queryParameters.put("description", null);
-        queryParameters.put("organisation", null);
-        queryParameters.put("messageType", null);
-
-        MessageType messageType = query.getMessageType();
-        if (messageType != null) {
-            queryParameters.put("messageType", messageType.value());
-        }
-
-        List<SubscriptionDataCriteria> criteria = query.getCriteria();
-
-        for (SubscriptionDataCriteria criterion : criteria) {
-
-            CriteriaType criteriaType = criterion.getCriteria();
-            String value = criterion.getValue();
-            switch (criteriaType) {
-                case SENDER:
-
-                    queryParameters.put("organisation", Long.valueOf( value ));
-                    break;
-
-                case VESSEL:
-
-                    break;
-
-                case VALIDITY_PERIOD:
-                    if (SubCriteriaType.START_DATE.equals(criterion.getSubCriteria())) {
-                        queryParameters.put("startDate", DateUtils.parseToUTCDate(value, criterion.getValueType().value()));
-                    } else if (SubCriteriaType.END_DATE.equals(criterion.getSubCriteria())) {
-                        queryParameters.put("endDate", DateUtils.parseToUTCDate(value, criterion.getValueType().value()));
-                    }
-                    break;
-
-                case AREA:
-
-                    break;
-                default:
-            }
-        }
-
-        return queryParameters;
     }
 
     public List<SubscriptionListDto> enrichSubscriptionList(List<SubscriptionEntity> resultList, List<Organisation> organisationList) {

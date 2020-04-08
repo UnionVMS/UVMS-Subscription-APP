@@ -11,18 +11,26 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
+import static eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper.createDateRangeQuery;
+import static eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper.createQuery;
+import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.ParameterizedTest.INDEX_PLACEHOLDER;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
@@ -53,15 +61,19 @@ import org.junit.jupiter.params.provider.MethodSource;
 @EnableAutoWeld
 public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
-    private SubscriptionDaoImpl daoUnderTest = new SubscriptionDaoImpl(em);
-
-    private ObjectMapper objectMapper = new ObjectMapper();
-
     @Produces
     private SubscriptionMapper mapper = new SubscriptionMapperImpl();
 
     @Inject
     private CustomMapper customMapper;
+
+    @Inject
+    private SubscriptionDaoImpl daoUnderTest;
+
+    @Produces
+    EntityManager getEntityManager() {
+        return em;
+    }
 
     @BeforeEach
     public void prepare(){
@@ -73,6 +85,21 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         dbSetupTracker.launchIfNecessary(dbSetup);
     }
 
+    @Test
+    void testFindById() {
+        SubscriptionEntity subscription = daoUnderTest.findById(3L);
+        assertNotNull(subscription);
+        assertEquals("subscription3", subscription.getName());
+        assertEquals("C lorem ipsum", subscription.getDescription());
+    }
+
+    @Test
+    void testCount() {
+        SubscriptionListQuery query = createQuery(null, true, null, null, null, "", null, null, null, null, null);
+        Long count = daoUnderTest.count(query.getCriteria());
+        assertEquals(3L, count);
+    }
+
     @ParameterizedTest
     @MethodSource("queryParametersWithCriteria")
     public void testListSubscriptionWithCriteria(SubscriptionListQuery query, int expected){
@@ -82,14 +109,35 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
     protected static Stream<Arguments> queryParametersWithCriteria(){
         return Stream.of(
-                Arguments.of(SubscriptionTestHelper.createQuery("subscription3", null, null, null, null, "", null, null, null, null, null),1),
-                Arguments.of(SubscriptionTestHelper.createQuery("", null, null, null, 11L, "", null, null, null, null, null),4),
-                Arguments.of(SubscriptionTestHelper.createQuery("", null, null, null, null, "", null, null, null, null, null),4),
-                Arguments.of(SubscriptionTestHelper.createQuery("3", null, null, null, null, "", null, null, null, null, null),1),
-                Arguments.of(SubscriptionTestHelper.createQuery("subscription2", null, null, null, null, "", null, null, OutgoingMessageType.FA_QUERY, null, null),1),
-                Arguments.of(SubscriptionTestHelper.createQuery("", true, null, null, null, "", null, null, null, null, null),3),
-                Arguments.of(SubscriptionTestHelper.createQuery("subscription4", false, 11L, null, 11L, "", null, null, null, null, null),1),
-                Arguments.of(SubscriptionTestHelper.createQuery("", true, null, null, null, "tade", null, null, null, null, null),2)
+                Arguments.of(createQuery("subscription3", null, null, null, null, "", null, null, null, null, null),1),
+                Arguments.of(createQuery("", null, null, null, 11L, "", null, null, null, null, null),4),
+                Arguments.of(createQuery("", null, null, null, null, "", null, null, null, null, null),4),
+                Arguments.of(createQuery("3", null, null, null, null, "", null, null, null, null, null),1),
+                Arguments.of(createQuery("subscription2", null, null, null, null, "", null, null, OutgoingMessageType.FA_QUERY, null, null),1),
+                Arguments.of(createQuery("", true, null, null, null, "", null, null, null, null, null),3),
+                Arguments.of(createQuery("subscription4", false, 11L, null, 11L, "", null, null, null, null, null),1),
+                Arguments.of(createQuery("", true, null, null, null, "tade", null, null, null, null, null),2)
+        );
+    }
+
+    @ParameterizedTest(name = "[" + INDEX_PLACEHOLDER + "] {2}")
+    @MethodSource("dateRangeArguments")
+    void testDateRange(SubscriptionListQuery query, long[] expectedIds, @SuppressWarnings("unused") String descriptionOfTestCase) {
+        List<SubscriptionEntity> results = daoUnderTest.listSubscriptions(query);
+        assertEquals(LongStream.of(expectedIds).boxed().collect(toSet()), results.stream().map(SubscriptionEntity::getId).collect(toSet()));
+    }
+
+    protected static Stream<Arguments> dateRangeArguments(){
+        return Stream.of(
+                Arguments.of(createDateRangeQuery(null,       null),       new long[] {1,2,3,4}, "No restriction"),
+                Arguments.of(createDateRangeQuery("20160101", "20161231"), new long[] {},        "Older than the oldest subscription"),
+                Arguments.of(createDateRangeQuery("20160101", "20171231"), new long[] {},        "Partially older than the oldest subscription"),
+                Arguments.of(createDateRangeQuery("20170101", "20171231"), new long[] {1},       "Fully in the oldest subscription"),
+                Arguments.of(createDateRangeQuery("20180101", "20181230"), new long[] {1,2},     "Fully in the 2 oldest subscriptions"),
+                Arguments.of(createDateRangeQuery("20180601", null),       new long[] {1,2},     "Start date in the 2 oldest subscriptions"),
+                Arguments.of(createDateRangeQuery(null, "20180601"),       new long[] {1,2},     "End date in the 2 oldest subscriptions"),
+                Arguments.of(createDateRangeQuery("20200101", "20211231"), new long[] {},        "Partially older than the oldest subscription"),
+                Arguments.of(createDateRangeQuery("20210101", "20211231"), new long[] {},        "Fulllly older than the oldest subscription")
         );
     }
 
@@ -97,15 +145,16 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     @MethodSource("queryParametersWithOrderingAsc")
     public void testListSubscriptionWithOrderingAsc(SubscriptionListQuery query, long firstResultId, long lastResultId){
         List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(query);
+        assertTrue(subscriptionEntities.size() >= 2);
         assertEquals(firstResultId, subscriptionEntities.get(0).getId());
         assertEquals(lastResultId, subscriptionEntities.get(subscriptionEntities.size()-1).getId());
     }
 
     protected static Stream<Arguments> queryParametersWithOrderingAsc(){
         return Stream.of(
-                Arguments.of(SubscriptionTestHelper.createQuery("", null, null, null, null, "", null, null, null, DirectionType.ASC, ColumnType.NAME), 1L, 4L),
-                Arguments.of(SubscriptionTestHelper.createQuery("", null, null, null, null, "", null, null, null, DirectionType.ASC, ColumnType.DESCRIPTION), 1L, 4L),
-                Arguments.of(SubscriptionTestHelper.createQuery("", null, null, null, null, "", null, null, null, DirectionType.ASC, ColumnType.MESSAGETYPE), 2L, 4L)
+                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.NAME), 1L, 4L),
+                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.DESCRIPTION), 1L, 4L),
+                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.MESSAGETYPE), 2L, 4L)
         );
     }
 

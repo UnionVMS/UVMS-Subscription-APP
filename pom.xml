@@ -46,10 +46,14 @@
 		<netbeans.hint.jdkPlatform>JDK_1.8</netbeans.hint.jdkPlatform>
 		<hibernate.version>5.1.9.Final</hibernate.version>
 
+		<version.glassfish.el>3.0.1-b11</version.glassfish.el>
+		<version.glassfish.json>1.1.4</version.glassfish.json>
 		<version.hibernate.validator>6.1.2.Final</version.hibernate.validator>
+		<version.jackson>2.10.3</version.jackson>
 		<version.junit.jupiter>5.6.0</version.junit.jupiter>
 		<version.mockito>3.3.0</version.mockito>
 		<version.ninja.squad>2.1.0</version.ninja.squad>
+		<version.resteasy-test>4.4.2.Final</version.resteasy-test>
 		<version.weld-junit5>2.0.1.Final</version.weld-junit5>
 
 		<focus-pom.maven.surefire.plugin.version>2.22.2</focus-pom.maven.surefire.plugin.version>
@@ -115,6 +119,16 @@
 				<version>${uvms.commons.version}</version>
 			</dependency>
 
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>${version.jackson}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.datatype</groupId>
+				<artifactId>jackson-datatype-jsr310</artifactId>
+				<version>${version.jackson}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.jvnet.jaxb2_commons</groupId>
 				<artifactId>jaxb2-basics</artifactId>
@@ -214,7 +228,13 @@
 			<dependency>
 				<groupId>org.glassfish</groupId>
 				<artifactId>javax.el</artifactId>
-				<version>3.0.1-b11</version>
+				<version>${version.glassfish.el}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish</groupId>
+				<artifactId>javax.json</artifactId>
+				<version>${version.glassfish.json}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
@@ -229,6 +249,25 @@
 				<version>${version.hibernate.validator}</version>
 				<scope>test</scope>
 			</dependency>
+			<dependency>
+				<groupId>org.jboss.resteasy</groupId>
+				<artifactId>resteasy-cdi</artifactId>
+				<version>${version.resteasy-test}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.jboss.resteasy</groupId>
+				<artifactId>resteasy-core</artifactId>
+				<version>${version.resteasy-test}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.jboss.resteasy</groupId>
+				<artifactId>resteasy-jackson2-provider</artifactId>
+				<version>${version.resteasy-test}</version>
+				<scope>test</scope>
+			</dependency>
+
 			<dependency>
 				<groupId>org.jboss.weld</groupId>
 				<artifactId>weld-junit5</artifactId>

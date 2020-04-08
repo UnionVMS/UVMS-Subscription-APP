@@ -15,8 +15,11 @@ import static com.ninja_squad.dbsetup.Operations.insertInto;
 import static com.ninja_squad.dbsetup.Operations.sql;
 import static com.ninja_squad.dbsetup.operation.CompositeOperation.sequenceOf;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import com.ninja_squad.dbsetup.operation.Operation;
-import eu.europa.ec.fisheries.uvms.commons.date.DateUtils;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 
@@ -26,10 +29,10 @@ public abstract class BaseSubscriptionInMemoryTest extends BaseDAOTest {
 
     static final Operation INSERT_SUBSCRIPTION = sequenceOf(insertInto("subscription.subscription")
             .columns("id", "name", "active", "description", "trigger_type", "start_date", "end_date", "alert", "message_type", "channel_id", "organisation_id")
-            .values(1L, "subscription1", "1", "A lorem ipsum tade", TriggerType.SCHEDULER, DateUtils.START_OF_TIME.toDate(), DateUtils.END_OF_TIME.toDate(), "1", OutgoingMessageType.NONE, 11L, 10L)
-            .values(2L, "subscription2", "1", "B lorem ipsum tade", TriggerType.SCHEDULER, DateUtils.START_OF_TIME.toDate(), DateUtils.END_OF_TIME.toDate(), "1", OutgoingMessageType.FA_QUERY, 11L, 11L)
-            .values(3L, "subscription3", "1", "C lorem ipsum", TriggerType.MANUAL, DateUtils.START_OF_TIME.toDate(), DateUtils.END_OF_TIME.toDate(), "1", OutgoingMessageType.FA_REPORT, 11L, 5L)
-            .values(4L, "subscription4", "0", "D lorem ipsum", TriggerType.SCHEDULER, DateUtils.START_OF_TIME.toDate(), DateUtils.END_OF_TIME.toDate(), "0", OutgoingMessageType.POSITION, 11L, 11L).build(),
+            .values(1L, "subscription1", "1", "A lorem ipsum tade", TriggerType.SCHEDULER, d("20170101"), d("20181231"), "1", OutgoingMessageType.NONE, 11L, 10L)
+            .values(2L, "subscription2", "1", "B lorem ipsum tade", TriggerType.SCHEDULER, d("20180101"), d("20181231"), "1", OutgoingMessageType.FA_QUERY, 11L, 11L)
+            .values(3L, "subscription3", "1", "C lorem ipsum", TriggerType.MANUAL,         d("20190101"), d("20191231"), "1", OutgoingMessageType.FA_REPORT, 11L, 5L)
+            .values(4L, "subscription4", "0", "D lorem ipsum", TriggerType.SCHEDULER,      d("20200101"), d("20201231"), "0", OutgoingMessageType.POSITION, 11L, 11L).build(),
             sql("alter sequence subscription.hibernate_sequence restart with 100000"));
 
     static final Operation INSERT_CONDITION = sequenceOf(insertInto("subscription.condition").columns("id", "position", "subscription_id", "message_type", "criteria_type", "sub_criteria_type", "value_type", "value", "condition_type")
@@ -44,5 +47,13 @@ public abstract class BaseSubscriptionInMemoryTest extends BaseDAOTest {
 
     @Override protected String getPersistenceUnitName() {
         return "testPU";
+    }
+
+    static Date d(String s) {
+        try {
+            return new SimpleDateFormat("yyyyMMdd").parse(s);
+        } catch (ParseException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 }
