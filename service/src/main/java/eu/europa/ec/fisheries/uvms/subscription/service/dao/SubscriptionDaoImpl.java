@@ -149,12 +149,12 @@ class SubscriptionDaoImpl implements SubscriptionDao {
     }
 
     @Override
-    public Boolean valueExists(@NotNull String name) {
+    public SubscriptionEntity findSubscriptionByName(@NotNull String name) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<String> query = cb.createQuery(String.class);
+        CriteriaQuery<SubscriptionEntity> query = cb.createQuery(SubscriptionEntity.class);
         Root<SubscriptionEntity> subscription = query.from(SubscriptionEntity.class);
-        query.select(subscription.get(SubscriptionEntity_.name)).where(cb.equal(subscription.get(SubscriptionEntity_.name), name));
-        return !em.createQuery(query).getResultList().isEmpty();
+        query.select(subscription).where(cb.equal(subscription.get(SubscriptionEntity_.name), name));
+        return em.createQuery(query).getResultList().stream().findFirst().orElse(null);
     }
 
     @Override

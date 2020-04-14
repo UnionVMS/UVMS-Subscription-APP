@@ -28,5 +28,5 @@ public interface SubscriptionService {
 	@SneakyThrows
 	void delete(@NotNull Long id);
 
-	Boolean valueExists(@NotNull String name);
+	Boolean checkNameAvailability(@NotNull String name, Long id);
 }

@@ -13,7 +13,7 @@ public interface SubscriptionDao {
 
 	Long count(@Valid @NotNull SubscriptionSearchCriteria criteria);
 
-	Boolean valueExists(@NotNull String name);
+	SubscriptionEntity findSubscriptionByName(@NotNull String name);
 
 	SubscriptionEntity createEntity(SubscriptionEntity entity);
 

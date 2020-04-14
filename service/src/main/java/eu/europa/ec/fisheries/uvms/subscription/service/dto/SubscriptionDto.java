@@ -19,6 +19,7 @@ import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import eu.europa.ec.fisheries.uvms.subscription.service.validation.SubscriptionHasUniqueName;
 import eu.europa.fisheries.uvms.subscription.model.enums.AccessibilityType;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidSubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidSubscriptionOutputDto;
@@ -28,6 +29,7 @@ import lombok.Data;
  * Configuration of a subscription data object.
  */
 @Data
+@SubscriptionHasUniqueName
 public class SubscriptionDto {
 
     private Long id;
@@ -47,6 +49,7 @@ public class SubscriptionDto {
     @ValidSubscriptionOutputDto
     private SubscriptionOutputDto output;
 
+    @Valid
     @ValidSubscriptionExecutionDto
     private SubscriptionExecutionDto execution;
 
