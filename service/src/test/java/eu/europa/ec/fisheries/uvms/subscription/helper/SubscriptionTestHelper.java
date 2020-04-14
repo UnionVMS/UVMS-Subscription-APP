@@ -22,6 +22,9 @@ import java.util.Date;
 import java.util.Random;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.OrderByData;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.PaginationData;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
@@ -30,14 +33,11 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDTO;
+import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
-import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import org.apache.commons.lang.RandomStringUtils;
 
@@ -122,12 +122,14 @@ public class SubscriptionTestHelper {
         SubscriptionOutputDto output = new SubscriptionOutputDto();
         output.setMessageType(messageType);
 
-        SubscriptionSubscriberDTO subscriber = new SubscriptionSubscriberDTO();
-        subscriber.setOrganisationId(organisationId);
-        subscriber.setEndpointId(endpointId);
-        subscriber.setChannelId(channelId);
+        if(messageType!=OutgoingMessageType.NONE){
+            SubscriptionSubscriberDTO subscriber = new SubscriptionSubscriberDTO();
+            subscriber.setOrganisationId(organisationId);
+            subscriber.setEndpointId(endpointId);
+            subscriber.setChannelId(channelId);
+            output.setSubscriber(subscriber);
+        }
 
-        output.setSubscriber(subscriber);
         output.setConsolidated(consolidated);
         output.setHistory(history);
         output.setLogbook(logbook);

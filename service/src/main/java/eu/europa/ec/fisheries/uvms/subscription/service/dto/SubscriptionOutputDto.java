@@ -1,5 +1,7 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -22,6 +24,7 @@ public class SubscriptionOutputDto {
 	@NotNull
 	private OutgoingMessageType messageType;
 
+	@Valid
 	private SubscriptionSubscriberDTO subscriber;
 
 	private Boolean logbook;
@@ -32,5 +35,6 @@ public class SubscriptionOutputDto {
 
 	private Boolean generateNewReportId;
 
+	@Min(1)
 	private Integer history;
 }

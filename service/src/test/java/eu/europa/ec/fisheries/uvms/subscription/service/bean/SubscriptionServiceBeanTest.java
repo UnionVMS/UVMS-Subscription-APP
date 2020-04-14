@@ -2,8 +2,10 @@ package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -18,6 +20,7 @@ import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.authentication.AuthenticationContext;
 import eu.europa.ec.fisheries.uvms.subscription.service.authentication.SubscriptionUser;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
@@ -90,7 +93,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void testCreateWithValidArguments() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, true, TriggerType.SCHEDULER, 1, "time", new Date(), new Date());
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, true, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date());
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 		assertDoesNotThrow(() -> sut.create(dto));
 	}
@@ -125,14 +128,14 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void createSubscriptionWithFAQueryMessageTypeAndInvalidSubscriber() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
-				null, null, null, true, 1, true, TriggerType.SCHEDULER, 1, "time", new Date(), new Date());
+				null, null, null, true, 1, true, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date());
 		assertThrows(ValidationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAQueryMessageTypeAndInvalidOutput() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null, TriggerType.SCHEDULER, 1, "time", new Date(), new Date());
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date());
 		assertThrows(ValidationException.class, () -> sut.create(subscription));
 	}
 
@@ -144,9 +147,63 @@ public class SubscriptionServiceBeanTest {
 	}
 
 	@Test
+	void createSubscriptionWithFAQueryMessageTypeAndInvalidNegativeHistory() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, -1, true, TriggerType.SCHEDULER, 1, "12:00", null, null);
+		assertThrows(ValidationException.class, () -> sut.create(subscription));
+	}
+
+	@Test
+	void createSubscriptionWithTriggerTypeSchedulerAndInvalidTimeExpression() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, true, TriggerType.SCHEDULER, 1, "120:00", null, null);
+		assertThrows(ValidationException.class, () -> sut.create(subscription));
+	}
+
+	@Test
+	void createValidSubscriptionWithNoneMessageTypeAndNullSubscriber() {
+		SubscriptionDto dto = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE,
+				null, null, null, true, 1, true, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date());
+
+		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+
+		assertDoesNotThrow(() -> sut.create(dto));
+	}
+
+	@Test
+	void checkUnavailableNameWithoutId(){
+		SubscriptionEntity entity = new SubscriptionEntity();
+		entity.setId(1L);
+		entity.setName("name");
+		when(subscriptionDAO.findSubscriptionByName("name")).thenReturn(entity);
+		assertFalse(sut.checkNameAvailability("name", null));
+	}
+
+	@Test
+	void checkUnavailableNameWithId(){
+		SubscriptionEntity entity = new SubscriptionEntity();
+		entity.setId(1L);
+		entity.setName("name");
+		when(subscriptionDAO.findSubscriptionByName("name")).thenReturn(entity);
+		assertFalse(sut.checkNameAvailability("name", 2L));
+	}
+
+	@Test
+	void checkAvailableNameWithoutId(){
+		when(subscriptionDAO.findSubscriptionByName(any(String.class))).thenReturn(null);
+		assertTrue(sut.checkNameAvailability("name", null));
+	}
+
+	@Test
+	void checkAvailableNameWithId(){
+		when(subscriptionDAO.findSubscriptionByName(any(String.class))).thenReturn(null);
+		assertTrue(sut.checkNameAvailability("name", 2L));
+	}
+
+	@Test
 	void testCreate() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubsriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, true, TriggerType.SCHEDULER, 1, "time", new Date(), new Date());
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, true, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date());
 
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 

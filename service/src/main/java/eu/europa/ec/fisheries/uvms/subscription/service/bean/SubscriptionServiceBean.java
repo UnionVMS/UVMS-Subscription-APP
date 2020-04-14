@@ -198,7 +198,8 @@ class SubscriptionServiceBean implements SubscriptionService {
 
     @Override
     @AllowedRoles(VIEW_SUBSCRIPTION)
-    public Boolean valueExists(@NotNull final String name) {
-        return subscriptionDAO.valueExists(name);
+    public Boolean checkNameAvailability(@NotNull final String name, Long id) {
+        SubscriptionEntity subscriptionByName = subscriptionDAO.findSubscriptionByName(name);
+        return subscriptionByName == null || subscriptionByName.getId().equals(id);
     }
 }

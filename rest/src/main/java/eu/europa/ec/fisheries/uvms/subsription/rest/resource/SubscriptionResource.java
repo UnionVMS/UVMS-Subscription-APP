@@ -78,10 +78,10 @@ public class SubscriptionResource extends UnionVMSResource {
      *
      */
     @GET
-    @Path("/exists")
+    @Path("/available")
     @Produces(APPLICATION_JSON)
-    public Response exists(@QueryParam("name") String name) {
-        return createSuccessResponse(service.valueExists(name));
+    public Response available(@QueryParam("name") String name, @QueryParam("id") Long id) {
+        return createSuccessResponse(service.checkNameAvailability(name, id));
     }
 
     /**
