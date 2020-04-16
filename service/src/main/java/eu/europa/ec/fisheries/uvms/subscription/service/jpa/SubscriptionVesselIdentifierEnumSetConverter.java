@@ -7,27 +7,15 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.ec.fisheries.uvms.subscription.service.domain;
+package eu.europa.ec.fisheries.uvms.subscription.service.jpa;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-
-import java.io.Serializable;
-
-import lombok.Data;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
 
 /**
- * A subscriber of a subscription.
+ * {@code EnumSet} converter for sets of {@link SubscriptionVesselIdentifier}.
  */
-@Embeddable
-@Data
-public class SubscriptionSubscriber implements Serializable {
-	@Column(name = "organisation_id")
-	private Long organisationId;
-
-	@Column(name = "endpoint_id")
-    private Long endpointId;
-
-	@Column(name = "channel_id")
-    private Long channelId;
+public class SubscriptionVesselIdentifierEnumSetConverter extends BaseEnumSetConverter<SubscriptionVesselIdentifier> {
+	public SubscriptionVesselIdentifierEnumSetConverter() {
+		super(SubscriptionVesselIdentifier.class);
+	}
 }

@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
+import java.util.Objects;
 import java.util.Optional;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.authentication.AuthenticationContext;
@@ -40,9 +41,7 @@ class AllowedRolesInterceptor {
 		SubscriptionUser user = Optional.ofNullable(authenticationContext.getUserPrincipal()).orElseThrow(NotAuthorisedException::new);
 		AllowedRoles allowedRolesAnnotation = Optional.ofNullable(ic.getMethod().getAnnotation(AllowedRoles.class))
 				.orElseGet(() -> ic.getMethod().getDeclaringClass().getAnnotation(AllowedRoles.class));
-		if (allowedRolesAnnotation == null ) {
-			throw new IllegalStateException("Did not find @AllowedRoles in " + ic.getMethod().getName() + " declared in " + ic.getMethod().getDeclaringClass().getCanonicalName());
-		}
+		Objects.requireNonNull(allowedRolesAnnotation, () -> "Did not find @AllowedRoles in " + ic.getMethod().getName() + " declared in " + ic.getMethod().getDeclaringClass().getCanonicalName());
 		for (SubscriptionFeaturesEnum feature : allowedRolesAnnotation.value()) {
 			if (user.getRoles().contains(feature.name())) {
 				return ic.proceed();

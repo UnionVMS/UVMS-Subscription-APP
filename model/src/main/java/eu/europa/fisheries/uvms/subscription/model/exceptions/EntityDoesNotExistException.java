@@ -7,37 +7,24 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
+package eu.europa.fisheries.uvms.subscription.model.exceptions;
 
-package eu.europa.ec.fisheries.uvms.subscription.service.dto.search;
+/**
+ * Signals that a requested entity was not found.
+ */
+public class EntityDoesNotExistException extends ApplicationException {
+	public EntityDoesNotExistException() {
+	}
 
-import javax.validation.Valid;
+	public EntityDoesNotExistException(String message) {
+		super(message);
+	}
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import eu.europa.ec.fisheries.uvms.commons.rest.dto.PaginationDto;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+	public EntityDoesNotExistException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-@Deprecated
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class SubscriptionListQueryDto {
-
-    private static SubscriptionListQueryDto empty = new SubscriptionListQueryDto();
-
-    @Valid
-    private PaginationDto pagination;
-
-    private QueryParameterDto queryParameters = new QueryParameterDto();
-
-    @Valid
-    private OrderByDto orderBy = new OrderByDto();
-
-    @JsonIgnore
-    public boolean isEmpty() {
-        return this.equals(empty);
-    }
+	public EntityDoesNotExistException(Throwable cause) {
+		super(cause);
+	}
 }
