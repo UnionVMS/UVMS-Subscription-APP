@@ -16,7 +16,7 @@ public class SubscriptionOutputDtoValidator implements ConstraintValidator<Valid
     @Override
     public boolean isValid(SubscriptionOutputDto output, ConstraintValidatorContext context) {
         boolean valid = true;
-        if(output.getMessageType() == OutgoingMessageType.FA_QUERY || output.getMessageType() == OutgoingMessageType.FA_REPORT) {
+        if (output != null && (output.getMessageType() == OutgoingMessageType.FA_QUERY || output.getMessageType() == OutgoingMessageType.FA_REPORT)) {
             valid = requirePropertyNotNullWithMessage(context, output.getLogbook(), "logbook", "Logbook is required")
                     && requirePropertyNotNullWithMessage(context, output.getConsolidated(), "consolidated", "Consolidated is required")
                     && requirePropertyNotNullWithMessage(context, output.getHistory(), "history", "History is required");

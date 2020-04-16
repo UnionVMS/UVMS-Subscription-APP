@@ -46,6 +46,7 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAns
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
 import eu.europa.ec.fisheries.wsdl.user.module.FindOrganisationsResponse;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
+import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -85,7 +86,7 @@ class SubscriptionServiceBean implements SubscriptionService {
     public SubscriptionDto findById(@NotNull Long id) {
         SubscriptionEntity entity = subscriptionDAO.findById(id);
         if (entity == null){
-            throw new IllegalArgumentException("Unable to update entity: not found");
+            throw new EntityDoesNotExistException("Subscription with id " + id);
         }
         return mapper.mapEntityToDto(entity);
     }
@@ -176,7 +177,7 @@ class SubscriptionServiceBean implements SubscriptionService {
         SubscriptionEntity entityById = subscriptionDAO.findById(subscription.getId());
 
         if (entityById == null){
-            throw new IllegalArgumentException("Unable to update entity: not found");
+            throw new EntityDoesNotExistException("Subscription with id " + subscription.getId());
         }
         mapper.updateEntity(subscription, entityById);
         SubscriptionEntity subscriptionEntity = subscriptionDAO.update(entityById);

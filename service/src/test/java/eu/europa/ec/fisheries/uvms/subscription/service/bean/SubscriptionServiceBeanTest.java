@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
@@ -16,18 +17,22 @@ import javax.inject.Inject;
 import javax.validation.ValidationException;
 import java.util.Date;
 
+import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.authentication.AuthenticationContext;
 import eu.europa.ec.fisheries.uvms.subscription.service.authentication.SubscriptionUser;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
+import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import org.hibernate.validator.cdi.ValidationExtension;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
@@ -81,6 +86,23 @@ public class SubscriptionServiceBeanTest {
 		SubscriptionUser principal = mock(SubscriptionUser.class);
 		lenient().when(principal.getName()).thenReturn(CURRENT_USER_NAME);
 		lenient().when(mockAuthenticationContext.getUserPrincipal()).thenReturn(principal);
+	}
+
+	@Test
+	void testFindByIdNonExisting() {
+		when(subscriptionDAO.findById(SUBSCR_ID)).thenReturn(null);
+		assertThrows(EntityDoesNotExistException.class, () -> sut.findById(SUBSCR_ID));
+	}
+
+	@Test
+	void testFindById() {
+		SubscriptionEntity subscription = new SubscriptionEntity();
+		subscription.setId(SUBSCR_ID);
+		subscription.setName(SUBSCR_NAME);
+		when(subscriptionDAO.findById(SUBSCR_ID)).thenReturn(subscription);
+		SubscriptionDto result = sut.findById(SUBSCR_ID);
+		assertNotNull(result);
+		assertEquals(SUBSCR_NAME, result.getName());
 	}
 
 	@Test
@@ -171,32 +193,20 @@ public class SubscriptionServiceBeanTest {
 	}
 
 	@Test
-	void checkUnavailableNameWithoutId(){
+	void checkAvailableNameForExistingEntityWithThatName() {
 		SubscriptionEntity entity = new SubscriptionEntity();
-		entity.setId(1L);
-		entity.setName("name");
-		when(subscriptionDAO.findSubscriptionByName("name")).thenReturn(entity);
-		assertFalse(sut.checkNameAvailability("name", null));
+		entity.setId(SUBSCR_ID);
+		entity.setName(SUBSCR_NAME);
+		when(subscriptionDAO.findSubscriptionByName(SUBSCR_NAME)).thenReturn(entity);
+		assertFalse(sut.checkNameAvailability(SUBSCR_NAME, null));
+		assertFalse(sut.checkNameAvailability(SUBSCR_NAME, 2L));
+		assertTrue(sut.checkNameAvailability(SUBSCR_NAME, SUBSCR_ID));
 	}
 
 	@Test
-	void checkUnavailableNameWithId(){
-		SubscriptionEntity entity = new SubscriptionEntity();
-		entity.setId(1L);
-		entity.setName("name");
-		when(subscriptionDAO.findSubscriptionByName("name")).thenReturn(entity);
-		assertFalse(sut.checkNameAvailability("name", 2L));
-	}
-
-	@Test
-	void checkAvailableNameWithoutId(){
+	void checkAvailableNameForNoEntityWithThatName(){
 		when(subscriptionDAO.findSubscriptionByName(any(String.class))).thenReturn(null);
-		assertTrue(sut.checkNameAvailability("name", null));
-	}
-
-	@Test
-	void checkAvailableNameWithId(){
-		when(subscriptionDAO.findSubscriptionByName(any(String.class))).thenReturn(null);
+		assertTrue(sut.checkNameAvailability(SUBSCR_NAME, null));
 		assertTrue(sut.checkNameAvailability("name", 2L));
 	}
 
@@ -219,5 +229,45 @@ public class SubscriptionServiceBeanTest {
 		assertEquals(TriggerType.SCHEDULER, result.getExecution().getTriggerType());
 		assertEquals(OutgoingMessageType.FA_QUERY, result.getOutput().getMessageType());
 		assertEquals(dto.getStartDate(), result.getStartDate());
+	}
+
+	@Test
+	void testUpdateNonExistingEntity() {
+		SubscriptionDto dto = makeSubscriptionDtoForUpdate();
+		when(subscriptionDAO.findById(SUBSCR_ID)).thenReturn(null);
+		assertThrows(EntityDoesNotExistException.class, () -> sut.update(dto));
+	}
+
+	@Test
+	void testUpdate() throws MessageException {
+		SubscriptionDto dto = makeSubscriptionDtoForUpdate();
+		SubscriptionEntity subscription = new SubscriptionEntity();
+		subscription.setId(SUBSCR_ID);
+		when(subscriptionDAO.findById(SUBSCR_ID)).thenReturn(subscription);
+		when(subscriptionDAO.update(subscription)).thenReturn(subscription);
+		SubscriptionDto result = sut.update(dto);
+		assertNotNull(result);
+		verify(subscriptionDAO).update(subscription);
+		verify(auditProducer).sendModuleMessage(any(), any());
+	}
+
+	private SubscriptionDto makeSubscriptionDtoForUpdate() {
+		SubscriptionDto dto = new SubscriptionDto();
+		dto.setId(SUBSCR_ID);
+		dto.setName(SUBSCR_NAME);
+		dto.setActive(Boolean.TRUE);
+		dto.setExecution(new SubscriptionExecutionDto());
+		dto.setOutput(SubscriptionOutputDto.builder()
+				.messageType(OutgoingMessageType.NONE)
+				.build()
+		);
+		return dto;
+	}
+
+	@Test
+	void testDelete() throws MessageException {
+		sut.delete(SUBSCR_ID);
+		verify(subscriptionDAO).delete(SUBSCR_ID);
+		verify(auditProducer).sendModuleMessage(any(), any());
 	}
 }

@@ -13,7 +13,12 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 import static eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper.createDateRangeQuery;
 import static eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper.createQuery;
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier.CFR;
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier.ICCAT;
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier.IRCS;
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier.UVI;
 import static java.util.stream.Collectors.toSet;
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -25,11 +30,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
@@ -37,6 +41,7 @@ import com.ninja_squad.dbsetup.operation.Operation;
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
@@ -235,8 +240,70 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         }
     }
 
+    @Test
+    void testUpdate() {
+        em.getTransaction().begin();
+        SubscriptionEntity subscription = findAllSubscriptions().get(0);
+        em.detach(subscription);
+        subscription.setDescription("updated description");
+        daoUnderTest.update(subscription);
+        em.getTransaction().commit();
+        em.clear();
+        SubscriptionEntity updatedSubscription = findAllSubscriptions().get(0);
+        assertEquals("updated description", updatedSubscription.getDescription());
+    }
+
+    @Test
+    void testDelete() {
+        em.getTransaction().begin();
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        Long id = daoUnderTest.createEntity(subscription).getId();
+        em.getTransaction().commit();
+        em.clear();
+        assertNotNull(em.find(SubscriptionEntity.class, id));
+        em.clear();
+        em.getTransaction().begin();
+        daoUnderTest.delete(id);
+        em.getTransaction().commit();
+        em.clear();
+        assertNull(em.find(SubscriptionEntity.class, id));
+    }
+
+    @Test
+    void testFindSubscriptionByName() {
+        assertNotNull(daoUnderTest.findSubscriptionByName("subscription2"));
+        assertNull(daoUnderTest.findSubscriptionByName("non-existing name"));
+    }
+
+    @Test
+    void testReadVesselIds() {
+        SubscriptionEntity subscription;
+        subscription = em.find(SubscriptionEntity.class, 1L);
+        assertTrue(subscription.getOutput().getVesselIds().isEmpty());
+        subscription = em.find(SubscriptionEntity.class, 2L);
+        assertEquals(EnumSet.of(IRCS), subscription.getOutput().getVesselIds());
+        subscription = em.find(SubscriptionEntity.class, 3L);
+        assertEquals(EnumSet.of(CFR, IRCS), subscription.getOutput().getVesselIds());
+    }
+
+    @Test
+    void testWriteVesselIds() {
+        em.getTransaction().begin();
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        SubscriptionOutput subscriptionOutput = new SubscriptionOutput();
+        subscriptionOutput.setVesselIds(EnumSet.of(UVI, ICCAT));
+        subscriptionOutput.setMessageType(OutgoingMessageType.NONE);
+        subscription.setOutput(subscriptionOutput);
+        Long id = daoUnderTest.createEntity(subscription).getId();
+        em.getTransaction().commit();
+        em.clear();
+        SubscriptionEntity subscriptionFromDb = em.find(SubscriptionEntity.class, id);
+        assertNotNull(subscriptionFromDb);
+        assertEquals(EnumSet.of(UVI, ICCAT), subscriptionFromDb.getOutput().getVesselIds());
+    }
+
     private List<SubscriptionEntity> findAllSubscriptions() {
-        TypedQuery<SubscriptionEntity> query = em.createQuery("SELECT s FROM SubscriptionEntity s", SubscriptionEntity.class);
+        TypedQuery<SubscriptionEntity> query = em.createQuery("SELECT s FROM SubscriptionEntity s ORDER BY s.id", SubscriptionEntity.class);
         return query.getResultList();
     }
 

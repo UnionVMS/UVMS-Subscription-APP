@@ -28,11 +28,11 @@ public abstract class BaseSubscriptionInMemoryTest extends BaseDAOTest {
     static final Operation DELETE_ALL = sequenceOf(deleteAllFrom("subscription.subscription"));
 
     static final Operation INSERT_SUBSCRIPTION = sequenceOf(insertInto("subscription.subscription")
-            .columns("id", "name", "active", "description", "trigger_type", "start_date", "end_date", "alert", "message_type", "channel_id", "organisation_id")
-            .values(1L, "subscription1", "1", "A lorem ipsum tade", TriggerType.SCHEDULER, d("20170101"), d("20181231"), "1", OutgoingMessageType.NONE, 11L, 10L)
-            .values(2L, "subscription2", "1", "B lorem ipsum tade", TriggerType.SCHEDULER, d("20180101"), d("20181231"), "1", OutgoingMessageType.FA_QUERY, 11L, 11L)
-            .values(3L, "subscription3", "1", "C lorem ipsum", TriggerType.MANUAL,         d("20190101"), d("20191231"), "1", OutgoingMessageType.FA_REPORT, 11L, 5L)
-            .values(4L, "subscription4", "0", "D lorem ipsum", TriggerType.SCHEDULER,      d("20200101"), d("20201231"), "0", OutgoingMessageType.POSITION, 11L, 11L).build(),
+            .columns("id", "name", "active", "description", "trigger_type", "start_date", "end_date", "alert", "message_type", "channel_id", "organisation_id", "vessel_ids")
+            .values(1L, "subscription1", "1", "A lorem ipsum tade", TriggerType.SCHEDULER, d("20170101"), d("20181231"), "1", OutgoingMessageType.NONE, 11L, 10L, 0b0)
+            .values(2L, "subscription2", "1", "B lorem ipsum tade", TriggerType.SCHEDULER, d("20180101"), d("20181231"), "1", OutgoingMessageType.FA_QUERY, 11L, 11L, 0b10)
+            .values(3L, "subscription3", "1", "C lorem ipsum", TriggerType.MANUAL,         d("20190101"), d("20191231"), "1", OutgoingMessageType.FA_REPORT, 11L, 5L, 0b11)
+            .values(4L, "subscription4", "0", "D lorem ipsum", TriggerType.SCHEDULER,      d("20200101"), d("20201231"), "0", OutgoingMessageType.POSITION, 11L, 11L, 0b01).build(),
             sql("alter sequence subscription.hibernate_sequence restart with 100000"));
 
     static final Operation INSERT_CONDITION = sequenceOf(insertInto("subscription.condition").columns("id", "position", "subscription_id", "message_type", "criteria_type", "sub_criteria_type", "value_type", "value", "condition_type")

@@ -47,7 +47,10 @@ public class ConstraintViolationExceptionMapper implements ExceptionMapper<Const
 						case METHOD:
 							return null;
 						case PROPERTY:
-							return n.isInIterable() ? (n.getIndex() != null ? n.getIndex() : n.getKey()) : n.getName();
+							if (n.isInIterable()) {
+								return n.getIndex() != null ? n.getIndex() : n.getKey();
+							}
+							return n.getName();
 						case PARAMETER:
 							return null;
 						case CONSTRUCTOR:
