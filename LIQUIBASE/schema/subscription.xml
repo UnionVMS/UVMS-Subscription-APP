@@ -192,6 +192,18 @@
         <dropNotNullConstraint tableName="subscription" columnName="subscription_type" />
     </changeSet>
 
+    <changeSet id="UNIONVMS-4466-subscription-email-configuration" author="gmanifavas">
+        <addColumn tableName="subscription">
+            <column name="history_unit" type="VARCHAR(10)"/>
+            <column name="has_email" type="BOOLEAN" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_pdf" type="BOOLEAN"/>
+            <column name="has_attachments" type="BOOLEAN"/>
+            <column name="password" type="VARCHAR(32)"/>
+            <column name="is_xml" type="BOOLEAN"/>
+        </addColumn>
+    </changeSet>
     <!-- ENABLE LATER...
     <changeSet id="UNIONVMS-9999-subscription-dead-columns" author="nikospara">
         <dropColumn tableName="subscription" columnName="subscription_type" />
