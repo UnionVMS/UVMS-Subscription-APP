@@ -10,25 +10,60 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.mapper;
 
+import java.util.Base64;
+
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfiguration;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfigurationDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
-import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.Mappings;
+import org.mapstruct.Named;
 
 @Mapper(componentModel = "cdi")
 public interface SubscriptionMapper {
 
-    @Mappings({@Mapping(target = "startDate", source = "validityPeriod.startDate"), @Mapping(target = "endDate", source = "validityPeriod.endDate"), /*@Mapping(ignore = true, target = "conditions") , @Mapping(ignore = true, target = "areas")*/ }) SubscriptionDto mapEntityToDto(SubscriptionEntity subscription);
+    @Mapping(source = "subscription.validityPeriod.startDate", target = "startDate")
+    @Mapping(source = "subscription.validityPeriod.endDate", target = "endDate")
+    @Mapping(expression = "java(subscriptionOutputToSubscriptionOutputDto(subscription.getOutput(), emailBody))", target = "output")
+    SubscriptionDto mapEntityToDto(SubscriptionEntity subscription, EmailBodyEntity emailBody);
 
-    @InheritInverseConfiguration @Mappings({/*@Mapping(target = "stateType", constant = "INACTIVE"), @Mapping(ignore = true, target = "conditions"), @Mapping(ignore = true, target = "areas"),*/}) SubscriptionEntity mapDtoToEntity(SubscriptionDto subscription);
+    @Mapping(expression = "java(subscriptionEmailConfigurationToSubscriptionEmailConfigurationDto(output.getEmailConfiguration(), emailBody))", target = "emailConfiguration")
+    SubscriptionOutputDto subscriptionOutputToSubscriptionOutputDto(SubscriptionOutput output, EmailBodyEntity emailBody);
 
-    @Mappings({@Mapping(source = "startDate", target = "validityPeriod.startDate"), @Mapping(source = "endDate", target = "validityPeriod.endDate"), /*@Mapping(source = "active", target = "enabled"), @Mapping(ignore = true, target = "conditions"), @Mapping(ignore = true, target = "guid"), @Mapping(ignore = true, target = "areas"), @Mapping(ignore = true, target = "stateType"),*/
+    @Mapping(source = "emailConfiguration.password", target = "passwordIsPlaceholder", qualifiedByName = "hasPassword")
+    @Mapping(source = "emailConfiguration.password", target = "password", qualifiedByName = "decodePasswordAsBase64")
+    @Mapping(source = "emailBody.body", target="body")
+    SubscriptionEmailConfigurationDto subscriptionEmailConfigurationToSubscriptionEmailConfigurationDto(SubscriptionEmailConfiguration emailConfiguration, EmailBodyEntity emailBody);
 
-    }) void updateEntity(SubscriptionDto dto, @MappingTarget SubscriptionEntity entity);
+    @Mapping(source = "subscription.startDate", target = "validityPeriod.startDate")
+    @Mapping(source = "subscription.endDate", target = "validityPeriod.endDate")
+    @Mapping(source = "subscription.output.emailConfiguration.password", target = "output.emailConfiguration.password", qualifiedByName = "encodePasswordAsBase64")
+    SubscriptionEntity mapDtoToEntity(SubscriptionDto subscription);
+
+    @Mapping(source = "startDate", target = "validityPeriod.startDate")
+    @Mapping(source = "endDate", target = "validityPeriod.endDate")
+    @Mapping(source = "dto.output.emailConfiguration.password", target = "output.emailConfiguration.password", qualifiedByName = "encodePasswordAsBase64")
+    void updateEntity(SubscriptionDto dto, @MappingTarget SubscriptionEntity entity);
 
     SubscriptionListDto asListDto(SubscriptionEntity entity);
+
+    @Named("hasPassword")
+    static boolean hasPassword(String password) {
+        return password !=null && !password.isEmpty();
+    }
+
+    @Named("encodePasswordAsBase64")
+    static String encodePasswordAsBase64(String password){
+        return Base64.getEncoder().encodeToString(password.getBytes());
+    }
+    @Named("decodePasswordAsBase64")
+    static String decodePasswordAsBase64(String password){
+        return new String(Base64.getDecoder().decode(password.getBytes()));
+    }
 }

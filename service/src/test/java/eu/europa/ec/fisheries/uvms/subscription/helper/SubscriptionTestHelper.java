@@ -30,6 +30,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.Pagination
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfigurationDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDTO;
@@ -37,6 +38,7 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
+import eu.europa.fisheries.uvms.subscription.model.enums.HistoryUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import org.apache.commons.lang.RandomStringUtils;
@@ -110,9 +112,25 @@ public class SubscriptionTestHelper {
         return areaEntity;
     }
 
-    public static SubscriptionDto createSubsriptionDto(Long id, String name, Boolean active, OutgoingMessageType messageType,
-                                                       Long organisationId, Long endpointId, Long channelId, Boolean consolidated, Integer history,
-                                                       Boolean logbook, TriggerType triggerType, Integer frequency, String timeExpresssion,
+    public static SubscriptionDto createSubscriptionDtoWithEmailConfig(Long id, String name, Boolean active, OutgoingMessageType messageType, Boolean hasEmail,
+                                                        Long organisationId, Long endpointId, Long channelId, Boolean consolidated, Integer history, HistoryUnit historyUnit,
+                                                        Boolean logbook, TriggerType triggerType, Integer frequency, String timeExpression,
+                                                        Date startDate, Date endDate, String body, Boolean isPdf, Boolean hasAttachments, String password, Boolean passwordIsPlaceholder, Boolean isXml ) {
+        SubscriptionDto dto = createSubscriptionDto(id, name,active, messageType, hasEmail, organisationId, endpointId, channelId, consolidated, history, historyUnit, logbook, triggerType, frequency, timeExpression,startDate, endDate);
+        SubscriptionEmailConfigurationDto emailConfiguration = new SubscriptionEmailConfigurationDto();
+        emailConfiguration.setBody(body);
+        emailConfiguration.setIsPdf(isPdf);
+        emailConfiguration.setHasAttachments(hasAttachments);
+        emailConfiguration.setPassword(password);
+        emailConfiguration.setIsXml(isXml);
+        emailConfiguration.setPasswordIsPlaceholder(!passwordIsPlaceholder);
+        dto.getOutput().setEmailConfiguration(emailConfiguration);
+        return dto;
+    }
+
+    public static SubscriptionDto createSubscriptionDto(Long id, String name, Boolean active, OutgoingMessageType messageType, Boolean hasEmail,
+                                                       Long organisationId, Long endpointId, Long channelId, Boolean consolidated, Integer history, HistoryUnit historyUnit,
+                                                       Boolean logbook, TriggerType triggerType, Integer frequency, String timeExpression,
                                                        Date startDate, Date endDate) {
         SubscriptionDto dto = new SubscriptionDto();
         dto.setId(id);
@@ -121,6 +139,7 @@ public class SubscriptionTestHelper {
 
         SubscriptionOutputDto output = new SubscriptionOutputDto();
         output.setMessageType(messageType);
+        output.setHasEmail(hasEmail);
 
         if(messageType!=OutgoingMessageType.NONE){
             SubscriptionSubscriberDTO subscriber = new SubscriptionSubscriberDTO();
@@ -132,13 +151,14 @@ public class SubscriptionTestHelper {
 
         output.setConsolidated(consolidated);
         output.setHistory(history);
+        output.setHistoryUnit(historyUnit);
         output.setLogbook(logbook);
         dto.setOutput(output);
 
         SubscriptionExecutionDto execution = new SubscriptionExecutionDto();
         execution.setTriggerType(triggerType);
         execution.setFrequency(frequency);
-        execution.setTimeExpression(timeExpresssion);
+        execution.setTimeExpression(timeExpression);
         dto.setExecution(execution);
 
         dto.setStartDate(startDate);

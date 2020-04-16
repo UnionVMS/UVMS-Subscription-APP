@@ -7,34 +7,31 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.ec.fisheries.uvms.subscription.service.domain;
+package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
 import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.Embeddable;
+
 import java.io.Serializable;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Entity
+/**
+ * Email configurations of a subscription.
+ */
+@Embeddable
 @Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-@Table(name = "email_body")
-public class EmailBodyEntity implements Serializable {
+public class SubscriptionEmailConfiguration implements Serializable {
 
-    @Id
-    @OneToOne()
-    @JoinColumn(name = "subscription_id")
-    private SubscriptionEntity subscription;
+    @Column(name = "is_pdf")
+    private Boolean isPdf;
 
-    @Column(name =  "body")
-    private String body;
+    @Column(name = "has_attachments")
+    private Boolean hasAttachments;
+
+    @Column(name = "password")
+    private String password;
+
+    @Column(name = "is_xml")
+    private Boolean isXml;
 }

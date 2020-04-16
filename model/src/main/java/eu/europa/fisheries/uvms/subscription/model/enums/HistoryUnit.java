@@ -7,34 +7,11 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.ec.fisheries.uvms.subscription.service.domain;
+package eu.europa.fisheries.uvms.subscription.model.enums;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-import java.io.Serializable;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Entity
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-@Table(name = "email_body")
-public class EmailBodyEntity implements Serializable {
-
-    @Id
-    @OneToOne()
-    @JoinColumn(name = "subscription_id")
-    private SubscriptionEntity subscription;
-
-    @Column(name =  "body")
-    private String body;
+/**
+ * The history unit of a subscription.
+ */
+public enum HistoryUnit {
+    DAYS, WEEKS, MONTHS
 }
