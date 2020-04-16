@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfiguration;
+import eu.europa.fisheries.uvms.subscription.model.enums.HistoryUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
 import eu.europa.ec.fisheries.uvms.subscription.service.jpa.SubscriptionVesselIdentifierEnumSetConverter;
@@ -60,6 +62,12 @@ public class SubscriptionOutput implements Serializable {
 	@Embedded
 	private SubscriptionSubscriber subscriber;
 
+	@Column(name = "has_email")
+	private Boolean hasEmail;
+
+	@Embedded
+	private SubscriptionEmailConfiguration emailConfiguration;
+
 	@Column(name = "logbook")
 	private Boolean logbook;
 
@@ -75,4 +83,8 @@ public class SubscriptionOutput implements Serializable {
 
 	@Column(name = "history")
 	private Integer history;
+
+	@Column(name = "history_unit")
+	@Enumerated(STRING)
+	private HistoryUnit historyUnit;
 }

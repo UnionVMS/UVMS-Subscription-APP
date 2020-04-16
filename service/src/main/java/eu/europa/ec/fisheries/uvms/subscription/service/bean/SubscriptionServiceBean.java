@@ -32,6 +32,7 @@ import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
 import eu.europa.ec.fisheries.uvms.subscription.service.authentication.AuthenticationContext;
 import eu.europa.ec.fisheries.uvms.subscription.service.authorisation.AllowedRoles;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
@@ -88,7 +89,8 @@ class SubscriptionServiceBean implements SubscriptionService {
         if (entity == null){
             throw new EntityDoesNotExistException("Subscription with id " + id);
         }
-        return mapper.mapEntityToDto(entity);
+        EmailBodyEntity emailBodyEntity = subscriptionDAO.findEmailBodyEntity(entity.getId());
+        return mapper.mapEntityToDto(entity, emailBodyEntity);
     }
 
     /**
@@ -166,8 +168,12 @@ class SubscriptionServiceBean implements SubscriptionService {
     public SubscriptionDto create(@Valid @NotNull SubscriptionDto subscription) {
         SubscriptionEntity entity = mapper.mapDtoToEntity(subscription);
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
+        EmailBodyEntity emailBodyEntity = null;
+        if(subscription.getOutput().getHasEmail()){
+            emailBodyEntity = createEmailBody(saved, subscription.getOutput().getEmailConfiguration().getBody());
+        }
         sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.CREATE.name(), saved.getId().toString(), authenticationContext.getUserPrincipal().getName()));
-        return mapper.mapEntityToDto(saved);
+        return mapper.mapEntityToDto(saved, emailBodyEntity);
     }
 
     @Override
@@ -175,14 +181,17 @@ class SubscriptionServiceBean implements SubscriptionService {
     @AllowedRoles(MANAGE_SUBSCRIPTION)
     public SubscriptionDto update(@Valid @NotNull SubscriptionDto subscription) {
         SubscriptionEntity entityById = subscriptionDAO.findById(subscription.getId());
-
         if (entityById == null){
             throw new EntityDoesNotExistException("Subscription with id " + subscription.getId());
         }
         mapper.updateEntity(subscription, entityById);
         SubscriptionEntity subscriptionEntity = subscriptionDAO.update(entityById);
+        EmailBodyEntity emailBodyEntity = null;
+        if(subscription.getOutput().getHasEmail()){
+            emailBodyEntity = updateEmailBody(subscriptionEntity, subscription.getOutput().getEmailConfiguration().getBody());
+        }
         sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), subscriptionEntity.getId().toString(), authenticationContext.getUserPrincipal().getName()));
-        return mapper.mapEntityToDto(subscriptionEntity);
+        return mapper.mapEntityToDto(subscriptionEntity, emailBodyEntity);
     }
 
     @Override
@@ -191,6 +200,16 @@ class SubscriptionServiceBean implements SubscriptionService {
     public void delete(@NotNull Long id) {
         subscriptionDAO.delete(id);
         sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), String.valueOf(id), authenticationContext.getUserPrincipal().getName()));
+    }
+
+    public EmailBodyEntity createEmailBody(SubscriptionEntity subscription, String body){
+        EmailBodyEntity entity = new EmailBodyEntity(subscription, body);
+        return subscriptionDAO.createEmailBodyEntity(entity);
+    }
+
+    public EmailBodyEntity updateEmailBody(SubscriptionEntity subscription, String body){
+        EmailBodyEntity entity = new EmailBodyEntity(subscription, body);
+        return subscriptionDAO.updateEmailBodyEntity(entity);
     }
 
     private void sendLogToAudit(String log) throws MessageException {

@@ -4,6 +4,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
@@ -20,6 +21,12 @@ public interface SubscriptionDao {
 	SubscriptionEntity findById(Long id);
 
 	SubscriptionEntity update(SubscriptionEntity entity);
+
+	EmailBodyEntity findEmailBodyEntity(Long id);
+
+	EmailBodyEntity createEmailBodyEntity(EmailBodyEntity entity);
+
+	EmailBodyEntity updateEmailBodyEntity(EmailBodyEntity entity);
 
 	void delete(Long id);
 }

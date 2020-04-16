@@ -3,6 +3,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.validation;
 import javax.inject.Inject;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
+import javax.validation.Valid;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionService;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
@@ -19,6 +20,10 @@ public class SubscriptionHasUniqueNameValidator implements ConstraintValidator<S
 
     @Override
     public boolean isValid(SubscriptionDto subscription, ConstraintValidatorContext context) {
-        return subscriptionService.checkNameAvailability(subscription.getName(), subscription.getId());
+        if(subscription.getName() != null){
+            return subscriptionService.checkNameAvailability(subscription.getName(), subscription.getId());
+        } else {
+            return false;
+        }
     }
 }

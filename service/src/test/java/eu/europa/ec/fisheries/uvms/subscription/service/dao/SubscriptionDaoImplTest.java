@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.params.ParameterizedTest.INDEX_PLACEHOLDER;
 
 import javax.enterprise.inject.Produces;
@@ -55,6 +56,7 @@ import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import lombok.SneakyThrows;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.BeforeEach;
@@ -251,6 +253,17 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         em.clear();
         SubscriptionEntity updatedSubscription = findAllSubscriptions().get(0);
         assertEquals("updated description", updatedSubscription.getDescription());
+    }
+
+    @Test
+    void testDeleteNonExisting() {
+        em.getTransaction().begin();
+        try {
+            daoUnderTest.delete(9999999L);
+            fail("Should throw when asked to delete non-existing Subscription");
+        } catch (EntityDoesNotExistException expected) {
+            // expected
+        }
     }
 
     @Test

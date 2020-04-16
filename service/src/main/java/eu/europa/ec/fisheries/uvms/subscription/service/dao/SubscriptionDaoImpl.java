@@ -14,6 +14,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
@@ -25,15 +26,18 @@ import java.util.Date;
 import java.util.List;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber_;
-import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
-import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.OrderByData;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
+import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
+import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
+import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -169,13 +173,37 @@ class SubscriptionDaoImpl implements SubscriptionDao {
     }
 
     @Override
+    public EmailBodyEntity findEmailBodyEntity(Long id) {
+       return em.find(EmailBodyEntity.class, id);
+    }
+
+    @Override
+    public EmailBodyEntity createEmailBodyEntity(EmailBodyEntity entity) {
+        em.persist(entity);
+        return entity;
+    }
+
+    @Override
+    public EmailBodyEntity updateEmailBodyEntity(EmailBodyEntity entity) {
+        em.merge(entity);
+        return entity;
+    }
+
+    @Override
     public SubscriptionEntity update(SubscriptionEntity entity) {
         return em.merge(entity);
     }
 
     @Override
     public void delete(Long id) {
-        Object ref = em.getReference(SubscriptionEntity.class, id);
-        em.remove(ref);
+        SubscriptionEntity subscription = em.find(SubscriptionEntity.class, id);
+        if (subscription == null) {
+            throw new EntityDoesNotExistException("Subscription with id " + id);
+        }
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaDelete<EmailBodyEntity> delete = cb.createCriteriaDelete(EmailBodyEntity.class);
+        Root<EmailBodyEntity> fromEmailBodyEntity = delete.from(EmailBodyEntity.class);
+        delete.where(cb.equal(fromEmailBodyEntity.get(EmailBodyEntity_.SUBSCRIPTION), subscription));
+        em.remove(subscription);
     }
 }
