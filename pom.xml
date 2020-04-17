@@ -1,17 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
+	<parent>
+		<groupId>eu.europa.ec.fisheries.uvms</groupId>
+		<artifactId>mare-pom-2</artifactId>
+		<version>2.0.0-MARE-SNAPSHOT</version>
+		<relativePath/>
+	</parent>
+
 	<groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
 	<artifactId>subscription</artifactId>
 	<version>${uvms.subscription.module.version}</version>
 	<packaging>pom</packaging>
-
-	<parent>
-		<groupId>eu.europa.ec.fisheries.uvms</groupId>
-		<artifactId>mare-pom</artifactId>
-		<version>1.7.0-MARE-SNAPSHOT</version>
-		<relativePath/>
-	</parent>
 
 	<scm>
 		<url>${scm.url}</url>
