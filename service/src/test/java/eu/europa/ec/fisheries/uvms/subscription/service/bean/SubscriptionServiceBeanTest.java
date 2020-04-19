@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
 import java.util.Date;
 
@@ -131,8 +132,27 @@ public class SubscriptionServiceBeanTest {
 	}
 
 	@Test
-	void testCreateWithValidArguments() {
+	void createSubscriptionWithNullOutput() {
+		SubscriptionDto subscription = new SubscriptionDto();
+		subscription.setName(SUBSCR_NAME);
+		subscription.setActive(true);
+		SubscriptionExecutionDto execution = new SubscriptionExecutionDto();
+		execution.setTriggerType(TriggerType.MANUAL);
+		subscription.setExecution(execution);
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
+
+	@Test
+	void testCreateWithValidArgumentsAndMessageTypeFA_QUERY() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1,  HistoryUnit.DAYS, true, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date());
+		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+		assertDoesNotThrow(() -> sut.create(dto));
+	}
+
+	@Test
+	void testCreateWithValidArgumentsAndMessageTypeFA_REPORT() {
+		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_REPORT, false,
 				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1,  HistoryUnit.DAYS, true, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date());
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 		assertDoesNotThrow(() -> sut.create(dto));
@@ -142,62 +162,90 @@ public class SubscriptionServiceBeanTest {
 	void createSubscriptionWithNullName() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, null, Boolean.TRUE, OutgoingMessageType.NONE, false,
 				null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null);
-		assertThrows(ValidationException.class, () -> sut.create(subscription));
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 	@Test
 	void createSubscriptionWithEmptyName() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, "", Boolean.TRUE, OutgoingMessageType.NONE, false,
 				null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null);
-		assertThrows(ValidationException.class, () -> sut.create(subscription));
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithNullActive() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, null, OutgoingMessageType.NONE, false,
 				null, null, null, null, null, null,null, TriggerType.MANUAL, null, null, null, null);
-		assertThrows(ValidationException.class, () -> sut.create(subscription));
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithNullMessageType() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, null, false,
 				null, null, null, null, null, null,null, TriggerType.MANUAL, null, null, null, null);
-		assertThrows(ValidationException.class, () -> sut.create(subscription));
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAQueryMessageTypeAndInvalidSubscriber() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
 				null, null, null, true, 1, HistoryUnit.DAYS, true, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date());
-		assertThrows(ValidationException.class, () -> sut.create(subscription));
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAQueryMessageTypeAndInvalidOutput() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
 				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null,null, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date());
-		assertThrows(ValidationException.class, () -> sut.create(subscription));
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAQueryMessageTypeAndSchedulerTriggerTypeAndInvalidExecution() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
 				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1,  HistoryUnit.DAYS,true, TriggerType.SCHEDULER, null, null, null, null);
-		assertThrows(ValidationException.class, () -> sut.create(subscription));
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAQueryMessageTypeAndInvalidNegativeHistory() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
 				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, -1, HistoryUnit.DAYS, true, TriggerType.SCHEDULER, 1, "12:00", null, null);
-		assertThrows(ValidationException.class, () -> sut.create(subscription));
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
+
+	@Test
+	void createSubscriptionWithFAReportMessageTypeAndInvalidSubscriber() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_REPORT, false,
+				null, null, null, true, 1, HistoryUnit.DAYS, true, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date());
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
+
+	@Test
+	void createSubscriptionWithFAReportMessageTypeAndInvalidOutput() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_REPORT, false,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null,null, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date());
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
+
+	@Test
+	void createSubscriptionWithFAReportMessageTypeAndSchedulerTriggerTypeAndInvalidExecution() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_REPORT, false,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1,  HistoryUnit.DAYS,true, TriggerType.SCHEDULER, null, null, null, null);
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
+
+	@Test
+	void createSubscriptionWithFAReportMessageTypeAndInvalidNegativeHistory() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_REPORT, false,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, -1, HistoryUnit.DAYS, true, TriggerType.SCHEDULER, 1, "12:00", null, null);
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithTriggerTypeSchedulerAndInvalidTimeExpression() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
 				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1,  HistoryUnit.DAYS,true, TriggerType.SCHEDULER, 1, "120:00", null, null);
-		assertThrows(ValidationException.class, () -> sut.create(subscription));
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
@@ -209,6 +257,101 @@ public class SubscriptionServiceBeanTest {
 
 		assertDoesNotThrow(() -> sut.create(dto));
 	}
+
+	@Test
+    void createSubscriptionWithValidEmailConfig() {
+        SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
+                null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null,
+                EMAIL_BODY, false, true, PASSWORD, true, false );
+
+        when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+
+        assertDoesNotThrow(() -> sut.create(subscription));
+    }
+
+	@Test
+    void createSubscriptionWithHasEmailNull() {
+        SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, null,
+                null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null,
+                null, null, null, null, null , null);
+        assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+    }
+
+	@Test
+    void createSubscriptionWithHasEmailTrueAndNullEmailConfiguration() {
+        SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
+                null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null,
+                null, null, null, null, null , null);
+        assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+    }
+
+	@Test
+    void createSubscriptionWithHasEmailTrueAndNullEmailBody() {
+        SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
+                null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null,
+                null, null, null, null, null , null);
+        assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+    }
+
+    @Test
+    void createSubscriptionWithHasEmailFalseAndNullEmailConfiguration() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, false,
+				null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null,
+				null, null, null, null, null , null);
+
+		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+
+		assertDoesNotThrow(() -> sut.create(subscription));
+    }
+
+
+	@Test
+	void createSubscriptionWithFAQueryMessageTypeAndInvalidOutputAndWithHasEmailFalseAndNullEmailConfiguration() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null,null, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date(),
+		null, null, null, null, null , null);
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
+
+
+
+	@Test
+	void createSubscriptionWithFAReportMessageTypeAndInvalidOutputAndWithHasEmailFalseAndNullEmailConfiguration() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_REPORT, false,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null,null, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date(),
+		null, null, null, null, null , null);
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
+
+    @Test
+    void createSubscriptionWithHasEmailFalseAndNullEmailBody() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
+				null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null,
+				null, null, null, null, null , null);
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+    }
+
+    @Test
+    void createSubscriptionWithHasEmailTrueAndNullPassword() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
+				null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null,
+				EMAIL_BODY, false, true, null, true, false );
+
+		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+
+		assertDoesNotThrow(() -> sut.create(subscription));
+    }
+
+    @Test
+    void createSubscriptionWithHasEmailTrueAndEmptyPassword() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
+				null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null,
+				EMAIL_BODY, false, true, "", true, false );
+
+		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+
+		assertDoesNotThrow(() -> sut.create(subscription));
+    }
 
 	@Test
 	void checkAvailableNameForExistingEntityWithThatName() {

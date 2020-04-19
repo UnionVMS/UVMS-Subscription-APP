@@ -40,6 +40,7 @@ public class SubscriptionOutputDto {
 	@NotNull
 	private Boolean hasEmail;
 
+	@Valid
 	private SubscriptionEmailConfigurationDto emailConfiguration;
 
 	@NotNull

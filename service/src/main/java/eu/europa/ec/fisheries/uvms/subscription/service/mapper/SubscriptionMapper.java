@@ -60,10 +60,18 @@ public interface SubscriptionMapper {
 
     @Named("encodePasswordAsBase64")
     static String encodePasswordAsBase64(String password){
-        return Base64.getEncoder().encodeToString(password.getBytes());
+        if(password != null){
+            return Base64.getEncoder().encodeToString(password.getBytes());
+        } else {
+            return null;
+        }
     }
     @Named("decodePasswordAsBase64")
     static String decodePasswordAsBase64(String password){
-        return new String(Base64.getDecoder().decode(password.getBytes()));
+        if(password != null){
+            return new String(Base64.getDecoder().decode(password.getBytes()));
+        } else {
+            return null;
+        }
     }
 }

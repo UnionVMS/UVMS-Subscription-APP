@@ -117,14 +117,18 @@ public class SubscriptionTestHelper {
                                                         Boolean logbook, TriggerType triggerType, Integer frequency, String timeExpression,
                                                         Date startDate, Date endDate, String body, Boolean isPdf, Boolean hasAttachments, String password, Boolean passwordIsPlaceholder, Boolean isXml ) {
         SubscriptionDto dto = createSubscriptionDto(id, name,active, messageType, hasEmail, organisationId, endpointId, channelId, consolidated, history, historyUnit, logbook, triggerType, frequency, timeExpression,startDate, endDate);
-        SubscriptionEmailConfigurationDto emailConfiguration = new SubscriptionEmailConfigurationDto();
-        emailConfiguration.setBody(body);
-        emailConfiguration.setIsPdf(isPdf);
-        emailConfiguration.setHasAttachments(hasAttachments);
-        emailConfiguration.setPassword(password);
-        emailConfiguration.setIsXml(isXml);
-        emailConfiguration.setPasswordIsPlaceholder(!passwordIsPlaceholder);
-        dto.getOutput().setEmailConfiguration(emailConfiguration);
+        if(hasEmail != null && hasEmail) {
+            SubscriptionEmailConfigurationDto emailConfiguration = new SubscriptionEmailConfigurationDto();
+            emailConfiguration.setBody(body);
+            emailConfiguration.setIsPdf(isPdf);
+            emailConfiguration.setHasAttachments(hasAttachments);
+            emailConfiguration.setPassword(password);
+            emailConfiguration.setIsXml(isXml);
+            emailConfiguration.setPasswordIsPlaceholder(passwordIsPlaceholder);
+            dto.getOutput().setEmailConfiguration(emailConfiguration);
+        } else {
+            dto.getOutput().setEmailConfiguration(null);
+        }
         return dto;
     }
 
