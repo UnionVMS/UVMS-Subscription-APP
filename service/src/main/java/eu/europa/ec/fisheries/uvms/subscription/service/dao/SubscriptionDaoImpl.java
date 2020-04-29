@@ -185,6 +185,10 @@ class SubscriptionDaoImpl implements SubscriptionDao {
 
     @Override
     public EmailBodyEntity updateEmailBodyEntity(EmailBodyEntity entity) {
+        if(em.find(EmailBodyEntity.class, entity.getSubscription().getId())==null){
+            em.persist(entity);
+            return entity;
+        }
         em.merge(entity);
         return entity;
     }

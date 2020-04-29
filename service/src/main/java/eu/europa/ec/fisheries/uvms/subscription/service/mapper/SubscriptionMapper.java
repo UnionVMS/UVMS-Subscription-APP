@@ -37,7 +37,7 @@ public interface SubscriptionMapper {
     SubscriptionOutputDto subscriptionOutputToSubscriptionOutputDto(SubscriptionOutput output, EmailBodyEntity emailBody);
 
     @Mapping(source = "emailConfiguration.password", target = "passwordIsPlaceholder", qualifiedByName = "hasPassword")
-    @Mapping(source = "emailConfiguration.password", target = "password", qualifiedByName = "decodePasswordAsBase64")
+    @Mapping(source = "emailConfiguration.password", target = "password", qualifiedByName = "returnPlaceholder")
     @Mapping(source = "emailBody.body", target="body")
     SubscriptionEmailConfigurationDto subscriptionEmailConfigurationToSubscriptionEmailConfigurationDto(SubscriptionEmailConfiguration emailConfiguration, EmailBodyEntity emailBody);
 
@@ -66,10 +66,11 @@ public interface SubscriptionMapper {
             return null;
         }
     }
-    @Named("decodePasswordAsBase64")
+
+    @Named("returnPlaceholder")
     static String decodePasswordAsBase64(String password){
-        if(password != null){
-            return new String(Base64.getDecoder().decode(password.getBytes()));
+        if(password != null && !password.isEmpty()){
+            return "********";
         } else {
             return null;
         }

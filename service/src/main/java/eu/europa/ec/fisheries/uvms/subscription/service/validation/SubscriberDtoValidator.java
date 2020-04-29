@@ -19,22 +19,26 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDt
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 
 /**
- * Implementation of custom validator for SubscriptionOutputDto.
+ * Implementation of custom validator for SubscriberDto in SubscriptionOutputDto.
  */
-public class SubscriptionOutputDtoValidator implements ConstraintValidator<ValidSubscriptionOutputDto, SubscriptionOutputDto> {
+public class SubscriberDtoValidator implements ConstraintValidator<HasValidSubscriberDto, SubscriptionOutputDto> {
 
     @Override
     public boolean isValid(SubscriptionOutputDto output, ConstraintValidatorContext context) {
         boolean valid = true;
         if (output != null) {
-            if(output.getMessageType() == OutgoingMessageType.FA_QUERY || output.getMessageType() == OutgoingMessageType.FA_REPORT) {
-                valid = requirePropertyNotNullWithMessage(context, output.getLogbook(), "logbook", "Logbook is required")
-                        & requirePropertyNotNullWithMessage(context, output.getConsolidated(), "consolidated", "Consolidated is required")
-                        & requirePropertyNotNullWithMessage(context, output.getHistory(), "history", "History is required")
-                        & requirePropertyNotNullWithMessage(context, output.getHistoryUnit(), "historyUnit", "History unit is required");
-            }
-            if (output.getHasEmail() != null && output.getHasEmail()) {
-                valid = valid & requirePropertyNotNullWithMessage(context, output.getEmailConfiguration(), "emailConfiguration", "EmailConfiguration is required");
+            if(output.getMessageType() != OutgoingMessageType.NONE) {
+                if(output.getSubscriber() != null){
+                    valid = requirePropertyNotNullWithMessage(context, output.getSubscriber().getOrganisationId(),"Organisation ID is required","subscriber","organisationId")
+                            & requirePropertyNotNullWithMessage(context, output.getSubscriber().getEndpointId(),"Endpoint ID is required","subscriber","endpointId")
+                            & requirePropertyNotNullWithMessage(context, output.getSubscriber().getChannelId(),"Channel ID is required","subscriber","channelId");
+                }
+            } else {
+                if(output.getSubscriber() != null){
+                    valid = requirePropertyNullWithMessage(context, output.getSubscriber().getOrganisationId(),"Organisation ID must be empty","subscriber","organisationId")
+                            & requirePropertyNullWithMessage(context, output.getSubscriber().getEndpointId(),"Endpoint ID must be empty","subscriber","endpointId")
+                            & requirePropertyNullWithMessage(context, output.getSubscriber().getChannelId(),"Channel ID must be empty","subscriber","channelId");
+                }
             }
         }
         return valid;

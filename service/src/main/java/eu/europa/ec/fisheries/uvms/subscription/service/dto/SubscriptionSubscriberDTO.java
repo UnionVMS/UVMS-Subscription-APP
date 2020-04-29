@@ -12,12 +12,9 @@ import lombok.Data;
 @Data
 public class SubscriptionSubscriberDTO implements Serializable {
 
-    @NotNull
 	private Long organisationId;
 
-    @NotNull
     private Long endpointId;
 
-    @NotNull
     private Long channelId;
 }
