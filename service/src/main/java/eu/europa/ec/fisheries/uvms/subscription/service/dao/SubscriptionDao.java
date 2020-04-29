@@ -28,5 +28,9 @@ public interface SubscriptionDao {
 
 	EmailBodyEntity updateEmailBodyEntity(EmailBodyEntity entity);
 
+	void updateEmailConfigurationPassword(Long id, String password);
+
+	String getEmailConfigurationPassword(Long id);
+
 	void delete(Long id);
 }
