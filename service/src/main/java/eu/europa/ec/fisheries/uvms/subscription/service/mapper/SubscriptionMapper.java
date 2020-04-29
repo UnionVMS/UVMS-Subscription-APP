@@ -55,7 +55,7 @@ public interface SubscriptionMapper {
 
     @Named("encodePasswordAsBase64")
     static String encodePasswordAsBase64(String password){
-        if(password != null){
+        if(password != null && !password.isEmpty()){
             return Base64.getEncoder().encodeToString(password.getBytes());
         } else {
             return null;
@@ -64,10 +64,10 @@ public interface SubscriptionMapper {
 
     @Named("getPlaceHolder")
     static String getPlaceHolder(String password){
-        if(password != null && !password.isEmpty()){
+        if(password != null){
             return "********";
         } else {
-            return "";
+            return null;
         }
     }
 }

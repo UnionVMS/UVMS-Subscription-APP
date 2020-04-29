@@ -21,7 +21,7 @@ import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 /**
  * Implementation of custom validator for SubscriberDto in SubscriptionOutputDto.
  */
-public class SubscriberDtoValidator implements ConstraintValidator<HasValidSubscriberDto, SubscriptionOutputDto> {
+public class HasValidSubscriberDtoValidator implements ConstraintValidator<HasValidSubscriberDto, SubscriptionOutputDto> {
 
     @Override
     public boolean isValid(SubscriptionOutputDto output, ConstraintValidatorContext context) {
