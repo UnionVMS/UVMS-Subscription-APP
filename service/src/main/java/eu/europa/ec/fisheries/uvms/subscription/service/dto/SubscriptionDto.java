@@ -46,11 +46,9 @@ public class SubscriptionDto {
 
     @NotNull
     @Valid
-    @ValidSubscriptionOutputDto
     private SubscriptionOutputDto output;
 
     @Valid
-    @ValidSubscriptionExecutionDto
     private SubscriptionExecutionDto execution;
 
     //private List<Object> conditions = new ArrayList<>();
