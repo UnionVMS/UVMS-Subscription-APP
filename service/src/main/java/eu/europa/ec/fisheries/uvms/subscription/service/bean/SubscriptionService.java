@@ -33,9 +33,9 @@ public interface SubscriptionService {
 
 	void delete(@NotNull Long id);
 
-	EmailBodyEntity createEmailBody(SubscriptionEntity entity, String body);
+	EmailBodyEntity createEmailBody(SubscriptionEntity subscription, String body);
 
-	EmailBodyEntity updateEmailBody(SubscriptionEntity entity, String body);
+	EmailBodyEntity updateEmailBody(SubscriptionEntity subscription, String body);
 
 	Boolean checkNameAvailability(@NotNull String name, Long id);
 }

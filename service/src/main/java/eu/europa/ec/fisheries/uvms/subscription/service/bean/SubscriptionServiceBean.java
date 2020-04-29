@@ -36,6 +36,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfigurationDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListResponseDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
@@ -188,7 +189,21 @@ class SubscriptionServiceBean implements SubscriptionService {
         SubscriptionEntity subscriptionEntity = subscriptionDAO.update(entityById);
         EmailBodyEntity emailBodyEntity = null;
         if(subscription.getOutput().getHasEmail()){
-            emailBodyEntity = updateEmailBody(subscriptionEntity, subscription.getOutput().getEmailConfiguration().getBody());
+            SubscriptionEmailConfigurationDto emailConfig = subscription.getOutput().getEmailConfiguration();
+            emailBodyEntity = updateEmailBody(subscriptionEntity, emailConfig.getBody());
+
+            if(!emailConfig.getPasswordIsPlaceholder() && emailConfig.getPassword() != null) { //update password
+                subscriptionDAO.updateEmailConfigurationPassword(subscriptionEntity.getId(), subscriptionEntity.getOutput().getEmailConfiguration().getPassword());
+            } else { //password in unchanged, set placeholder according to stored password if existent
+                String existingPassword = subscriptionDAO.getEmailConfigurationPassword(subscriptionEntity.getId());
+                if(existingPassword != null){
+                    if(!existingPassword.isEmpty()){
+                        subscriptionEntity.getOutput().getEmailConfiguration().setPassword("********");
+                    } else {
+                        subscriptionEntity.getOutput().getEmailConfiguration().setPassword("");
+                    }
+                }
+            }
         }
         sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), subscriptionEntity.getId().toString(), authenticationContext.getUserPrincipal().getName()));
         return mapper.mapEntityToDto(subscriptionEntity, emailBodyEntity);
