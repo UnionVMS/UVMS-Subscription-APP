@@ -29,7 +29,7 @@ public class SubscriptionEmailConfiguration implements Serializable {
     @Column(name = "has_attachments")
     private Boolean hasAttachments;
 
-    @Column(name = "password")
+    @Column(name = "password", updatable = false)
     private String password;
 
     @Column(name = "is_xml")

@@ -414,8 +414,8 @@ public class SubscriptionServiceBeanTest {
 
 		SubscriptionDto result = sut.create(dto);
 
-		assertEquals(null, result.getOutput().getEmailConfiguration().getPassword());
-		assertEquals(false, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
+		assertEquals("", result.getOutput().getEmailConfiguration().getPassword());
+		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
 	}
 
 	@Test

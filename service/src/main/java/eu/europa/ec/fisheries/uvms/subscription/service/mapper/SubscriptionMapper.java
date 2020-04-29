@@ -36,8 +36,8 @@ public interface SubscriptionMapper {
     @Mapping(expression = "java(subscriptionEmailConfigurationToSubscriptionEmailConfigurationDto(output.getEmailConfiguration(), emailBody))", target = "emailConfiguration")
     SubscriptionOutputDto subscriptionOutputToSubscriptionOutputDto(SubscriptionOutput output, EmailBodyEntity emailBody);
 
-    @Mapping(source = "emailConfiguration.password", target = "passwordIsPlaceholder", qualifiedByName = "hasPassword")
-    @Mapping(source = "emailConfiguration.password", target = "password", qualifiedByName = "returnPlaceholder")
+    @Mapping(constant = "true", target = "passwordIsPlaceholder")
+    @Mapping(source = "emailConfiguration.password", target = "password", qualifiedByName = "getPlaceHolder")
     @Mapping(source = "emailBody.body", target="body")
     SubscriptionEmailConfigurationDto subscriptionEmailConfigurationToSubscriptionEmailConfigurationDto(SubscriptionEmailConfiguration emailConfiguration, EmailBodyEntity emailBody);
 
@@ -53,11 +53,6 @@ public interface SubscriptionMapper {
 
     SubscriptionListDto asListDto(SubscriptionEntity entity);
 
-    @Named("hasPassword")
-    static boolean hasPassword(String password) {
-        return password !=null && !password.isEmpty();
-    }
-
     @Named("encodePasswordAsBase64")
     static String encodePasswordAsBase64(String password){
         if(password != null){
@@ -67,12 +62,12 @@ public interface SubscriptionMapper {
         }
     }
 
-    @Named("returnPlaceholder")
-    static String decodePasswordAsBase64(String password){
+    @Named("getPlaceHolder")
+    static String getPlaceHolder(String password){
         if(password != null && !password.isEmpty()){
             return "********";
         } else {
-            return null;
+            return "";
         }
     }
 }

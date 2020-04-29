@@ -16,6 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.CriteriaUpdate;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -35,6 +36,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubsc
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.OrderByData;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfiguration_;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
@@ -196,6 +198,25 @@ class SubscriptionDaoImpl implements SubscriptionDao {
     @Override
     public SubscriptionEntity update(SubscriptionEntity entity) {
         return em.merge(entity);
+    }
+
+    @Override
+    public void updateEmailConfigurationPassword(Long id, String password) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaUpdate<SubscriptionEntity> update = cb.createCriteriaUpdate(SubscriptionEntity.class);
+        Root<SubscriptionEntity> subscription = update.from(SubscriptionEntity.class);
+        update.set(subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.emailConfiguration).get(SubscriptionEmailConfiguration_.password), password);
+        update.where(cb.equal(subscription.get(SubscriptionEntity_.id), id));
+        em.createQuery(update).executeUpdate();
+    }
+
+    @Override
+    public String getEmailConfigurationPassword(Long id) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<String> query = cb.createQuery(String.class);
+        Root<SubscriptionEntity> subscription = query.from(SubscriptionEntity.class);
+        query.select(subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.emailConfiguration).get(SubscriptionEmailConfiguration_.password)).where(cb.equal(subscription.get(SubscriptionEntity_.id), id));
+        return em.createQuery(query).getResultList().stream().findFirst().orElse(null);
     }
 
     @Override
