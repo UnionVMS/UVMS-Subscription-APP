@@ -11,11 +11,8 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
 import static eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper.mapToAuditLog;
-import static eu.europa.ec.fisheries.wsdl.subscription.module.MessageType.FLUX_FA_QUERY_MESSAGE;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum.MANAGE_SUBSCRIPTION;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum.VIEW_SUBSCRIPTION;
-import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.NO;
-import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.YES;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -111,9 +108,7 @@ class SubscriptionServiceBean implements SubscriptionService {
         } else {
             response.setSubscriptionCheck(YES);
         }*/
-        // Business wants to returnpermission denied in case of FA Query for untill the real implementation has been done, in Activity and Subscriptions!
-        SubscriptionPermissionAnswer subscriptionPermissionAnswer = query.getMessageType() == FLUX_FA_QUERY_MESSAGE ? NO : YES;
-        response.setSubscriptionCheck(subscriptionPermissionAnswer);
+        response.setSubscriptionCheck(SubscriptionPermissionAnswer.YES);
         return response;
     }
 
@@ -192,16 +187,14 @@ class SubscriptionServiceBean implements SubscriptionService {
             SubscriptionEmailConfigurationDto emailConfig = subscription.getOutput().getEmailConfiguration();
             emailBodyEntity = updateEmailBody(subscriptionEntity, emailConfig.getBody());
 
-            if(!emailConfig.getPasswordIsPlaceholder() && emailConfig.getPassword() != null) { //update password
+            if(emailConfig.getPasswordIsPlaceholder() != null && !emailConfig.getPasswordIsPlaceholder()) { //update password
                 subscriptionDAO.updateEmailConfigurationPassword(subscriptionEntity.getId(), subscriptionEntity.getOutput().getEmailConfiguration().getPassword());
             } else { //password in unchanged, set placeholder according to stored password if existent
                 String existingPassword = subscriptionDAO.getEmailConfigurationPassword(subscriptionEntity.getId());
                 if(existingPassword != null){
-                    if(!existingPassword.isEmpty()){
-                        subscriptionEntity.getOutput().getEmailConfiguration().setPassword("********");
-                    } else {
-                        subscriptionEntity.getOutput().getEmailConfiguration().setPassword("");
-                    }
+                    subscriptionEntity.getOutput().getEmailConfiguration().setPassword("********");
+                } else {
+                    subscriptionEntity.getOutput().getEmailConfiguration().setPassword(null);
                 }
             }
         }

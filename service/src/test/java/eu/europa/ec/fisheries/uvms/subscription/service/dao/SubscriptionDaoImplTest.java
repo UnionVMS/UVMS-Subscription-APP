@@ -41,6 +41,7 @@ import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
@@ -117,7 +118,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     protected static Stream<Arguments> queryParametersWithCriteria(){
         return Stream.of(
                 Arguments.of(createQuery("subscription3", null, null, null, null, "", null, null, null, null, null),1),
-                Arguments.of(createQuery("", null, null, null, 11L, "", null, null, null, null, null),4),
+                Arguments.of(createQuery("", null, null, 2L, 11L, "", null, null, null, null, null),4),
                 Arguments.of(createQuery("", null, null, null, null, "", null, null, null, null, null),4),
                 Arguments.of(createQuery("3", null, null, null, null, "", null, null, null, null, null),1),
                 Arguments.of(createQuery("subscription2", null, null, null, null, "", null, null, OutgoingMessageType.FA_QUERY, null, null),1),
@@ -256,6 +257,84 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     }
 
     @Test
+    public void testCreateEmailBody() {
+        em.getTransaction().begin();
+        SubscriptionEntity subscription = findAllSubscriptions().get(0);
+        EmailBodyEntity emailBody = new EmailBodyEntity(subscription, "lorem ipsum");
+        daoUnderTest.createEmailBodyEntity(emailBody);
+        em.getTransaction().commit();
+        em.clear();
+        EmailBodyEntity createdEmailBody = findAllEmailBodies().get(0);
+        assertEquals(subscription.getId(), emailBody.getSubscription().getId());
+        assertEquals("lorem ipsum", createdEmailBody.getBody());
+    }
+
+    @Test
+    public void testFindEmailBody() {
+        em.getTransaction().begin();
+        SubscriptionEntity subscription = findAllSubscriptions().get(0);
+        EmailBodyEntity emailBody = new EmailBodyEntity(subscription, "lorem ipsum");
+        daoUnderTest.createEmailBodyEntity(emailBody);
+        em.getTransaction().commit();
+        em.clear();
+        EmailBodyEntity createdEmailBody = daoUnderTest.findEmailBodyEntity(emailBody.getSubscription().getId());
+        assertEquals(subscription.getId(), emailBody.getSubscription().getId());
+        assertEquals("lorem ipsum", createdEmailBody.getBody());
+    }
+
+    @Test
+    public void testUpdateNonExistentEmailBody() {
+        em.getTransaction().begin();
+        SubscriptionEntity subscription = findAllSubscriptions().get(0);
+        EmailBodyEntity emailBody = new EmailBodyEntity(subscription, "lorem ipsum");
+        daoUnderTest.updateEmailBodyEntity(emailBody);
+        em.getTransaction().commit();
+        em.clear();
+        EmailBodyEntity createdEmailBody = findAllEmailBodies().get(0);
+        assertEquals(subscription.getId(), emailBody.getSubscription().getId());
+        assertEquals("lorem ipsum", createdEmailBody.getBody());
+    }
+
+    @Test
+    public void testUpdateExistentEmailBody() {
+        //create email body entity
+        em.getTransaction().begin();
+        SubscriptionEntity subscription = findAllSubscriptions().get(0);
+        EmailBodyEntity createdEmailBody = new EmailBodyEntity(subscription, "lorem ipsum");
+        daoUnderTest.createEmailBodyEntity(createdEmailBody);
+
+        //fetch email body entity
+        EmailBodyEntity emailBody = findAllEmailBodies().get(0);
+        emailBody.setBody("new body");
+        daoUnderTest.updateEmailBodyEntity(emailBody);
+        em.getTransaction().commit();
+        em.clear();
+
+        EmailBodyEntity updatedEmailBody = findAllEmailBodies().get(0);
+        assertEquals(subscription.getId(), updatedEmailBody.getSubscription().getId());
+        assertEquals("new body", updatedEmailBody.getBody());
+    }
+
+    @Test
+    public void testGetEmailConfigurationPassword() {
+        em.getTransaction().begin();
+        String password = daoUnderTest.getEmailConfigurationPassword(4L);
+        em.getTransaction().commit();
+        em.clear();
+        assertEquals("abcd1234", password);
+    }
+
+    @Test
+    public void testUpdateEmailConfigurationPassword() {
+        em.getTransaction().begin();
+        daoUnderTest.updateEmailConfigurationPassword(4L, "new_pass");
+        em.getTransaction().commit();
+        em.clear();
+        String password = daoUnderTest.getEmailConfigurationPassword(4L);
+        assertEquals("new_pass", password);
+    }
+
+    @Test
     void testDeleteNonExisting() {
         em.getTransaction().begin();
         try {
@@ -317,6 +396,11 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
     private List<SubscriptionEntity> findAllSubscriptions() {
         TypedQuery<SubscriptionEntity> query = em.createQuery("SELECT s FROM SubscriptionEntity s ORDER BY s.id", SubscriptionEntity.class);
+        return query.getResultList();
+    }
+
+    private List<EmailBodyEntity> findAllEmailBodies() {
+        TypedQuery<EmailBodyEntity> query = em.createQuery("SELECT e FROM EmailBodyEntity e ORDER BY e.subscription.id", EmailBodyEntity.class);
         return query.getResultList();
     }
 

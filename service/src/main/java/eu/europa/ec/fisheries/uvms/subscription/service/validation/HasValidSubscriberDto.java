@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  */
 @Target(TYPE)
 @Retention(RUNTIME)
-@Constraint(validatedBy = SubscriberDtoValidator.class)
+@Constraint(validatedBy = HasValidSubscriberDtoValidator.class)
 public @interface HasValidSubscriberDto {
 
     String message() default "Subscriber is not valid";

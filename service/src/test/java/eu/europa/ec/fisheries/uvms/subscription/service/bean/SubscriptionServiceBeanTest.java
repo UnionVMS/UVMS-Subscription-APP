@@ -29,6 +29,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutpu
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDTO;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
@@ -137,6 +138,25 @@ public class SubscriptionServiceBeanTest {
 		SubscriptionDto subscription = new SubscriptionDto();
 		subscription.setName(SUBSCR_NAME);
 		subscription.setActive(true);
+		SubscriptionExecutionDto execution = new SubscriptionExecutionDto();
+		execution.setTriggerType(TriggerType.MANUAL);
+		subscription.setExecution(execution);
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
+
+	@Test
+	void createSubscriptionWithMessageTypeNoneAndSubscriber() {
+		SubscriptionDto subscription = new SubscriptionDto();
+		subscription.setName(SUBSCR_NAME);
+		subscription.setActive(true);
+		SubscriptionOutputDto output = new SubscriptionOutputDto();
+		output.setMessageType(OutgoingMessageType.NONE);
+		output.setHasEmail(false);
+		SubscriptionSubscriberDTO subscriber = new SubscriptionSubscriberDTO();
+		subscriber.setOrganisationId(1L);
+		subscriber.setEndpointId(1L);
+		subscriber.setChannelId(1L);
+		output.setSubscriber(subscriber);
 		SubscriptionExecutionDto execution = new SubscriptionExecutionDto();
 		execution.setTriggerType(TriggerType.MANUAL);
 		subscription.setExecution(execution);
@@ -414,7 +434,106 @@ public class SubscriptionServiceBeanTest {
 
 		SubscriptionDto result = sut.create(dto);
 
-		assertEquals("", result.getOutput().getEmailConfiguration().getPassword());
+		assertEquals(null, result.getOutput().getEmailConfiguration().getPassword());
+		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
+	}
+
+	@Test
+	void updateSubscriptionWithEmailConfigAndPasswordIsPlaceHolderTrueAndStoredPasswordNotEmpty() {
+		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, HistoryUnit.DAYS,true, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date(),
+				EMAIL_BODY, true, true, "xxx", true, false);
+
+		when(subscriptionDAO.findById(17L)).thenReturn(new SubscriptionEntity());
+		when(subscriptionDAO.update(any())).thenAnswer(iom -> iom.getArgument(0));
+		when(subscriptionDAO.updateEmailBodyEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+		when(subscriptionDAO.getEmailConfigurationPassword(any())).thenReturn("abcd1234");
+
+		SubscriptionDto result = sut.update(dto);
+
+		assertEquals("********", result.getOutput().getEmailConfiguration().getPassword());
+		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
+	}
+
+
+	@Test
+	void updateSubscriptionWithEmailConfigAndPasswordIsPlaceHolderTrueAndStoredPasswordNull() {
+		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, HistoryUnit.DAYS,true, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date(),
+				EMAIL_BODY, true, true, "******", true, false);
+
+		when(subscriptionDAO.findById(17L)).thenReturn(new SubscriptionEntity());
+		when(subscriptionDAO.update(any())).thenAnswer(iom -> iom.getArgument(0));
+		when(subscriptionDAO.updateEmailBodyEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+		when(subscriptionDAO.getEmailConfigurationPassword(any())).thenReturn(null);
+
+		SubscriptionDto result = sut.update(dto);
+
+		assertEquals(null, result.getOutput().getEmailConfiguration().getPassword());
+		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
+	}
+
+	@Test
+	void updateSubscriptionWithEmailConfigAndPasswordIsPlaceHolderFalse() {
+		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, HistoryUnit.DAYS,true, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date(),
+				EMAIL_BODY, true, true, "new_pass", false, false);
+
+		when(subscriptionDAO.findById(17L)).thenReturn(new SubscriptionEntity());
+		when(subscriptionDAO.update(any())).thenAnswer(iom -> iom.getArgument(0));
+		when(subscriptionDAO.updateEmailBodyEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+
+		SubscriptionDto result = sut.update(dto);
+
+		assertEquals("********", result.getOutput().getEmailConfiguration().getPassword());
+		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
+	}
+
+	@Test
+	void updateSubscriptionWithEmailConfigAndPasswordIsPlaceHolderFalseAndNewPasswordEmpty() {
+		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, HistoryUnit.DAYS,true, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date(),
+				EMAIL_BODY, true, true, "", false, false);
+
+		when(subscriptionDAO.findById(17L)).thenReturn(new SubscriptionEntity());
+		when(subscriptionDAO.update(any())).thenAnswer(iom -> iom.getArgument(0));
+		when(subscriptionDAO.updateEmailBodyEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+
+		SubscriptionDto result = sut.update(dto);
+
+		assertEquals(null, result.getOutput().getEmailConfiguration().getPassword());
+		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
+	}
+
+	@Test
+	void updateSubscriptionWithEmailConfigAndPasswordIsPlaceHolderFalseAndNewPasswordNull() {
+		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, HistoryUnit.DAYS,true, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date(),
+				EMAIL_BODY, true, true, null, false, false);
+
+		when(subscriptionDAO.findById(17L)).thenReturn(new SubscriptionEntity());
+		when(subscriptionDAO.update(any())).thenAnswer(iom -> iom.getArgument(0));
+		when(subscriptionDAO.updateEmailBodyEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+
+		SubscriptionDto result = sut.update(dto);
+
+		assertEquals(null, result.getOutput().getEmailConfiguration().getPassword());
+		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
+	}
+
+	@Test
+	void updateSubscriptionWithEmailConfigAndPasswordIsPlaceHolderNull() {
+		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, HistoryUnit.DAYS,true, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date(),
+				EMAIL_BODY, true, true, null, null, false);
+
+		when(subscriptionDAO.findById(17L)).thenReturn(new SubscriptionEntity());
+		when(subscriptionDAO.update(any())).thenAnswer(iom -> iom.getArgument(0));
+		when(subscriptionDAO.updateEmailBodyEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+
+		SubscriptionDto result = sut.update(dto);
+
+		assertEquals(null, result.getOutput().getEmailConfiguration().getPassword());
 		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
 	}
 
