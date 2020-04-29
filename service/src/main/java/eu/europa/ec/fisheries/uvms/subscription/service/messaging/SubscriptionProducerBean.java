@@ -10,16 +10,38 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.messaging;
 
-import eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants;
-import eu.europa.ec.fisheries.uvms.commons.message.impl.AbstractProducer;
+import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
+import javax.jms.Queue;
+
+import eu.europa.ec.fisheries.uvms.activity.model.exception.ActivityModelMarshallException;
+import eu.europa.ec.fisheries.uvms.activity.model.mapper.JAXBMarshaller;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityModuleMethod;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryRequest;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.PluginType;
+import eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants;
+import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
+import eu.europa.ec.fisheries.uvms.commons.message.impl.AbstractProducer;
+import eu.europa.ec.fisheries.uvms.commons.message.impl.JMSUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @Stateless
 @LocalBean
 @Slf4j
 public class SubscriptionProducerBean extends AbstractProducer {
+
+    private Queue activityQueue;
+
+    @PostConstruct
+    public void init() {
+        activityQueue = JMSUtils.lookupQueue(MessageConstants.QUEUE_MODULE_ACTIVITY);
+    }
+
+    public String sendMessageToActivityQueue(String vesselId, String vesselIdSchemeId, Boolean consolidated, String startDate, String endDate, String organisation, String endpoint, String channel) throws ActivityModelMarshallException, MessageException {
+        CreateAndSendFAQueryRequest request = new CreateAndSendFAQueryRequest(ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY, PluginType.FLUX, vesselId, vesselIdSchemeId, consolidated, startDate, endDate, organisation, endpoint, channel);
+        return this.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request), activityQueue, getDestination());
+    }
 
     @Override
     public String getDestinationName() {
