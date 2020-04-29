@@ -7,15 +7,16 @@ import javax.validation.Constraint;
 import javax.validation.Payload;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+
 /**
- * Validation annotation for SubscriptionOutputDto.
+ * Validation annotation for SubscriptionOutputDto validating SubscriberDto.
  */
 @Target(TYPE)
 @Retention(RUNTIME)
-@Constraint(validatedBy = SubscriptionOutputDtoValidator.class)
-public @interface ValidSubscriptionOutputDto {
+@Constraint(validatedBy = SubscriberDtoValidator.class)
+public @interface HasValidSubscriberDto {
 
-    String message() default "Subscription output is not valid";
+    String message() default "Subscriber is not valid";
 
     Class<?>[] groups() default { };
 

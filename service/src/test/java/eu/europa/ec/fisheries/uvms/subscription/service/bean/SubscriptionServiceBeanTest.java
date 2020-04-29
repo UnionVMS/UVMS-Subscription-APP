@@ -62,6 +62,7 @@ public class SubscriptionServiceBeanTest {
 	private static final String CURRENT_USER_NAME = "curuser";
 	private static final String EMAIL_BODY = "lorem ipsum";
 	private static final String PASSWORD = "1234";
+	private static final String PASSWORD_PLACEHOLDER = "********";
 
 	@Produces @Mock
 	private SubscriptionDao subscriptionDAO;
@@ -397,9 +398,24 @@ public class SubscriptionServiceBeanTest {
 		assertEquals(EMAIL_BODY, result.getOutput().getEmailConfiguration().getBody());
 		assertEquals(true, result.getOutput().getEmailConfiguration().getIsPdf());
 		assertEquals(true, result.getOutput().getEmailConfiguration().getHasAttachments());
-		assertEquals(PASSWORD, result.getOutput().getEmailConfiguration().getPassword());
+		assertEquals(PASSWORD_PLACEHOLDER, result.getOutput().getEmailConfiguration().getPassword());
 		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
 		assertEquals(false, result.getOutput().getEmailConfiguration().getIsXml());
+	}
+
+	@Test
+	void createSubscriptionWithEmailConfigAndNoPassword() {
+		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, HistoryUnit.DAYS,true, TriggerType.SCHEDULER, 1, "12:00", new Date(), new Date(),
+				EMAIL_BODY, true, true, null, false, false);
+
+		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+		when(subscriptionDAO.createEmailBodyEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+
+		SubscriptionDto result = sut.create(dto);
+
+		assertEquals(null, result.getOutput().getEmailConfiguration().getPassword());
+		assertEquals(false, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
 	}
 
 	@Test

@@ -1,6 +1,6 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.validation;
 
-import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import javax.validation.Constraint;
@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 /**
  * Validation annotation for SubscriptionExecutionDto.
  */
-@Target(FIELD)
+@Target(TYPE)
 @Retention(RUNTIME)
 @Constraint(validatedBy = SubscriptionExecutionDtoValidator.class)
 public @interface ValidSubscriptionExecutionDto {
