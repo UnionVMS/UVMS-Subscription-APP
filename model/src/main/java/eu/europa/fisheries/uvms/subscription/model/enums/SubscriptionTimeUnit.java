@@ -7,22 +7,26 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
+package eu.europa.fisheries.uvms.subscription.model.enums;
 
-package eu.europa.ec.fisheries.uvms.subscription.service.messaging;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 
-import javax.ejb.LocalBean;
-import javax.ejb.Stateless;
+/**
+ * The history unit of a subscription.
+ */
+public enum SubscriptionTimeUnit {
+    DAYS(ChronoUnit.DAYS),
+    WEEKS(ChronoUnit.WEEKS),
+    MONTHS(ChronoUnit.MONTHS);
 
-import eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants;
-import eu.europa.ec.fisheries.uvms.commons.message.impl.AbstractProducer;
-import lombok.extern.slf4j.Slf4j;
+    private TemporalUnit temporalUnit;
 
-@Stateless
-@LocalBean
-@Slf4j
-public class SubscriptionProducerBean extends AbstractProducer {
-    @Override
-    public String getDestinationName() {
-        return MessageConstants.QUEUE_SUBSCRIPTION_EVENT;
+    SubscriptionTimeUnit(TemporalUnit temporalUnit) {
+        this.temporalUnit = temporalUnit;
+    }
+
+    public TemporalUnit getTemporalUnit() {
+        return temporalUnit;
     }
 }

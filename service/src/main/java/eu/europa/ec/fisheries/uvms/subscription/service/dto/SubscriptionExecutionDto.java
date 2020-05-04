@@ -4,6 +4,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidSubscriptionExecutionDto;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import lombok.Data;
 
@@ -18,6 +19,8 @@ public class SubscriptionExecutionDto {
 
     @Min(0)
     private Integer frequency;
+
+    private SubscriptionTimeUnit frequencyUnit;
 
 	private Boolean immediate;
 

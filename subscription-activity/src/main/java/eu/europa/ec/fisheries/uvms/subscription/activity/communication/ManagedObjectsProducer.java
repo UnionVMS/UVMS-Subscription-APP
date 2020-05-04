@@ -7,22 +7,26 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
+package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
 
-package eu.europa.ec.fisheries.uvms.subscription.service.messaging;
-
-import javax.ejb.LocalBean;
-import javax.ejb.Stateless;
+import javax.annotation.Resource;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
+import javax.enterprise.inject.Produces;
+import javax.jms.Queue;
 
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants;
-import eu.europa.ec.fisheries.uvms.commons.message.impl.AbstractProducer;
-import lombok.extern.slf4j.Slf4j;
 
-@Stateless
-@LocalBean
-@Slf4j
-public class SubscriptionProducerBean extends AbstractProducer {
-    @Override
-    public String getDestinationName() {
-        return MessageConstants.QUEUE_SUBSCRIPTION_EVENT;
-    }
+/**
+ * Introduces various Activity-related application server objects into CDI.
+ */
+@Dependent
+class ManagedObjectsProducer {
+	@Resource(mappedName = "java:/" + MessageConstants.QUEUE_MODULE_ACTIVITY)
+	private Queue activityQueue;
+
+	@Produces @ApplicationScoped @ActivityQueue
+	public Queue getActivityQueue() {
+		return activityQueue;
+	}
 }

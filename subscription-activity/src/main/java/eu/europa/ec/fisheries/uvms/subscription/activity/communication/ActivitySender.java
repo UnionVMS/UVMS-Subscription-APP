@@ -7,11 +7,18 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.fisheries.uvms.subscription.model.enums;
+package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
+
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryRequest;
 
 /**
- * The history unit of a subscription.
+ * Service for sending messages to Activity.
  */
-public enum HistoryUnit {
-    DAYS, WEEKS, MONTHS
+public interface ActivitySender {
+	/**
+	 * Ask Activity to generate a FA Query.
+	 *
+	 * @param message The message with query data
+	 */
+	void send(CreateAndSendFAQueryRequest message);
 }

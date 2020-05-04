@@ -85,11 +85,6 @@
         </dependency>
 
         <dependency>
-            <groupId>eu.europa.ec.fisheries.uvms.activity</groupId>
-            <artifactId>activity-model</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
         </dependency>

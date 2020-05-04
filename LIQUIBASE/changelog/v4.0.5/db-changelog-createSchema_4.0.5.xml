@@ -7,5 +7,6 @@
     <include file="/schema/area.xml" />
     <include file="/schema/condition.xml" />
     <include file="/schema/subscription.xml" />
+    <include file="/schema/triggeredsubscription.xml" />
 
 </databaseChangeLog>

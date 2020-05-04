@@ -118,7 +118,11 @@
 				<artifactId>uvms-commons-date</artifactId>
 				<version>${uvms.commons.version}</version>
 			</dependency>
-
+			<dependency>
+				<groupId>eu.europa.ec.fisheries.uvms.user</groupId>
+				<artifactId>user-model</artifactId>
+				<version>${uvms.user.module.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>eu.europa.ec.fisheries.uvms.activity</groupId>
 				<artifactId>activity-model</artifactId>
@@ -423,5 +427,6 @@
 		<module>LIQUIBASE</module>
 		<module>rest</module>
 		<module>service</module>
+		<module>subscription-activity</module>
 	</modules>
 </project>

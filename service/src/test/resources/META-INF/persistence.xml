@@ -10,6 +10,8 @@
         <class>eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity</class>
 		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.ConditionEntity</class>
 		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity</class>
+		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity</class>
+		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity</class>
 
 		<properties>
 			<property name="hibernate.default_schema" value="subscription" />
