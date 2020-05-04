@@ -10,7 +10,6 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
 import javax.validation.Valid;
-import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -19,7 +18,7 @@ import java.util.List;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.HasValidSubscriberDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidSubscriptionOutputDto;
-import eu.europa.fisheries.uvms.subscription.model.enums.HistoryUnit;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
 import lombok.AllArgsConstructor;
@@ -65,5 +64,5 @@ public class SubscriptionOutputDto {
 	@Min(1)
 	private Integer history;
 
-	private HistoryUnit historyUnit;
+	private SubscriptionTimeUnit historyUnit;
 }

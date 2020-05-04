@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 
 import java.io.Serializable;
 
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import lombok.Data;
 
@@ -28,6 +29,10 @@ public class SubscriptionExecution implements Serializable {
 	@Column(name = "frequency")
 	@Min(0)
     private Integer frequency;
+
+	@Column(name = "frequency_unit")
+	@Enumerated(STRING)
+	private SubscriptionTimeUnit frequencyUnit;
 
 	@Column(name = "immediate")
 	private Boolean immediate;

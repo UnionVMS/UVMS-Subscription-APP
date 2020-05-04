@@ -18,6 +18,7 @@ public class SubscriptionExecutionDtoValidator implements ConstraintValidator<Va
         boolean valid = true;
         if (TriggerType.SCHEDULER.equals(execution.getTriggerType())){
             valid = requirePropertyNotNullWithMessage(context, execution.getFrequency(), "frequency", "Frequency is required")
+                    & requirePropertyNotNullWithMessage(context, execution.getFrequencyUnit(), "frequencyUnit", "Frequency unit is required")
                     & requirePropertyNotNullWithMessage(context, execution.getTimeExpression(), "timeExpression","Time expression is required");
         }
         return valid;

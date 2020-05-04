@@ -7,11 +7,19 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
+package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
 
-package eu.europa.ec.fisheries.uvms.subscription.service.dao;
+import javax.inject.Qualifier;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-
-@Deprecated
-public enum SubscriptionListQueryParameterType {
-    STARTDATE, ENDDATE, MESSAGETYPE
+/**
+ * Qualifier for injecting the Activity queue.
+ */
+@Qualifier
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
+public @interface ActivityQueue {
 }
