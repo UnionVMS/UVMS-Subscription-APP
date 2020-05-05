@@ -16,7 +16,6 @@ import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeatur
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.jms.TextMessage;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -24,7 +23,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
-import eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
 import eu.europa.ec.fisheries.uvms.subscription.service.authentication.AuthenticationContext;
 import eu.europa.ec.fisheries.uvms.subscription.service.authorisation.AllowedRoles;
@@ -39,11 +37,10 @@ import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
-import eu.europa.ec.fisheries.uvms.user.model.mapper.UserModuleRequestMapper;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.UsmClient;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
-import eu.europa.ec.fisheries.wsdl.user.module.FindOrganisationsResponse;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import lombok.SneakyThrows;
@@ -60,10 +57,7 @@ class SubscriptionServiceBean implements SubscriptionService {
     private SubscriptionDao subscriptionDAO;
 
     @Inject
-    private SubscriptionUserConsumerBean subscriptionUserConsumerBean;
-
-    @Inject
-    private SubscriptionUserProducerBean subscriptionUserProducerBean;
+    private UsmClient usmClient;
 
     @Inject
     private SubscriptionMapper mapper;
@@ -131,20 +125,9 @@ class SubscriptionServiceBean implements SubscriptionService {
 
         List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(queryParams);
 
-        String getAllOrganisationRequest = UserModuleRequestMapper.mapToGetAllOrganisationRequest(scopeName, roleName, authenticationContext.getUserPrincipal().getName());
-
-        String correlationID = subscriptionUserProducerBean.sendModuleMessage(getAllOrganisationRequest, subscriptionUserConsumerBean.getDestination());
-
-        if (correlationID != null){
-
-            TextMessage message = subscriptionUserConsumerBean.getMessage(correlationID, TextMessage.class );
-
-            FindOrganisationsResponse responseMessage = JAXBUtils.unMarshallMessage( message.getText() , FindOrganisationsResponse.class);
-
-            List<Organisation> organisationList = responseMessage.getOrganisation();
-
-            responseDto.setList(customMapper.enrichSubscriptionList(subscriptionEntities,organisationList));
-
+        List<Organisation> organisations = usmClient.getAllOrganisations(scopeName, roleName, authenticationContext.getUserPrincipal().getName());
+        if (organisations != null){
+            responseDto.setList(customMapper.enrichSubscriptionList(subscriptionEntities,organisations));
         } else {
             responseDto.setList(subscriptionEntities.stream().map(mapper::asListDto).collect(Collectors.toList()));
         }
@@ -153,7 +136,6 @@ class SubscriptionServiceBean implements SubscriptionService {
         long totalNumberOfPages = (totalCount / pageSize);
         responseDto.setTotalNumberOfPages(totalNumberOfPages + 1);
         responseDto.setTotalCount(totalCount);
-
 
         return responseDto;
     }
@@ -176,6 +158,7 @@ class SubscriptionServiceBean implements SubscriptionService {
     @SneakyThrows
     @AllowedRoles(MANAGE_SUBSCRIPTION)
     public SubscriptionDto update(@Valid @NotNull SubscriptionDto subscription) {
+
         SubscriptionEntity entityById = subscriptionDAO.findById(subscription.getId());
         if (entityById == null){
             throw new EntityDoesNotExistException("Subscription with id " + subscription.getId());

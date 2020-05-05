@@ -1,4 +1,4 @@
-package eu.europa.ec.fisheries.uvms.subscription.service.bean;
+package eu.europa.ec.fisheries.uvms.subscription.service.messaging;
 
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants;
 import eu.europa.ec.fisheries.uvms.commons.message.impl.AbstractConsumer;
