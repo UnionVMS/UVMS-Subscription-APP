@@ -128,6 +128,11 @@
 				<artifactId>activity-model</artifactId>
 				<version>${uvms.activity.model.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>eu.europa.ec.fisheries.uvms.movement</groupId>
+				<artifactId>movement-model</artifactId>
+				<version>${uvms.movement.module.version}</version>
+			</dependency>
 
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
