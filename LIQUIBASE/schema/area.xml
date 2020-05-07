@@ -53,4 +53,23 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="UNIONVMS-4466-area" author="gmanifavas">
+        <addColumn tableName="area">
+            <column name="gid" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <dropNotNullConstraint tableName="area" columnName="area_value_type"/>
+        <dropNotNullConstraint tableName="area" columnName="area_guid"/>
+        <dropNotNullConstraint tableName="area" columnName="value"/>
+        <addUniqueConstraint constraintName="uk_area" columnNames="subscription_id, gid, area_type" tableName="area"/>
+    </changeSet>
+
+    <changeSet id="UNIONVMS-4466-area-drop-unique-constraint" author="gmanifavas">
+        <dropUniqueConstraint tableName="area" constraintName="uk_n3fgvldvqelt8pepgfl85gtuv"/>
+
+        <rollback>
+            <addUniqueConstraint columnNames="area_guid" constraintName="uk_n3fgvldvqelt8pepgfl85gtuv" tableName="area"/>
+        </rollback>
+    </changeSet>
 </databaseChangeLog>

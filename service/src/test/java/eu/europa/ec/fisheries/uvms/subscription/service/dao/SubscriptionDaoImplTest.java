@@ -18,6 +18,7 @@ import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVess
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier.IRCS;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier.UVI;
 import static java.util.stream.Collectors.toSet;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -31,12 +32,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
@@ -48,15 +46,12 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
 import eu.europa.ec.fisheries.wsdl.user.types.Channel;
 import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
@@ -71,6 +66,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mapstruct.ap.internal.util.Collections;
 
 @EnableAutoWeld
 public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
@@ -82,7 +78,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     private CustomMapper customMapper;
 
     @Inject
-    private SubscriptionDaoImpl daoUnderTest;
+    private SubscriptionDaoImpl sut;
 
     @Produces
     EntityManager getEntityManager() {
@@ -92,7 +88,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     @BeforeEach
     public void prepare(){
         Operation operation = sequenceOf(
-                DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_CONDITION, INSERT_AREA
+                DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_CONDITION
         );
 
         DbSetup dbSetup = new DbSetup(new DataSourceDestination(ds), operation);
@@ -101,7 +97,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
     @Test
     void testFindById() {
-        SubscriptionEntity subscription = daoUnderTest.findById(3L);
+        SubscriptionEntity subscription = sut.findById(3L);
         assertNotNull(subscription);
         assertEquals("subscription3", subscription.getName());
         assertEquals("C lorem ipsum", subscription.getDescription());
@@ -110,14 +106,14 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     @Test
     void testCount() {
         SubscriptionListQuery query = createQuery(null, true, null, null, null, "", null, null, null, null, null);
-        Long count = daoUnderTest.count(query.getCriteria());
+        Long count = sut.count(query.getCriteria());
         assertEquals(3L, count);
     }
 
     @ParameterizedTest
     @MethodSource("queryParametersWithCriteria")
     public void testListSubscriptionWithCriteria(SubscriptionListQuery query, int expected){
-        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(query);
+        List<SubscriptionEntity> subscriptionEntities = sut.listSubscriptions(query);
         assertEquals(expected, subscriptionEntities.size());
     }
 
@@ -137,7 +133,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     @ParameterizedTest(name = "[" + INDEX_PLACEHOLDER + "] {2}")
     @MethodSource("dateRangeArguments")
     void testDateRange(SubscriptionListQuery query, long[] expectedIds, @SuppressWarnings("unused") String descriptionOfTestCase) {
-        List<SubscriptionEntity> results = daoUnderTest.listSubscriptions(query);
+        List<SubscriptionEntity> results = sut.listSubscriptions(query);
         assertEquals(LongStream.of(expectedIds).boxed().collect(toSet()), results.stream().map(SubscriptionEntity::getId).collect(toSet()));
     }
 
@@ -158,7 +154,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     @ParameterizedTest
     @MethodSource("queryParametersWithOrderingAsc")
     public void testListSubscriptionWithOrderingAsc(SubscriptionListQuery query, long firstResultId, long lastResultId){
-        List<SubscriptionEntity> subscriptionEntities = daoUnderTest.listSubscriptions(query);
+        List<SubscriptionEntity> subscriptionEntities = sut.listSubscriptions(query);
         assertTrue(subscriptionEntities.size() >= 2);
         assertEquals(firstResultId, subscriptionEntities.get(0).getId());
         assertEquals(lastResultId, subscriptionEntities.get(subscriptionEntities.size()-1).getId());
@@ -173,64 +169,131 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testCreateSubscriptionWithArea(){
-
-        int sizeBefore = findAllSubscriptions().size();
+    public void createSubscriptionWithAreas() {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
+
+        AreaEntity area1 = new AreaEntity();
+        area1.setGid(1L);
+        area1.setAreaType(AreaType.PORT);
+
+        AreaEntity area2 = new AreaEntity();
+        area2.setGid(2L);
+        area2.setAreaType(AreaType.USERAREA);
 
         SubscriptionEntity subscription = SubscriptionTestHelper.random();
-//        subscription.addArea(SubscriptionTestHelper.randomArea());
+        subscription.setAreas(Collections.asSet(area1, area2));
 
-        Long id = daoUnderTest.createEntity(subscription).getId();
-
+        Long id = sut.createEntity(subscription).getId();
         em.flush();
 
-        List<SubscriptionEntity> subscriptionEntities = findAllSubscriptions();
-        assertEquals(sizeBefore + 1, subscriptionEntities.size());
-
-        SubscriptionEntity entityById = daoUnderTest.findById(id);
-        assertEquals(subscription, entityById);
+        SubscriptionEntity createdSubscription = sut.findById(id);
+        assertNotNull(createdSubscription.getAreas());
+        assertEquals(2, createdSubscription.getAreas().size());
+        assertTrue(createdSubscription.getAreas().contains(area1));
+        assertTrue(createdSubscription.getAreas().contains(area2));
     }
 
     @Test
-    @SneakyThrows
-    public void testAddAreaToSubscription(){
+    public void updateSubscriptionWithNewAreas() {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
 
-        SubscriptionEntity subscription = daoUnderTest.findById(1L);
-//        assertEquals(3, subscription.getAreas().size());
+        //create entity
+        AreaEntity area1 = new AreaEntity();
+        area1.setGid(1L);
+        area1.setAreaType(AreaType.PORT);
+        AreaEntity area2 = new AreaEntity();
+        area2.setGid(2L);
+        area2.setAreaType(AreaType.USERAREA);
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setAreas(Collections.asSet(area1, area2));
+        Long id = sut.createEntity(subscription).getId();
+        SubscriptionEntity createdSubscription = sut.findById(id);
 
-        AreaEntity area = new AreaEntity();
-        area.setAreaType(AreaType.COUNTRY);
-        area.setAreaValueType(AreaValueType.AREA_CODE);
-        area.setValue("BEL");
-//        subscription.addArea(area);
+
+        //update entity areas
+        AreaEntity newArea1 = new AreaEntity();
+        newArea1.setGid(10L);
+        newArea1.setAreaType(AreaType.USERAREA);
+        AreaEntity newArea2 = new AreaEntity();
+        newArea2.setGid(11L);
+        newArea2.setAreaType(AreaType.FAO);
+        AreaEntity newArea3 = new AreaEntity();
+        newArea3.setGid(12L);
+        newArea3.setAreaType(AreaType.STATRECT);
+
+        createdSubscription.setAreas(Collections.asSet(newArea1, newArea2, newArea3));
+        Long updatedId = sut.update(createdSubscription).getId();
 
         em.flush();
 
-        daoUnderTest.findById(1L);
-//        assertEquals(4, subscription.getAreas().size());
+        SubscriptionEntity updatedSubscription = sut.findById(updatedId);
+        assertNotNull(updatedSubscription.getAreas());
+        assertEquals(3, updatedSubscription.getAreas().size());
+        assertTrue(updatedSubscription.getAreas().contains(newArea1));
+        assertTrue(updatedSubscription.getAreas().contains(newArea2));
+        assertTrue(updatedSubscription.getAreas().contains(newArea3));
+        assertFalse(updatedSubscription.getAreas().contains(area1));
+        assertFalse(updatedSubscription.getAreas().contains(area2));
     }
 
     @Test
-    @SneakyThrows
-    public void testRemoveAreaToSubscription(){
+    public void updateSubscriptionAreas() {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
 
-        SubscriptionEntity subscription = daoUnderTest.findById(1L);
-//        assertEquals(3, subscription.getAreas().size());
+        //create entity
+        AreaEntity area1 = new AreaEntity();
+        area1.setGid(1L);
+        area1.setAreaType(AreaType.PORT);
+        AreaEntity area2 = new AreaEntity();
+        area2.setGid(2L);
+        area2.setAreaType(AreaType.USERAREA);
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setAreas(Collections.asSet(area1, area2));
+        Long id = sut.createEntity(subscription).getId();
+        SubscriptionEntity createdSubscription = sut.findById(id);
 
-//        AreaEntity next = subscription.getAreas().iterator().next();
-//        subscription.removeArea(next);
+
+        //update entity areas
+        AreaEntity newArea1 = new AreaEntity();
+        newArea1.setGid(10L);
+        newArea1.setAreaType(AreaType.USERAREA);
+
+        createdSubscription.setAreas(Collections.asSet(area1, newArea1));
+        Long updatedId = sut.update(createdSubscription).getId();
 
         em.flush();
 
-        daoUnderTest.findById(1L);
-//        assertEquals(2, subscription.getAreas().size());
+        SubscriptionEntity updatedSubscription = sut.findById(updatedId);
+        assertNotNull(updatedSubscription.getAreas());
+        assertEquals(2, updatedSubscription.getAreas().size());
+        assertTrue(updatedSubscription.getAreas().contains(newArea1));
+        assertTrue(updatedSubscription.getAreas().contains(area1));
+        assertFalse(updatedSubscription.getAreas().contains(area2));
+    }
+
+    @Test
+    public void deleteSubscriptionWithAreas() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        //create subscription
+        AreaEntity area1 = new AreaEntity();
+        area1.setGid(1L);
+        area1.setAreaType(AreaType.PORT);
+        AreaEntity area2 = new AreaEntity();
+        area2.setGid(2L);
+        area2.setAreaType(AreaType.USERAREA);
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setAreas(Collections.asSet(area1, area2));
+        Long id = sut.createEntity(subscription).getId();
+
+        sut.delete(id);
+        em.flush();
+        Integer numberOfSavedAreas = findAllAreas().size();
+        assertEquals(0, numberOfSavedAreas);
     }
 
     @Test
@@ -253,9 +316,11 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     void testUpdate() {
         em.getTransaction().begin();
         SubscriptionEntity subscription = findAllSubscriptions().get(0);
+        Set<AreaEntity> detachedAreas = subscription.getAreas().stream().peek(em::detach).collect(toSet());
         em.detach(subscription);
+        subscription.setAreas(detachedAreas);
         subscription.setDescription("updated description");
-        daoUnderTest.update(subscription);
+        sut.update(subscription);
         em.getTransaction().commit();
         em.clear();
         SubscriptionEntity updatedSubscription = findAllSubscriptions().get(0);
@@ -267,7 +332,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         em.getTransaction().begin();
         SubscriptionEntity subscription = findAllSubscriptions().get(0);
         EmailBodyEntity emailBody = new EmailBodyEntity(subscription, "lorem ipsum");
-        daoUnderTest.createEmailBodyEntity(emailBody);
+        sut.createEmailBodyEntity(emailBody);
         em.getTransaction().commit();
         em.clear();
         EmailBodyEntity createdEmailBody = findAllEmailBodies().get(0);
@@ -280,10 +345,10 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         em.getTransaction().begin();
         SubscriptionEntity subscription = findAllSubscriptions().get(0);
         EmailBodyEntity emailBody = new EmailBodyEntity(subscription, "lorem ipsum");
-        daoUnderTest.createEmailBodyEntity(emailBody);
+        sut.createEmailBodyEntity(emailBody);
         em.getTransaction().commit();
         em.clear();
-        EmailBodyEntity createdEmailBody = daoUnderTest.findEmailBodyEntity(emailBody.getSubscription().getId());
+        EmailBodyEntity createdEmailBody = sut.findEmailBodyEntity(emailBody.getSubscription().getId());
         assertEquals(subscription.getId(), emailBody.getSubscription().getId());
         assertEquals("lorem ipsum", createdEmailBody.getBody());
     }
@@ -293,7 +358,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         em.getTransaction().begin();
         SubscriptionEntity subscription = findAllSubscriptions().get(0);
         EmailBodyEntity emailBody = new EmailBodyEntity(subscription, "lorem ipsum");
-        daoUnderTest.updateEmailBodyEntity(emailBody);
+        sut.updateEmailBodyEntity(emailBody);
         em.getTransaction().commit();
         em.clear();
         EmailBodyEntity createdEmailBody = findAllEmailBodies().get(0);
@@ -307,12 +372,12 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         em.getTransaction().begin();
         SubscriptionEntity subscription = findAllSubscriptions().get(0);
         EmailBodyEntity createdEmailBody = new EmailBodyEntity(subscription, "lorem ipsum");
-        daoUnderTest.createEmailBodyEntity(createdEmailBody);
+        sut.createEmailBodyEntity(createdEmailBody);
 
         //fetch email body entity
         EmailBodyEntity emailBody = findAllEmailBodies().get(0);
         emailBody.setBody("new body");
-        daoUnderTest.updateEmailBodyEntity(emailBody);
+        sut.updateEmailBodyEntity(emailBody);
         em.getTransaction().commit();
         em.clear();
 
@@ -324,7 +389,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     @Test
     public void testGetEmailConfigurationPassword() {
         em.getTransaction().begin();
-        String password = daoUnderTest.getEmailConfigurationPassword(4L);
+        String password = sut.getEmailConfigurationPassword(4L);
         em.getTransaction().commit();
         em.clear();
         assertEquals("abcd1234", password);
@@ -333,10 +398,10 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     @Test
     public void testUpdateEmailConfigurationPassword() {
         em.getTransaction().begin();
-        daoUnderTest.updateEmailConfigurationPassword(4L, "new_pass");
+        sut.updateEmailConfigurationPassword(4L, "new_pass");
         em.getTransaction().commit();
         em.clear();
-        String password = daoUnderTest.getEmailConfigurationPassword(4L);
+        String password = sut.getEmailConfigurationPassword(4L);
         assertEquals("new_pass", password);
     }
 
@@ -344,7 +409,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     void testDeleteNonExisting() {
         em.getTransaction().begin();
         try {
-            daoUnderTest.delete(9999999L);
+            sut.delete(9999999L);
             fail("Should throw when asked to delete non-existing Subscription");
         } catch (EntityDoesNotExistException expected) {
             // expected
@@ -355,13 +420,13 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     void testDelete() {
         em.getTransaction().begin();
         SubscriptionEntity subscription = SubscriptionTestHelper.random();
-        Long id = daoUnderTest.createEntity(subscription).getId();
+        Long id = sut.createEntity(subscription).getId();
         em.getTransaction().commit();
         em.clear();
         assertNotNull(em.find(SubscriptionEntity.class, id));
         em.clear();
         em.getTransaction().begin();
-        daoUnderTest.delete(id);
+        sut.delete(id);
         em.getTransaction().commit();
         em.clear();
         assertNull(em.find(SubscriptionEntity.class, id));
@@ -369,8 +434,8 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
     @Test
     void testFindSubscriptionByName() {
-        assertNotNull(daoUnderTest.findSubscriptionByName("subscription2"));
-        assertNull(daoUnderTest.findSubscriptionByName("non-existing name"));
+        assertNotNull(sut.findSubscriptionByName("subscription2"));
+        assertNull(sut.findSubscriptionByName("non-existing name"));
     }
 
     @Test
@@ -392,7 +457,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         subscriptionOutput.setVesselIds(EnumSet.of(UVI, ICCAT));
         subscriptionOutput.setMessageType(OutgoingMessageType.NONE);
         subscription.setOutput(subscriptionOutput);
-        Long id = daoUnderTest.createEntity(subscription).getId();
+        Long id = sut.createEntity(subscription).getId();
         em.getTransaction().commit();
         em.clear();
         SubscriptionEntity subscriptionFromDb = em.find(SubscriptionEntity.class, id);
@@ -407,6 +472,11 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
     private List<EmailBodyEntity> findAllEmailBodies() {
         TypedQuery<EmailBodyEntity> query = em.createQuery("SELECT e FROM EmailBodyEntity e ORDER BY e.subscription.id", EmailBodyEntity.class);
+        return query.getResultList();
+    }
+
+    private List<AreaEntity> findAllAreas() {
+        TypedQuery<AreaEntity> query = em.createQuery("SELECT area FROM AreaEntity area ORDER BY area.subscription.id", AreaEntity.class);
         return query.getResultList();
     }
 

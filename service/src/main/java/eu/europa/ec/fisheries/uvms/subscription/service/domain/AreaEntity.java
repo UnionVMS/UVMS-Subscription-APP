@@ -11,7 +11,6 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
 import static javax.persistence.EnumType.STRING;
-import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.AUTO;
 
 import javax.persistence.Column;
@@ -21,29 +20,20 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.PrePersist;
 import javax.persistence.Table;
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
-import java.util.UUID;
 
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
-import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 
 @Table(name = "area")
 @Entity
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = {"id", "subscription"})
+@EqualsAndHashCode(of = {"gid", "areaType"})
 @ToString(exclude = {"subscription"})
 public class AreaEntity {
 
@@ -51,16 +41,12 @@ public class AreaEntity {
     @GeneratedValue(strategy = AUTO)
     private Long id;
 
-    @Size(min = 36, max = 36)
-    @Column(name = "area_guid", unique = true)
+    @Column(name = "gid", unique = true)
     @NotNull
-    private String guid;
+    private Long gid;
 
-    @ManyToOne(fetch = LAZY)
+    @ManyToOne()
     @JoinColumn(name = "subscription_id")
-    @Valid
-    @Setter(AccessLevel.MODULE)
-    @Getter(AccessLevel.NONE)
     private SubscriptionEntity subscription;
 
     @Column(name = "area_type")
@@ -68,16 +54,4 @@ public class AreaEntity {
     @NotNull
     private AreaType areaType;
 
-    @Column(name = "area_value_type")
-    @Enumerated(STRING)
-    @NotNull
-    private AreaValueType areaValueType;
-
-    @NotNull
-    private String value;
-
-    @PrePersist
-    private void prepersist() {
-        setGuid(UUID.randomUUID().toString());
-    }
 }

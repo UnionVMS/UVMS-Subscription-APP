@@ -45,7 +45,7 @@ public class TriggeredSubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
 	@BeforeEach
 	public void prepare(){
 		Operation operation = sequenceOf(
-				DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_CONDITION, INSERT_AREA
+				DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_CONDITION
 		);
 
 		DbSetup dbSetup = new DbSetup(new DataSourceDestination(ds), operation);

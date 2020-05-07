@@ -203,16 +203,6 @@
                 </xsd:restriction>
             </xsd:simpleType>
 
-            <xsd:simpleType name="AreaValueType">
-                <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="AREA_CODE" />
-                    <xsd:enumeration value="AREA_NAME" />
-                    <xsd:enumeration value="AREA_GUID" />
-                    <xsd:enumeration value="AREA_ID" />
-                    <xsd:enumeration value="UNKNOWN" />
-                </xsd:restriction>
-            </xsd:simpleType>
-
         </xsd:schema>
     </types>
     
