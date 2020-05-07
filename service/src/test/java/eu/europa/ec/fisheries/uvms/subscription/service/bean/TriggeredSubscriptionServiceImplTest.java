@@ -9,17 +9,37 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+
+import javax.enterprise.inject.Produces;
+import javax.inject.Inject;
+
+import eu.europa.ec.fisheries.uvms.subscription.service.dao.TriggeredSubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import org.jboss.weld.junit5.auto.EnableAutoWeld;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Service for triggered subscriptions.
+ * Tests for the {@link TriggeredSubscriptionServiceImpl}.
  */
-public interface TriggeredSubscriptionService {
-	/**
-	 * Save the given entity to persistent store.
-	 *
-	 * @param triggeredSubscription The entity to save
-	 * @return The saved entity
-	 */
-	TriggeredSubscriptionEntity save(TriggeredSubscriptionEntity triggeredSubscription);
+@EnableAutoWeld
+@ExtendWith(MockitoExtension.class)
+public class TriggeredSubscriptionServiceImplTest {
+
+	@Produces @Mock
+	private TriggeredSubscriptionDao triggeredSubscriptionDao;
+
+	@Inject
+	private TriggeredSubscriptionServiceImpl sut;
+
+	@Test
+	void testSave() {
+		TriggeredSubscriptionEntity entity = new TriggeredSubscriptionEntity();
+		sut.save(entity);
+		verify(triggeredSubscriptionDao).create(eq(entity));
+	}
 }

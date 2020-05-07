@@ -1,9 +1,15 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.domain.search;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
 
+import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.fisheries.uvms.subscription.model.enums.AccessibilityType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 /**
  * Subscription search criteria.
@@ -17,6 +23,22 @@ public interface SubscriptionSearchCriteria {
 	String getDescription();
 	ZonedDateTime getStartDate();
 	ZonedDateTime getEndDate();
+	ZonedDateTime getValidAt();
 	OutgoingMessageType getMessageType();
 	AccessibilityType getAccessibilityType();
+	/** Demand that the subscription fulfills any of the given area criteria. */
+	Collection<AreaCriterion> getInAnyArea();
+	/** Demand that the subscription trigger is any of these. */
+	Collection<TriggerType> getWithAnyTriggerType();
+
+	/**
+	 * Criterion to demand that a subscription is triggered by an area.
+	 */
+	@AllArgsConstructor
+	@Getter
+	@EqualsAndHashCode
+	class AreaCriterion {
+		private final AreaType type;
+		private final Long gid;
+	}
 }

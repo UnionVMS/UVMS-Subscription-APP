@@ -13,6 +13,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 import static eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper.createDateRangeQuery;
 import static eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper.createQuery;
+import static eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper.zdt;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier.CFR;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier.ICCAT;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier.IRCS;
@@ -32,6 +33,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -47,7 +49,9 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionSearchCriteriaImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
@@ -58,6 +62,7 @@ import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import lombok.SneakyThrows;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
@@ -72,7 +77,7 @@ import org.mapstruct.ap.internal.util.Collections;
 public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
     @Produces
-    private SubscriptionMapper mapper = new SubscriptionMapperImpl();
+    private final SubscriptionMapper mapper = new SubscriptionMapperImpl();
 
     @Inject
     private CustomMapper customMapper;
@@ -88,7 +93,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     @BeforeEach
     public void prepare(){
         Operation operation = sequenceOf(
-                DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_CONDITION
+                DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_AREA
         );
 
         DbSetup dbSetup = new DbSetup(new DataSourceDestination(ds), operation);
@@ -105,7 +110,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
     @Test
     void testCount() {
-        SubscriptionListQuery query = createQuery(null, true, null, null, null, "", null, null, null, null, null);
+        SubscriptionListQuery query = createQuery(null, true, null, null, null, "", null, null, null, null, null, null, null);
         Long count = sut.count(query.getCriteria());
         assertEquals(3L, count);
     }
@@ -119,14 +124,17 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
     protected static Stream<Arguments> queryParametersWithCriteria(){
         return Stream.of(
-                Arguments.of(createQuery("subscription3", null, null, null, null, "", null, null, null, null, null),1),
-                Arguments.of(createQuery("", null, null, 2L, 11L, "", null, null, null, null, null),4),
-                Arguments.of(createQuery("", null, null, null, null, "", null, null, null, null, null),4),
-                Arguments.of(createQuery("3", null, null, null, null, "", null, null, null, null, null),1),
-                Arguments.of(createQuery("subscription2", null, null, null, null, "", null, null, OutgoingMessageType.FA_QUERY, null, null),1),
-                Arguments.of(createQuery("", true, null, null, null, "", null, null, null, null, null),3),
-                Arguments.of(createQuery("subscription4", false, 11L, null, 11L, "", null, null, null, null, null),1),
-                Arguments.of(createQuery("", true, null, null, null, "tade", null, null, null, null, null),2)
+                Arguments.of(createQuery("subscription3", null, null, null, null, "", null, null, null, null, null, null, null),1),
+                Arguments.of(createQuery("", null, null, 2L, 11L, "", null, null, null, null, null, null, null),4),
+                Arguments.of(createQuery("", null, null, null, null, "", null, null, null, null, null, null, null),4),
+                Arguments.of(createQuery("3", null, null, null, null, "", null, null, null, null, null, null, null),1),
+                Arguments.of(createQuery("subscription2", null, null, null, null, "", null, null, null, OutgoingMessageType.FA_QUERY, null, null, null),1),
+                Arguments.of(createQuery("", true, null, null, null, "", null, null, null, null, null, null, null),3),
+                Arguments.of(createQuery("subscription4", false, 11L, null, 11L, "", null, null, null, null, null, null, null),1),
+                Arguments.of(createQuery("", true, null, null, null, "tade", null, null, null, null, null, null, null),2),
+                Arguments.of(createQuery("", true, null, null, null, "", null, null, zdt("20190101"), null, null, null, null),1),
+                Arguments.of(createQuery("", true, null, null, null, "", null, null, null, null, null, null, java.util.Collections.singleton(TriggerType.MANUAL)),1),
+                Arguments.of(createQuery("", true, null, null, null, "", null, null, null, null, null, null, Arrays.asList(TriggerType.SCHEDULER, TriggerType.MANUAL)),2)
         );
     }
 
@@ -162,10 +170,20 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
     protected static Stream<Arguments> queryParametersWithOrderingAsc(){
         return Stream.of(
-                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.NAME), 1L, 4L),
-                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.DESCRIPTION), 1L, 4L),
-                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.MESSAGETYPE), 2L, 4L)
+                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.NAME, null), 1L, 4L),
+                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.DESCRIPTION, null), 1L, 4L),
+                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.MESSAGETYPE, null), 2L, 4L)
         );
+    }
+
+    @Test
+    void testFindByAreas() {
+        SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
+        List<SubscriptionSearchCriteria.AreaCriterion> areas = Arrays.asList(new SubscriptionSearchCriteria.AreaCriterion(AreaType.EEZ, 101L), new SubscriptionSearchCriteria.AreaCriterion(AreaType.PORT, 222L));
+        criteria.setInAnyArea(areas);
+        List<SubscriptionEntity> results = sut.listSubscriptions(criteria);
+        assertEquals(1, results.size());
+        assertEquals(1L, results.get(0).getId());
     }
 
     @Test
@@ -279,6 +297,8 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
 
+        Integer originalNumberOfSavedAreas = findAllAreas().size();
+
         //create subscription
         AreaEntity area1 = new AreaEntity();
         area1.setGid(1L);
@@ -293,7 +313,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         sut.delete(id);
         em.flush();
         Integer numberOfSavedAreas = findAllAreas().size();
-        assertEquals(0, numberOfSavedAreas);
+        assertEquals(originalNumberOfSavedAreas, numberOfSavedAreas);
     }
 
     @Test

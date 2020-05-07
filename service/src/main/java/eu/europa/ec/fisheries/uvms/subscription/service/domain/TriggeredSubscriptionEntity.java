@@ -44,6 +44,6 @@ public class TriggeredSubscriptionEntity {
 	@JoinColumn(name = "subscription_id")
 	private SubscriptionEntity subscription;
 
-	@OneToMany(orphanRemoval = true, cascade = CascadeType.ALL)
+	@OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, mappedBy = "triggeredSubscription")
 	private Set<TriggeredSubscriptionDataEntity> data;
 }

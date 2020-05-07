@@ -10,7 +10,9 @@ import javax.persistence.Table;
 
 import java.util.Objects;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -21,6 +23,8 @@ import lombok.Setter;
 @Table(name = "triggered_subscription_data")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class TriggeredSubscriptionDataEntity {
 	@Id
 	@ManyToOne

@@ -20,31 +20,39 @@ import javax.persistence.criteria.CriteriaUpdate;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEmailConfiguration_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecution_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.OrderByData;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AreaCriterion;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * {@link SubscriptionDao} JPA implementation.
+ */
 @ApplicationScoped
 @Slf4j
 class SubscriptionDaoImpl implements SubscriptionDao {
@@ -58,16 +66,29 @@ class SubscriptionDaoImpl implements SubscriptionDao {
 
     @Override
     public List<SubscriptionEntity> listSubscriptions(@Valid @NotNull SubscriptionListQuery subscriptionListParams) {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<SubscriptionEntity> query = cb.createQuery(SubscriptionEntity.class);
-        Root<SubscriptionEntity> subscription = query.from(SubscriptionEntity.class);
-        query.select(subscription);
-        applyCriteria(query, subscription, subscriptionListParams.getCriteria());
-        applyOrder(query, subscription, subscriptionListParams.getOrderBy());
+        CriteriaQuery<SubscriptionEntity> query = makeSubscriptionEntityCriteriaQuery(subscriptionListParams.getCriteria(), subscriptionListParams.getOrderBy());
         return em.createQuery(query)
                 .setFirstResult(subscriptionListParams.getPagination().getOffset() * subscriptionListParams.getPagination().getPageSize())
                 .setMaxResults(subscriptionListParams.getPagination().getPageSize())
                 .getResultList();
+    }
+
+    @Override
+    public List<SubscriptionEntity> listSubscriptions(@Valid @NotNull SubscriptionSearchCriteria criteria) {
+        CriteriaQuery<SubscriptionEntity> query = makeSubscriptionEntityCriteriaQuery(criteria, null);
+        return em.createQuery(query).getResultList();
+    }
+
+    private CriteriaQuery<SubscriptionEntity> makeSubscriptionEntityCriteriaQuery(SubscriptionSearchCriteria criteria, OrderByData<ColumnType> orderBy) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<SubscriptionEntity> query = cb.createQuery(SubscriptionEntity.class);
+        Root<SubscriptionEntity> subscription = query.from(SubscriptionEntity.class);
+        query.select(subscription);
+        applyCriteria(query, subscription, criteria);
+        if (orderBy != null) {
+            applyOrder(query, subscription, orderBy);
+        }
+        return query;
     }
 
     private void applyOrder(CriteriaQuery<?> query, Root<SubscriptionEntity> subscription, OrderByData<ColumnType> orderByData) {
@@ -147,13 +168,37 @@ class SubscriptionDaoImpl implements SubscriptionDao {
                 predicates.add(cb.lessThan(subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.startDate), Date.from(criteria.getEndDate().toInstant())));
             }
         }
+        if (criteria.getValidAt() != null) {
+            predicates.add(cb.between(
+                    cb.literal(Date.from(criteria.getValidAt().toInstant())),
+                    subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.startDate),
+                    subscription.get(SubscriptionEntity_.validityPeriod).get(DateRange_.endDate)
+            ));
+        }
         if(criteria.getMessageType() != null){
             predicates.add(cb.equal(subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.messageType), criteria.getMessageType()));
         }
         if(criteria.getAccessibilityType() != null){
             predicates.add(cb.equal(subscription.get(SubscriptionEntity_.accessibility), criteria.getAccessibilityType()));
         }
+        if(criteria.getInAnyArea() != null && !criteria.getInAnyArea().isEmpty()) {
+            predicates.add(makeAreasSubquery(query, subscription, cb, criteria.getInAnyArea()));
+        }
+        if(criteria.getWithAnyTriggerType() != null && !criteria.getWithAnyTriggerType().isEmpty()) {
+            predicates.add(subscription.get(SubscriptionEntity_.execution).get(SubscriptionExecution_.triggerType).in(criteria.getWithAnyTriggerType()));
+        }
         query.where(cb.and(predicates.toArray(new Predicate[0])));
+    }
+
+    private Predicate makeAreasSubquery(CriteriaQuery<?> query, Root<SubscriptionEntity> subscription, CriteriaBuilder cb, Collection<AreaCriterion> areas) {
+        Subquery<Long> subquery = query.subquery(Long.class);
+        Root<AreaEntity> area = subquery.from(AreaEntity.class);
+        subquery.select(area.get(AreaEntity_.id));
+        Predicate[] predicates = areas.stream()
+                .map(a -> cb.and(cb.equal(area.get(AreaEntity_.gid), a.getGid()), cb.equal(area.get(AreaEntity_.areaType), a.getType())))
+                .toArray(Predicate[]::new);
+        subquery.where(cb.and(cb.equal(area.get(AreaEntity_.subscription), subscription), cb.or(predicates)));
+        return cb.exists(subquery);
     }
 
     @Override

@@ -1,0 +1,9 @@
+<w:createMovementBatchResponse
+		xmlns:w="urn:module.movement.schema.fisheries.ec.europa.eu:v1"
+		xmlns:m="urn:movement.schema.fisheries.ec.europa.eu:v1"
+		xmlns:c="urn:common.movement.schema.fisheries.ec.europa.eu:v1"
+>
+	<response>NOK</response>
+	<movements></movements>
+	<movements></movements>
+</w:createMovementBatchResponse>
