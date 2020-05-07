@@ -17,6 +17,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.SubscriptionHasUniqueName;
@@ -60,4 +61,7 @@ public class SubscriptionDto {
 
     @JsonFormat(shape = STRING, pattern = DATE_TIME_UI_FORMAT)
     public Date endDate;
+
+    @Valid
+    private Set<AreaDto> areas;
 }

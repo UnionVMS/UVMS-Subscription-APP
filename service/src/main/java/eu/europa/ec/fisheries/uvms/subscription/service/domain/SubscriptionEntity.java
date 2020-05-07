@@ -10,6 +10,7 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
+import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.EnumType.STRING;
 import static javax.persistence.GenerationType.AUTO;
 
@@ -23,11 +24,14 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
 import eu.europa.fisheries.uvms.subscription.model.enums.AccessibilityType;
@@ -64,9 +68,6 @@ public class SubscriptionEntity implements Serializable {
 //    @Valid
 //    private Set<ConditionEntity> conditions = new HashSet<>();
 //
-//    @OneToMany(mappedBy = "subscription", cascade = MERGE, orphanRemoval = true)
-//    @Valid
-//    private Set<AreaEntity> areas = new HashSet<>();
 
     @Column(unique = true, name = "name")
     @NotNull
@@ -99,6 +100,8 @@ public class SubscriptionEntity implements Serializable {
     @Valid
     private SubscriptionExecution execution;
 
-    // TODO: Start conditions
-    // TODO: Stop conditions
+    @OneToMany(mappedBy = "subscription", cascade = ALL, orphanRemoval = true)
+    @Valid
+    private Set<AreaEntity> areas = new HashSet<>();
+
 }

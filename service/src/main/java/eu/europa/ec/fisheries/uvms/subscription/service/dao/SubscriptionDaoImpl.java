@@ -25,10 +25,13 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEmailConfiguration_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput_;
@@ -36,7 +39,6 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubsc
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.OrderByData;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfiguration_;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
@@ -165,6 +167,7 @@ class SubscriptionDaoImpl implements SubscriptionDao {
 
     @Override
     public SubscriptionEntity createEntity(SubscriptionEntity entity) {
+        setAreasSubscription(entity);
         em.persist(entity);
         return entity;
     }
@@ -197,6 +200,8 @@ class SubscriptionDaoImpl implements SubscriptionDao {
 
     @Override
     public SubscriptionEntity update(SubscriptionEntity entity) {
+        setAreasSubscription(entity);
+        updateAreas(entity);
         return em.merge(entity);
     }
 
@@ -230,5 +235,17 @@ class SubscriptionDaoImpl implements SubscriptionDao {
         Root<EmailBodyEntity> fromEmailBodyEntity = delete.from(EmailBodyEntity.class);
         delete.where(cb.equal(fromEmailBodyEntity.get(EmailBodyEntity_.SUBSCRIPTION), subscription));
         em.remove(subscription);
+    }
+
+    private void setAreasSubscription(SubscriptionEntity subscription) {
+        if(subscription.getAreas() != null){
+            subscription.getAreas().forEach(area -> area.setSubscription(subscription));
+        }
+    }
+
+    private void updateAreas(SubscriptionEntity subscription) {
+        if(subscription.getAreas() != null){
+            subscription.getAreas().stream().filter(area -> area.getId()!=null).forEach(em::merge);
+        }
     }
 }

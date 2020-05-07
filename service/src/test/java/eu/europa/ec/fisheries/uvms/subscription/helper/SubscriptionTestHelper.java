@@ -21,7 +21,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Random;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
@@ -34,14 +33,11 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailCon
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDTO;
-import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.AreaValueType;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
-import org.apache.commons.lang.RandomStringUtils;
 
 
 public class SubscriptionTestHelper {
@@ -101,15 +97,6 @@ public class SubscriptionTestHelper {
         subscriptionEntity.setName(randomAlphabetic(40));
         subscriptionEntity.setActive(rnd.nextBoolean());
         return subscriptionEntity;
-    }
-
-    @SuppressWarnings("unused")
-    public static AreaEntity randomArea() {
-        AreaEntity areaEntity = new AreaEntity();
-        areaEntity.setValue(RandomStringUtils.randomAlphabetic(100));
-        areaEntity.setAreaValueType(AreaValueType.values()[new Random().nextInt(AreaValueType.values().length)]);
-        areaEntity.setAreaType(AreaType.values()[new Random().nextInt(AreaType.values().length)]);
-        return areaEntity;
     }
 
     public static SubscriptionDto createSubscriptionDtoWithEmailConfig(Long id, String name, Boolean active, OutgoingMessageType messageType, Boolean hasEmail,

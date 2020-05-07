@@ -39,8 +39,6 @@ public abstract class BaseSubscriptionInMemoryTest extends BaseDAOTest {
             .values(1L, 1L, 1, "FLUX_FA_REPORT_MESSAGE", "SENDER", "ORGANISATION", "UNKNOWN", "BEL", "START").build()
     );
 
-    static final Operation INSERT_AREA = sequenceOf(insertInto("subscription.area").columns("id", "area_guid", "subscription_id", "area_type", "area_value_type", "value").values(1L, "0dbe00af-a300-4cea-b1d7-1e6826ff8826", 1L, "EEZ", "AREA_GUID", "182022980198").values(2L, "0d20128e-097b-4ca0-b7d0-71bedf17d215", 1L, "USERAREA", "AREA_NAME", "myArea").values(3L, "be11e3b0-e1cc-4b9c-903b-b86d8c173798", 1L, "USERAREA", "AREA_NAME", "myArea").build());
-
     @Override protected String getSchema() {
         return "subscription";
     }

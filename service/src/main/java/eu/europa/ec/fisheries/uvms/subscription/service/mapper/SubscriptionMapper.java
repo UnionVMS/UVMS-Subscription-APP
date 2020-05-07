@@ -16,7 +16,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfiguration;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEmailConfiguration;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfigurationDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;

@@ -19,7 +19,9 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
@@ -27,9 +29,11 @@ import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
 import eu.europa.ec.fisheries.uvms.subscription.service.authentication.AuthenticationContext;
 import eu.europa.ec.fisheries.uvms.subscription.service.authorisation.AllowedRoles;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.AreaDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfigurationDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListResponseDto;
@@ -163,6 +167,7 @@ class SubscriptionServiceBean implements SubscriptionService {
         if (entityById == null){
             throw new EntityDoesNotExistException("Subscription with id " + subscription.getId());
         }
+        updateExistingAreasWithId(subscription.getAreas(), entityById.getAreas());
         mapper.updateEntity(subscription, entityById);
         SubscriptionEntity subscriptionEntity = subscriptionDAO.update(entityById);
         EmailBodyEntity emailBodyEntity = null;
@@ -212,5 +217,18 @@ class SubscriptionServiceBean implements SubscriptionService {
     public Boolean checkNameAvailability(@NotNull final String name, Long id) {
         SubscriptionEntity subscriptionByName = subscriptionDAO.findSubscriptionByName(name);
         return subscriptionByName == null || subscriptionByName.getId().equals(id);
+    }
+
+    private void updateExistingAreasWithId(Set<AreaDto> newAreas, Set<AreaEntity> oldAreas) {
+        if(newAreas != null && oldAreas !=null){
+            for(AreaDto areaDto : newAreas) {
+                for(AreaEntity areaEntity : oldAreas) {
+                    if(areaDto.getGid().equals(areaEntity.getGid()) && areaDto.getAreaType().equals(areaEntity.getAreaType())){
+                        areaDto.setId(areaEntity.getId());
+                        break;
+                    }
+                }
+            }
+        }
     }
 }
