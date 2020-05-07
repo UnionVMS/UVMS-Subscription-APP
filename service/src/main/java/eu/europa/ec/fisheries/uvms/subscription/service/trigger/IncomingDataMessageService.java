@@ -7,24 +7,17 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.fisheries.uvms.subscription.model.exceptions;
+package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
 /**
- * Signals an error during the execution of a subscription.
+ * Service that handles incoming messages.
  */
-public class ExecutionException extends ApplicationException {
-	public ExecutionException() {
-	}
-
-	public ExecutionException(String message) {
-		super(message);
-	}
-
-	public ExecutionException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
-	public ExecutionException(Throwable cause) {
-		super(cause);
-	}
+public interface IncomingDataMessageService {
+	/**
+	 * Handle an incoming message.
+	 *
+	 * @param subscriptionSource The source of this message (movement, activity etc)
+	 * @param representation The representation of this message, to be passed to an appropriate {@link TriggeredSubscriptionCreator}
+	 */
+	void handle(String subscriptionSource, String representation);
 }

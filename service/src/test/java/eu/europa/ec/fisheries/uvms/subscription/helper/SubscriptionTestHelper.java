@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Random;
 
@@ -45,15 +46,20 @@ public class SubscriptionTestHelper {
     private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private SubscriptionTestHelper() {
-
+        // NOOP
     }
 
     public static SubscriptionListQuery createDateRangeQuery(String startDate, String endDate) {
-        return createQuery(null, null, null, null, null, null, startDate == null ? null : LocalDate.parse(startDate, DTF).atStartOfDay(ZoneId.of("UTC")), endDate == null ? null : LocalDate.parse(endDate, DTF).atStartOfDay(ZoneId.of("UTC")), null, null, null);
+        return createQuery(null, null, null, null, null, null, startDate == null ? null : LocalDate.parse(startDate, DTF).atStartOfDay(ZoneId.of("UTC")), endDate == null ? null : LocalDate.parse(endDate, DTF).atStartOfDay(ZoneId.of("UTC")), null, null, null, null, null);
+    }
+
+    public static ZonedDateTime zdt(String date) {
+        return date == null ? null : LocalDate.parse(date, DTF).atStartOfDay(ZoneId.of("UTC"));
     }
 
     public static SubscriptionListQuery createQuery(String name, Boolean active, Long organisation, Long endpoint, Long channel,
-                                                    String description, ZonedDateTime startDate, ZonedDateTime endDate, OutgoingMessageType messageType, DirectionType direction, ColumnType field) {
+                                                    String description, ZonedDateTime startDate, ZonedDateTime endDate, ZonedDateTime validAt,
+                                                    OutgoingMessageType messageType, DirectionType direction, ColumnType field, Collection<TriggerType> triggerTypes) {
         SubscriptionListQuery query = mock(SubscriptionListQuery.class);
         SubscriptionSearchCriteria searchCriteria = mock(SubscriptionSearchCriteria.class);
         PaginationData pagination = mock(PaginationData.class);
@@ -68,7 +74,9 @@ public class SubscriptionTestHelper {
         when(searchCriteria.getDescription()).thenReturn(description);
         when(searchCriteria.getStartDate()).thenReturn(startDate);
         when(searchCriteria.getEndDate()).thenReturn(endDate);
+        when(searchCriteria.getValidAt()).thenReturn(validAt);
         when(searchCriteria.getMessageType()).thenReturn(messageType);
+        when(searchCriteria.getWithAnyTriggerType()).thenReturn(triggerTypes);
         when(query.getCriteria()).thenReturn(searchCriteria);
 
         when(pagination.getPageSize()).thenReturn(25);

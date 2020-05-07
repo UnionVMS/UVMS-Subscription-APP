@@ -9,17 +9,42 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+
+import eu.europa.ec.fisheries.uvms.subscription.service.dao.TriggeredSubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 
 /**
- * Service for triggered subscriptions.
+ * Implementation of the {@link TriggeredSubscriptionService}.
  */
-public interface TriggeredSubscriptionService {
+@ApplicationScoped
+@Transactional
+class TriggeredSubscriptionServiceImpl implements TriggeredSubscriptionService {
+
+	private TriggeredSubscriptionDao triggeredSubscriptionDao;
+
 	/**
-	 * Save the given entity to persistent store.
+	 * Injection constructor.
 	 *
-	 * @param triggeredSubscription The entity to save
-	 * @return The saved entity
+	 * @param triggeredSubscriptionDao The DAO
 	 */
-	TriggeredSubscriptionEntity save(TriggeredSubscriptionEntity triggeredSubscription);
+	@Inject
+	public TriggeredSubscriptionServiceImpl(TriggeredSubscriptionDao triggeredSubscriptionDao) {
+		this.triggeredSubscriptionDao = triggeredSubscriptionDao;
+	}
+
+	/**
+	 * Constructor for frameworks.
+	 */
+	@SuppressWarnings("unused")
+	TriggeredSubscriptionServiceImpl() {
+		// NOOP
+	}
+
+	@Override
+	public TriggeredSubscriptionEntity save(TriggeredSubscriptionEntity triggeredSubscription) {
+		return triggeredSubscriptionDao.create(triggeredSubscription);
+	}
 }

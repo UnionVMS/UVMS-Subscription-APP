@@ -10,21 +10,21 @@
 package eu.europa.fisheries.uvms.subscription.model.exceptions;
 
 /**
- * Signals an error during the execution of a subscription.
+ * Indicate an error in message format, e.g. a parsing error.
  */
-public class ExecutionException extends ApplicationException {
-	public ExecutionException() {
+public class MessageFormatException extends ApplicationException {
+	public MessageFormatException() {
 	}
 
-	public ExecutionException(String message) {
+	public MessageFormatException(String message) {
 		super(message);
 	}
 
-	public ExecutionException(String message, Throwable cause) {
+	public MessageFormatException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public ExecutionException(Throwable cause) {
+	public MessageFormatException(Throwable cause) {
 		super(cause);
 	}
 }
