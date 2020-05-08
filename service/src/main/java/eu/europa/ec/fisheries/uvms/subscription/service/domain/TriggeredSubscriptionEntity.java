@@ -13,6 +13,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.NotNull;
 
 import java.util.Date;
 import java.util.Set;
@@ -46,4 +47,16 @@ public class TriggeredSubscriptionEntity {
 
 	@OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, mappedBy = "triggeredSubscription")
 	private Set<TriggeredSubscriptionDataEntity> data;
+
+	/**
+	 * This is the inverse of what is referenced as "stop" in the specifications.
+	 */
+	@Column(name="active")
+	private Boolean active;
+
+	/**
+	 * Referenced as incoming message id in specifications.
+	 */
+	@Column(name="trigger_message_id")
+	private String triggerMessageId;
 }
