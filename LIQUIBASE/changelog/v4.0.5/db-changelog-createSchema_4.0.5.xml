@@ -8,5 +8,6 @@
     <include file="/schema/condition.xml" />
     <include file="/schema/subscription.xml" />
     <include file="/schema/triggeredsubscription.xml" />
+    <include file="/schema/subscriptionexecution.xml" />
 
 </databaseChangeLog>
