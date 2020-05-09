@@ -7,53 +7,42 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.ec.fisheries.uvms.subscription.service.dao;
+package eu.europa.ec.fisheries.uvms.subscription.service.execution;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
-import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
+import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionExecutionDao;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 
 /**
- * Implementation of {@link TriggeredSubscriptionDao} using JPA.
+ * Implementation of the {@link SubscriptionExecutionService}.
  */
 @ApplicationScoped
-class TriggeredSubscriptionDaoImpl implements TriggeredSubscriptionDao {
+class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 
-	private EntityManager em;
+	private SubscriptionExecutionDao dao;
 
 	/**
 	 * Constructor for injection.
 	 *
-	 * @param em The entity manager
+	 * @param dao The DAO
 	 */
 	@Inject
-	public TriggeredSubscriptionDaoImpl(EntityManager em) {
-		this.em = em;
+	public SubscriptionExecutionServiceImpl(SubscriptionExecutionDao dao) {
+		this.dao = dao;
 	}
 
 	/**
 	 * Constructor for frameworks.
 	 */
 	@SuppressWarnings("unused")
-	TriggeredSubscriptionDaoImpl() {
+	SubscriptionExecutionServiceImpl() {
 		// NOOP
 	}
 
 	@Override
-	public TriggeredSubscriptionEntity create(TriggeredSubscriptionEntity entity) {
-		em.persist(entity);
-		return entity;
-	}
-
-	@Override
-	public TriggeredSubscriptionEntity getById(Long id) {
-		TriggeredSubscriptionEntity result = em.find(TriggeredSubscriptionEntity.class, id);
-		if (result == null) {
-			throw new EntityDoesNotExistException("TriggeredSubscription with id " + id);
-		}
-		return result;
+	public SubscriptionExecutionEntity save(SubscriptionExecutionEntity entity) {
+		return dao.create(entity);
 	}
 }

@@ -6,8 +6,17 @@
 //
 package eu.europa.ec.fisheries.uvms.subscription.service.execution;
 
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
+
 /**
  * Service to execute a subscription.
  */
 public interface SubscriptionExecutionService {
+	/**
+	 * Save the given entity to persistent store.
+	 *
+	 * @param entity The entity to save
+	 * @return The saved entity
+	 */
+	SubscriptionExecutionEntity save(SubscriptionExecutionEntity entity);
 }

@@ -6,12 +6,13 @@
 	<persistence-unit name="testPU" transaction-type="RESOURCE_LOCAL">
 		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
-        <class>eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity</class>
-        <class>eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity</class>
-		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.ConditionEntity</class>
 		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity</class>
-		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity</class>
+		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.ConditionEntity</class>
+		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity</class>
+		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity</class>
+		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity</class>
 		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity</class>
+		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity</class>
 
 		<properties>
 			<property name="hibernate.default_schema" value="subscription" />

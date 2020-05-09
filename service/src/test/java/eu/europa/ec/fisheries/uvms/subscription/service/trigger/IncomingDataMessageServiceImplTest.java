@@ -11,17 +11,24 @@ package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import java.util.Arrays;
+import java.util.Optional;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.TriggeredSubscriptionService;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionExecutionService;
+import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +49,12 @@ public class IncomingDataMessageServiceImplTest {
 	@Produces @Mock
 	private TriggeredSubscriptionService triggeredSubscriptionService;
 
+	@Produces @Mock
+	private SubscriptionExecutionScheduler subscriptionExecutionScheduler;
+
+	@Produces @Mock
+	private SubscriptionExecutionService subscriptionExecutionService;
+
 	@Inject
 	private IncomingDataMessageServiceImpl sut;
 
@@ -57,14 +70,22 @@ public class IncomingDataMessageServiceImplTest {
 		TriggeredSubscriptionEntity dummy1 = new TriggeredSubscriptionEntity();
 		TriggeredSubscriptionEntity dummy2 = new TriggeredSubscriptionEntity();
 		when(triggeredSubscriptionCreator.createTriggeredSubscriptions(REPRESENTATION)).thenReturn(Arrays.stream(new TriggeredSubscriptionEntity[]{dummy1, dummy2}));
+		when(triggeredSubscriptionService.save(any())).thenAnswer(iom -> iom.getArgument(0));
+		SubscriptionExecutionEntity exec1 = new SubscriptionExecutionEntity();
+		when(subscriptionExecutionScheduler.scheduleNext(same(dummy1))).thenReturn(Optional.of(exec1));
+		when(subscriptionExecutionScheduler.scheduleNext(same(dummy2))).thenReturn(Optional.empty());
+
 		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION);
+
 		ArgumentCaptor<TriggeredSubscriptionEntity> captor = ArgumentCaptor.forClass(TriggeredSubscriptionEntity.class);
 		verify(triggeredSubscriptionService, times(2)).save(captor.capture());
 		assertEquals(Arrays.asList(dummy1, dummy2), captor.getAllValues());
+		verify(subscriptionExecutionService).save(exec1);
+		verifyNoMoreInteractions(subscriptionExecutionService);
 	}
 
 	@Test
-	void testHandleThrowsForUnknwonSource() {
+	void testHandleThrowsForUnknownSource() {
 		assertThrows(IllegalStateException.class, () -> sut.handle("unknown source", REPRESENTATION));
 	}
 }

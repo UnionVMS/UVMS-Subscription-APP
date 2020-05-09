@@ -19,6 +19,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.TriggeredSubscriptionService;
+import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionExecutionService;
+import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
 
 /**
  * Implementation of the {@link IncomingDataMessageService}.
@@ -27,21 +29,36 @@ import eu.europa.ec.fisheries.uvms.subscription.service.bean.TriggeredSubscripti
 @Transactional
 class IncomingDataMessageServiceImpl implements IncomingDataMessageService {
 
-	private final TriggeredSubscriptionService triggeredSubscriptionService;
-	private final Map<String, TriggeredSubscriptionCreator> subscriptionCreators;
+	private TriggeredSubscriptionService triggeredSubscriptionService;
+	private Map<String, TriggeredSubscriptionCreator> subscriptionCreators;
+	private SubscriptionExecutionScheduler subscriptionExecutionScheduler;
+	private SubscriptionExecutionService subscriptionExecutionService;
 
 	/**
 	 * Injection constructor.
 	 *
-	 * @param triggeredSubscriptionService The service
+	 * @param triggeredSubscriptionService   The service
+	 * @param triggeredSubscriptionCreators  All the subscription creators
+	 * @param subscriptionExecutionScheduler The scheduler
+	 * @param subscriptionExecutionService   The subscription execution service
 	 */
 	@Inject
-	public IncomingDataMessageServiceImpl(TriggeredSubscriptionService triggeredSubscriptionService, Instance<TriggeredSubscriptionCreator> triggeredSubscriptionCreators) {
+	public IncomingDataMessageServiceImpl(TriggeredSubscriptionService triggeredSubscriptionService, Instance<TriggeredSubscriptionCreator> triggeredSubscriptionCreators, SubscriptionExecutionScheduler subscriptionExecutionScheduler, SubscriptionExecutionService subscriptionExecutionService) {
 		this.triggeredSubscriptionService = triggeredSubscriptionService;
 		subscriptionCreators = triggeredSubscriptionCreators.stream().collect(Collectors.toMap(
 				TriggeredSubscriptionCreator::getEligibleSubscriptionSource,
 				Function.identity()
 		));
+		this.subscriptionExecutionScheduler = subscriptionExecutionScheduler;
+		this.subscriptionExecutionService = subscriptionExecutionService;
+	}
+
+	/**
+	 * Constructor for frameworks.
+	 */
+	@SuppressWarnings("unused")
+	IncomingDataMessageServiceImpl() {
+		// NOOP
 	}
 
 	@Override
@@ -49,6 +66,10 @@ class IncomingDataMessageServiceImpl implements IncomingDataMessageService {
 		TriggeredSubscriptionCreator triggeredSubscriptionCreator = Optional.ofNullable(subscriptionCreators.get(subscriptionSource))
 				.orElseThrow(() -> new IllegalStateException("unknown subscription source: " + subscriptionSource));
 		triggeredSubscriptionCreator.createTriggeredSubscriptions(representation)
-				.forEach(triggeredSubscriptionService::save);
+				.map(triggeredSubscriptionService::save)
+				.map(subscriptionExecutionScheduler::scheduleNext)
+				.filter(Optional::isPresent)
+				.map(Optional::get)
+				.forEach(subscriptionExecutionService::save);
 	}
 }
