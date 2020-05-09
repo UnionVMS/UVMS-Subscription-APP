@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -20,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import javax.xml.datatype.DatatypeFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,6 +57,11 @@ public class MovementTriggeredSubscriptionCreatorTest {
 	@Inject
 	private MovementTriggeredSubscriptionCreator sut;
 
+	@Produces
+	DatatypeFactory getDatatypeFactory() throws Exception {
+		return DatatypeFactory.newInstance();
+	}
+
 	@Test
 	void testJAXBExceptionResultsInApplicationException() {
 		assertThrows(MessageFormatException.class, () -> sut.createTriggeredSubscriptions("bad"));
@@ -85,6 +92,7 @@ public class MovementTriggeredSubscriptionCreatorTest {
 		assertEquals(1, result.size());
 		assertSame(subscription, result.get(0).getSubscription());
 		assertNotNull(result.get(0).getCreationDate());
+		assertTrue(result.get(0).getActive());
 		@SuppressWarnings("unchecked")
 		ArgumentCaptor<Collection<AreaCriterion>> captor = ArgumentCaptor.forClass(Collection.class);
 		@SuppressWarnings("unchecked")

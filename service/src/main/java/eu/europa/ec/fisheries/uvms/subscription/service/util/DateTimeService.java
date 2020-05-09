@@ -7,27 +7,44 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.ec.fisheries.uvms.subscription.service.dao;
+package eu.europa.ec.fisheries.uvms.subscription.service.util;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
- * DAO for {@link TriggeredSubscriptionEntity}.
+ * Date and time utilities.
+ * <p>
+ * This class abstracts the current time facilities of the system, to
+ * help with testing time-sensitive pieces of code.
  */
-public interface TriggeredSubscriptionDao {
+public interface DateTimeService {
 	/**
-	 * Persist the given entity.
-	 *
-	 * @param entity The triggered subscription to persist
-	 * @return The persisted entity, with id filled
+	 * Get the server's current local datetime.
 	 */
-	TriggeredSubscriptionEntity create(TriggeredSubscriptionEntity entity);
+	LocalDateTime getNow();
 
 	/**
-	 * Find the triggered subscription with the given id.
-	 *
-	 * @param id The id
-	 * @return The found triggered subscription, throws {@code EntityDoesNotExistException} if not found
+	 * Get the server's current datetime as a traditional {@code java.util.Date}.
 	 */
-	TriggeredSubscriptionEntity getById(Long id);
+	Date getNowAsDate();
+
+	/**
+	 * Get the server's current datetime as an {@code Instant}.
+	 */
+	Instant getNowAsInstant();
+
+	/**
+	 * Get the server's current date.
+	 */
+	LocalDate getToday();
+
+	/**
+	 * Get the system current time in milliseconds.
+	 *
+	 * @return The system current time in milliseconds
+	 */
+	long currentTimeMillis();
 }

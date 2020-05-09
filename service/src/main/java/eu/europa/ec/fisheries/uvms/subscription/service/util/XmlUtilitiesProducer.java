@@ -4,7 +4,7 @@
 // Any modifications to this file will be lost upon recompilation of the source schema.
 // Generated on: 2020.05.04 at 05:32:16 PM EEST
 //
-package eu.europa.ec.fisheries.uvms.subscription.service.bean;
+package eu.europa.ec.fisheries.uvms.subscription.service.util;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;

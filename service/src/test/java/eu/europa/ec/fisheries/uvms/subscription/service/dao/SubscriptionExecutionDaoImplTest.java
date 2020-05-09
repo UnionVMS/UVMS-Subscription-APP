@@ -11,40 +11,35 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 
-import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.stream.Collectors;
+import java.util.List;
 
 import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
-import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for the {@link TriggeredSubscriptionDao}.
+ * Tests for the {@link SubscriptionExecutionDaoImpl}.
  */
 @EnableAutoWeld
-public class TriggeredSubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
+public class SubscriptionExecutionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
 	@Inject
-	private SubscriptionDaoImpl subscriptionDao;
-
-	@Inject
-	private TriggeredSubscriptionDaoImpl sut;
+	private SubscriptionExecutionDaoImpl sut;
 
 	@Produces
 	EntityManager getEntityManager() {
@@ -62,35 +57,31 @@ public class TriggeredSubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
 	}
 
 	@Test
-	void testCreateTriggeredSubscription() {
+	void testCreate() {
 		em.getTransaction().begin();
-		SubscriptionEntity subscription = subscriptionDao.findById(3L);
-		TriggeredSubscriptionEntity entity = new TriggeredSubscriptionEntity();
-		entity.setSubscription(subscription);
-		entity.setSource("SOURCE");
-		entity.setCreationDate(new Date());
-		entity.setData(new HashSet<>());
-		addTriggeredSubscriptionDataEntity(entity, "key1", "value1");
-		addTriggeredSubscriptionDataEntity(entity, "key2", "value2");
-		entity = sut.create(entity);
+		SubscriptionEntity subscription = em.find(SubscriptionEntity.class, 1L);
+		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
+		triggeredSubscription.setActive(true);
+		triggeredSubscription.setCreationDate(new Date());
+		triggeredSubscription.setSource("test");
+		triggeredSubscription.setSubscription(subscription);
+		em.persist(triggeredSubscription);
+		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
+		execution.setCreationDate(new Date());
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(new Date());
+		calendar.add(Calendar.DATE, 1);
+		execution.setRequestedTime(calendar.getTime());
+		execution.setStatus(SubscriptionExecutionStatusType.PENDING);
+		execution.setTriggeredSubscription(triggeredSubscription);
+
+		sut.create(execution);
+
 		em.getTransaction().commit();
 		em.clear();
-		assertNotNull(entity.getId());
-		TriggeredSubscriptionEntity entityFromDb = sut.getById(entity.getId());
-		assertNotNull(entityFromDb);
-		assertEquals(new HashSet<>(Arrays.asList("key1=value1","key2=value2")), entityFromDb.getData().stream().map(d -> d.getKey() + '=' + d.getValue()).collect(Collectors.toSet()));
-	}
-
-	@Test
-	void testGetByIdForNonExistingId() {
-		assertThrows(EntityDoesNotExistException.class, () -> sut.getById(99999999L));
-	}
-
-	private void addTriggeredSubscriptionDataEntity(TriggeredSubscriptionEntity entity, String key, String value) {
-		TriggeredSubscriptionDataEntity data = new TriggeredSubscriptionDataEntity();
-		data.setTriggeredSubscription(entity);
-		data.setKey(key);
-		data.setValue(value);
-		entity.getData().add(data);
+		TypedQuery<SubscriptionExecutionEntity> q = em.createQuery("SELECT e FROM SubscriptionExecutionEntity e", SubscriptionExecutionEntity.class);
+		List<SubscriptionExecutionEntity> results = q.getResultList();
+		assertEquals(1, results.size());
+		assertEquals(1L, results.get(0).getTriggeredSubscription().getSubscription().getId());
 	}
 }

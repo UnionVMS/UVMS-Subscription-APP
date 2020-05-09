@@ -9,25 +9,17 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 
 /**
- * DAO for {@link TriggeredSubscriptionEntity}.
+ * DAO for the {@link SubscriptionExecutionEntity}.
  */
-public interface TriggeredSubscriptionDao {
+public interface SubscriptionExecutionDao {
 	/**
 	 * Persist the given entity.
 	 *
-	 * @param entity The triggered subscription to persist
+	 * @param entity The subscription execution to persist
 	 * @return The persisted entity, with id filled
 	 */
-	TriggeredSubscriptionEntity create(TriggeredSubscriptionEntity entity);
-
-	/**
-	 * Find the triggered subscription with the given id.
-	 *
-	 * @param id The id
-	 * @return The found triggered subscription, throws {@code EntityDoesNotExistException} if not found
-	 */
-	TriggeredSubscriptionEntity getById(Long id);
+	SubscriptionExecutionEntity create(SubscriptionExecutionEntity entity);
 }

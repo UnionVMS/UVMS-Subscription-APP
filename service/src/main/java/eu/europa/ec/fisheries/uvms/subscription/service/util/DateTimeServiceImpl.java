@@ -7,27 +7,41 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.ec.fisheries.uvms.subscription.service.dao;
+package eu.europa.ec.fisheries.uvms.subscription.service.util;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import javax.enterprise.context.ApplicationScoped;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
- * DAO for {@link TriggeredSubscriptionEntity}.
+ * Implementation of {@link DateTimeService}.
  */
-public interface TriggeredSubscriptionDao {
-	/**
-	 * Persist the given entity.
-	 *
-	 * @param entity The triggered subscription to persist
-	 * @return The persisted entity, with id filled
-	 */
-	TriggeredSubscriptionEntity create(TriggeredSubscriptionEntity entity);
+@ApplicationScoped
+class DateTimeServiceImpl implements DateTimeService {
+	@Override
+	public LocalDateTime getNow() {
+		return LocalDateTime.now();
+	}
 
-	/**
-	 * Find the triggered subscription with the given id.
-	 *
-	 * @param id The id
-	 * @return The found triggered subscription, throws {@code EntityDoesNotExistException} if not found
-	 */
-	TriggeredSubscriptionEntity getById(Long id);
+	@Override
+	public Date getNowAsDate() {
+		return new Date();
+	}
+
+	@Override
+	public Instant getNowAsInstant() {
+		return Instant.now();
+	}
+
+	@Override
+	public LocalDate getToday() {
+		return LocalDate.now();
+	}
+
+	@Override
+	public long currentTimeMillis() {
+		return System.currentTimeMillis();
+	}
 }

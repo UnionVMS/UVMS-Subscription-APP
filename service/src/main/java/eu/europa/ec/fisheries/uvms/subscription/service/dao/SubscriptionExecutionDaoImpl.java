@@ -13,24 +13,23 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
-import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 
 /**
- * Implementation of {@link TriggeredSubscriptionDao} using JPA.
+ * JPA implementation of the {@link SubscriptionExecutionDao}.
  */
 @ApplicationScoped
-class TriggeredSubscriptionDaoImpl implements TriggeredSubscriptionDao {
+class SubscriptionExecutionDaoImpl implements SubscriptionExecutionDao {
 
 	private EntityManager em;
 
 	/**
-	 * Constructor for injection.
+	 * Injection constructor.
 	 *
 	 * @param em The entity manager
 	 */
 	@Inject
-	public TriggeredSubscriptionDaoImpl(EntityManager em) {
+	public SubscriptionExecutionDaoImpl(EntityManager em) {
 		this.em = em;
 	}
 
@@ -38,22 +37,13 @@ class TriggeredSubscriptionDaoImpl implements TriggeredSubscriptionDao {
 	 * Constructor for frameworks.
 	 */
 	@SuppressWarnings("unused")
-	TriggeredSubscriptionDaoImpl() {
+	SubscriptionExecutionDaoImpl() {
 		// NOOP
 	}
 
 	@Override
-	public TriggeredSubscriptionEntity create(TriggeredSubscriptionEntity entity) {
+	public SubscriptionExecutionEntity create(SubscriptionExecutionEntity entity) {
 		em.persist(entity);
 		return entity;
-	}
-
-	@Override
-	public TriggeredSubscriptionEntity getById(Long id) {
-		TriggeredSubscriptionEntity result = em.find(TriggeredSubscriptionEntity.class, id);
-		if (result == null) {
-			throw new EntityDoesNotExistException("TriggeredSubscription with id " + id);
-		}
-		return result;
 	}
 }

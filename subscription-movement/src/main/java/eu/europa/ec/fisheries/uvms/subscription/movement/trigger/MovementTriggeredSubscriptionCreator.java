@@ -81,11 +81,10 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 
 	@Override
 	public Stream<TriggeredSubscriptionEntity> createTriggeredSubscriptions(String representation) {
-		CreateMovementBatchResponse message = unmarshal(representation);
-		if (message.getResponse() != SimpleResponse.OK || message.getMovements() == null) {
-			return Stream.empty();
-		}
-		return message.getMovements().stream()
+		return Stream.of(unmarshal(representation))
+				.filter(message -> message.getResponse() == SimpleResponse.OK)
+				.filter(message -> message.getMovements() != null)
+				.flatMap(message -> message.getMovements().stream())
 				.filter(m -> !m.isDuplicate())
 				.flatMap(this::findTriggeredSubscriptions)
 				.map(this::makeTriggeredSubscriptionEntity);
@@ -120,6 +119,7 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 		result.setSubscription(input.getSubscription());
 		result.setSource(SOURCE);
 		result.setCreationDate(new Date());
+		result.setActive(true);
 		result.setData(makeTriggeredSubscriptionData(result, input));
 		return result;
 	}
