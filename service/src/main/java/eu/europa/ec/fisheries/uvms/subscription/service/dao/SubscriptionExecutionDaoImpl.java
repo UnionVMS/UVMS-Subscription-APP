@@ -12,8 +12,15 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+import java.util.Date;
+import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity_;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType;
 
 /**
  * JPA implementation of the {@link SubscriptionExecutionDao}.
@@ -45,5 +52,22 @@ class SubscriptionExecutionDaoImpl implements SubscriptionExecutionDao {
 	public SubscriptionExecutionEntity create(SubscriptionExecutionEntity entity) {
 		em.persist(entity);
 		return entity;
+	}
+
+	@Override
+	public SubscriptionExecutionEntity findById(Long id) {
+		return em.find(SubscriptionExecutionEntity.class, id);
+	}
+
+	@Override
+	public Stream<SubscriptionExecutionEntity> findPendingWithRequestDateBefore(Date requestTimeCutoff) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<SubscriptionExecutionEntity> query = cb.createQuery(SubscriptionExecutionEntity.class);
+		Root<SubscriptionExecutionEntity> execution = query.from(SubscriptionExecutionEntity.class);
+		query.select(execution).where(
+				cb.equal(execution.get(SubscriptionExecutionEntity_.status), SubscriptionExecutionStatusType.PENDING),
+				cb.lessThanOrEqualTo(execution.get(SubscriptionExecutionEntity_.requestedTime), requestTimeCutoff)
+		);
+		return em.createQuery(query).getResultList().stream(); // TODO Just stream, when we finally sort out the mess with dependencies that is bringing JPA 1.x
 	}
 }

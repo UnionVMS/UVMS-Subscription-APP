@@ -9,13 +9,27 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.execution;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import eu.europa.ec.fisheries.uvms.subscription.helper.DateTimeServiceTestImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionExecutionDao;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,8 +43,22 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class SubscriptionExecutionServiceImplTest {
 
+	private static final Long EXECUTION_ID = 111L;
+
 	@Produces @Mock
 	private SubscriptionExecutionDao dao;
+
+	@Produces @Mock
+	private SubscriptionExecutionSender subscriptionExecutionSender;
+
+	@Produces @Mock
+	private SubscriptionExecutor mockSubscriptionExecutor;
+
+	@Produces @Mock
+	private SubscriptionExecutionScheduler subscriptionExecutionScheduler;
+
+	@Produces
+	private DateTimeServiceTestImpl dateTimeService = new DateTimeServiceTestImpl();
 
 	@Inject
 	private SubscriptionExecutionServiceImpl sut;
@@ -40,5 +68,48 @@ public class SubscriptionExecutionServiceImplTest {
 		SubscriptionExecutionEntity entity = new SubscriptionExecutionEntity();
 		sut.save(entity);
 		verify(dao).create(entity);
+	}
+
+	@Test
+	void testFindPendingSubscriptionExecutions() {
+		Date date = new Date();
+		Stream<SubscriptionExecutionEntity> resultFromDao = Stream.of(new SubscriptionExecutionEntity());
+		when(dao.findPendingWithRequestDateBefore(date)).thenReturn(resultFromDao);
+		Stream<SubscriptionExecutionEntity> result = sut.findPendingSubscriptionExecutions(date);
+		assertSame(resultFromDao, result);
+	}
+
+	@Test
+	void testEnqueueForExecution() {
+		SubscriptionExecutionEntity entity = new SubscriptionExecutionEntity();
+		LocalDateTime now = LocalDateTime.parse("2020-05-05T12:00:00");
+		dateTimeService.setNow(now);
+		sut.enqueueForExecution(entity);
+		verify(subscriptionExecutionSender).enqueue(entity);
+		assertEquals(SubscriptionExecutionStatusType.QUEUED, entity.getStatus());
+	}
+
+	@Test
+	void testExecute() {
+		SubscriptionEntity subscription = new SubscriptionEntity();
+		subscription.setActive(true);
+		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
+		triggeredSubscription.setActive(true);
+		triggeredSubscription.setSubscription(subscription);
+		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
+		execution.setStatus(SubscriptionExecutionStatusType.QUEUED);
+		execution.setTriggeredSubscription(triggeredSubscription);
+		when(dao.findById(EXECUTION_ID)).thenReturn(execution);
+		LocalDateTime now = LocalDateTime.parse("2020-05-05T12:00:00");
+		dateTimeService.setNow(now);
+		SubscriptionExecutionEntity nextExecution = new SubscriptionExecutionEntity();
+		when(subscriptionExecutionScheduler.scheduleNext(triggeredSubscription, execution)).thenReturn(Optional.of(nextExecution));
+
+		sut.execute(EXECUTION_ID);
+
+		verify(mockSubscriptionExecutor).execute(execution);
+		assertEquals(SubscriptionExecutionStatusType.EXECUTED, execution.getStatus());
+		assertEquals(Date.from(now.toInstant(ZoneOffset.UTC)), execution.getExecutionTime());
+		verify(dao).create(nextExecution);
 	}
 }

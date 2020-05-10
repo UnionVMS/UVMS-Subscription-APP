@@ -10,6 +10,10 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.PENDING;
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.EXECUTED;
+import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -18,9 +22,15 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
@@ -66,21 +76,10 @@ public class SubscriptionExecutionDaoImplTest extends BaseSubscriptionInMemoryTe
 	@Test
 	void testCreate() {
 		em.getTransaction().begin();
-		SubscriptionEntity subscription = em.find(SubscriptionEntity.class, 1L);
-		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
-		triggeredSubscription.setActive(true);
-		triggeredSubscription.setCreationDate(new Date());
-		triggeredSubscription.setSource("test");
-		triggeredSubscription.setSubscription(subscription);
-		em.persist(triggeredSubscription);
-		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
-		execution.setCreationDate(new Date());
+		TriggeredSubscriptionEntity triggeredSubscription = setupTriggeredSubscription();
 		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(new Date());
 		calendar.add(Calendar.DATE, 1);
-		execution.setRequestedTime(calendar.getTime());
-		execution.setStatus(SubscriptionExecutionStatusType.PENDING);
-		execution.setTriggeredSubscription(triggeredSubscription);
+		SubscriptionExecutionEntity execution = makeExecution(triggeredSubscription, calendar.getTime(), PENDING);
 
 		sut.create(execution);
 
@@ -90,5 +89,65 @@ public class SubscriptionExecutionDaoImplTest extends BaseSubscriptionInMemoryTe
 		List<SubscriptionExecutionEntity> results = q.getResultList();
 		assertEquals(1, results.size());
 		assertEquals(1L, results.get(0).getTriggeredSubscription().getSubscription().getId());
+	}
+
+	@Test
+	void testFindById() {
+		em.getTransaction().begin();
+		TriggeredSubscriptionEntity triggeredSubscription = setupTriggeredSubscription();
+		LocalDateTime datetime = LocalDateTime.parse("2020-05-05T12:00:00");
+		sut.create(makeExecution(triggeredSubscription, datetime.minus(5L, MINUTES), PENDING));
+		sut.create(makeExecution(triggeredSubscription, datetime.minus(5L, HOURS), PENDING));
+		Long id3 = sut.create(makeExecution(triggeredSubscription, datetime.minus(5L, MINUTES), EXECUTED)).getId();
+		sut.create(makeExecution(triggeredSubscription, datetime.plus(5L, MINUTES), PENDING));
+		em.getTransaction().commit();
+
+		SubscriptionExecutionEntity result = sut.findById(id3);
+
+		assertNotNull(result);
+		assertEquals(EXECUTED, result.getStatus());
+	}
+
+	@Test
+	void testFindPendingWithRequestDateBefore() {
+		em.getTransaction().begin();
+		TriggeredSubscriptionEntity triggeredSubscription = setupTriggeredSubscription();
+		LocalDateTime datetime = LocalDateTime.parse("2020-05-05T12:00:00");
+		Long id1 = sut.create(makeExecution(triggeredSubscription, datetime.minus(5L, MINUTES), PENDING)).getId();
+		Long id2 = sut.create(makeExecution(triggeredSubscription, datetime.minus(5L, HOURS), PENDING)).getId();
+		@SuppressWarnings("unused")
+		Long id3 = sut.create(makeExecution(triggeredSubscription, datetime.minus(5L, MINUTES), EXECUTED)).getId();
+		Long id4 = sut.create(makeExecution(triggeredSubscription, datetime.plus(5L, MINUTES), PENDING)).getId();
+		em.getTransaction().commit();
+
+		Set<Long> results = sut.findPendingWithRequestDateBefore(Date.from(datetime.toInstant(ZoneOffset.UTC))).map(SubscriptionExecutionEntity::getId).collect(Collectors.toSet());
+		assertEquals(new HashSet<>(Arrays.asList(id1, id2)), results);
+
+		results = sut.findPendingWithRequestDateBefore(Date.from(datetime.plus(5L, MINUTES).toInstant(ZoneOffset.UTC))).map(SubscriptionExecutionEntity::getId).collect(Collectors.toSet());
+		assertEquals(new HashSet<>(Arrays.asList(id1, id2, id4)), results);
+	}
+
+	private TriggeredSubscriptionEntity setupTriggeredSubscription() {
+		SubscriptionEntity subscription = em.find(SubscriptionEntity.class, 1L);
+		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
+		triggeredSubscription.setActive(true);
+		triggeredSubscription.setCreationDate(new Date());
+		triggeredSubscription.setSource("test");
+		triggeredSubscription.setSubscription(subscription);
+		em.persist(triggeredSubscription);
+		return triggeredSubscription;
+	}
+
+	private SubscriptionExecutionEntity makeExecution(TriggeredSubscriptionEntity triggeredSubscription, LocalDateTime requestedTime, SubscriptionExecutionStatusType status) {
+		return makeExecution(triggeredSubscription, Date.from(requestedTime.toInstant(ZoneOffset.UTC)), status);
+	}
+
+	private SubscriptionExecutionEntity makeExecution(TriggeredSubscriptionEntity triggeredSubscription, Date requestedTime, SubscriptionExecutionStatusType status) {
+		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
+		execution.setCreationDate(new Date());
+		execution.setRequestedTime(requestedTime);
+		execution.setStatus(status);
+		execution.setTriggeredSubscription(triggeredSubscription);
+		return execution;
 	}
 }

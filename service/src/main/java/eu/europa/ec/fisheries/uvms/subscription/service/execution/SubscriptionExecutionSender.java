@@ -7,38 +7,18 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.ec.fisheries.uvms.subscription.service.dao;
-
-import java.util.Date;
-import java.util.stream.Stream;
+package eu.europa.ec.fisheries.uvms.subscription.service.execution;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 
 /**
- * DAO for the {@link SubscriptionExecutionEntity}.
+ * Responsible for sending {@link SubscriptionExecutionEntity} objects to the queue.
  */
-public interface SubscriptionExecutionDao {
+public interface SubscriptionExecutionSender {
 	/**
-	 * Persist the given entity.
+	 * Enqueue the given entity.
 	 *
-	 * @param entity The subscription execution to persist
-	 * @return The persisted entity, with id filled
+	 * @param entity The entity to enqueue
 	 */
-	SubscriptionExecutionEntity create(SubscriptionExecutionEntity entity);
-
-	/**
-	 * Find an execution by id.
-	 *
-	 * @param id The id
-	 * @return The execution, or {@code null} if not found
-	 */
-	SubscriptionExecutionEntity findById(Long id);
-
-	/**
-	 * Find all executions with status {@code PENDING} and {@code requestTime <= requestTimeCutoff}.
-	 *
-	 * @param requestTimeCutoff The {@code requestTime} parameter
-	 * @return The executions that match the criteria
-	 */
-	Stream<SubscriptionExecutionEntity> findPendingWithRequestDateBefore(Date requestTimeCutoff);
+	void enqueue(SubscriptionExecutionEntity entity);
 }

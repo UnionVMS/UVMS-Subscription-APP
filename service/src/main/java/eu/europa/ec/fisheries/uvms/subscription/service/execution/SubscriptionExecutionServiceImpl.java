@@ -9,11 +9,22 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.execution;
 
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.EXECUTED;
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.QUEUED;
+import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
+
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
+import java.util.Date;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionExecutionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
+import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 
 /**
  * Implementation of the {@link SubscriptionExecutionService}.
@@ -22,15 +33,28 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecu
 class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 
 	private SubscriptionExecutionDao dao;
+	private SubscriptionExecutionSender subscriptionExecutionSender;
+	private DateTimeService dateTimeService;
+	private Instance<SubscriptionExecutor> subscriptionExecutorInstance;
+	private SubscriptionExecutionScheduler subscriptionExecutionScheduler;
+
 
 	/**
 	 * Constructor for injection.
 	 *
 	 * @param dao The DAO
+	 * @param subscriptionExecutionSender The execution queue sender
+	 * @param dateTimeService             The date/time service
+	 * @param subscriptionExecutorInstance   The executors
+	 * @param subscriptionExecutionScheduler The scheduler
 	 */
 	@Inject
-	public SubscriptionExecutionServiceImpl(SubscriptionExecutionDao dao) {
+	public SubscriptionExecutionServiceImpl(SubscriptionExecutionDao dao, SubscriptionExecutionSender subscriptionExecutionSender, DateTimeService dateTimeService, Instance<SubscriptionExecutor> subscriptionExecutorInstance, SubscriptionExecutionScheduler subscriptionExecutionScheduler) {
 		this.dao = dao;
+		this.subscriptionExecutionSender = subscriptionExecutionSender;
+		this.dateTimeService = dateTimeService;
+		this.subscriptionExecutorInstance = subscriptionExecutorInstance;
+		this.subscriptionExecutionScheduler = subscriptionExecutionScheduler;
 	}
 
 	/**
@@ -44,5 +68,31 @@ class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 	@Override
 	public SubscriptionExecutionEntity save(SubscriptionExecutionEntity entity) {
 		return dao.create(entity);
+	}
+
+	@Override
+	public Stream<SubscriptionExecutionEntity> findPendingSubscriptionExecutions(Date activationDate) {
+		return dao.findPendingWithRequestDateBefore(activationDate);
+	}
+
+	@Transactional(REQUIRES_NEW)
+	@Override
+	public void enqueueForExecution(SubscriptionExecutionEntity entity) {
+		entity.setQueuedTime(dateTimeService.getNowAsDate());
+		entity.setStatus(QUEUED);
+		subscriptionExecutionSender.enqueue(entity);
+	}
+
+	@Override
+	public void execute(Long id) {
+		Optional.ofNullable(dao.findById(id))
+				.filter(execution -> execution.getStatus() == QUEUED && execution.getTriggeredSubscription().getActive() && execution.getTriggeredSubscription().getSubscription().isActive())
+				.flatMap(execution -> {
+					subscriptionExecutorInstance.stream().forEach(executor -> executor.execute(execution));
+					execution.setStatus(EXECUTED);
+					execution.setExecutionTime(dateTimeService.getNowAsDate());
+					return subscriptionExecutionScheduler.scheduleNext(execution.getTriggeredSubscription(), execution);
+				})
+				.ifPresent(this::save);
 	}
 }
