@@ -13,13 +13,13 @@ package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 import static eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper.mapToAuditLog;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum.MANAGE_SUBSCRIPTION;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum.VIEW_SUBSCRIPTION;
+import static java.lang.Boolean.TRUE;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -151,7 +151,7 @@ class SubscriptionServiceBean implements SubscriptionService {
         SubscriptionEntity entity = mapper.mapDtoToEntity(subscription);
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
         EmailBodyEntity emailBodyEntity = null;
-        if(subscription.getOutput().getHasEmail()){
+        if (TRUE.equals(subscription.getOutput().getHasEmail())) {
             emailBodyEntity = createEmailBody(saved, subscription.getOutput().getEmailConfiguration().getBody());
         }
         sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.CREATE.name(), saved.getId().toString(), authenticationContext.getUserPrincipal().getName()));
@@ -171,7 +171,7 @@ class SubscriptionServiceBean implements SubscriptionService {
         mapper.updateEntity(subscription, entityById);
         SubscriptionEntity subscriptionEntity = subscriptionDAO.update(entityById);
         EmailBodyEntity emailBodyEntity = null;
-        if(subscription.getOutput().getHasEmail()){
+        if (TRUE.equals(subscription.getOutput().getHasEmail())) {
             SubscriptionEmailConfigurationDto emailConfig = subscription.getOutput().getEmailConfiguration();
             emailBodyEntity = updateEmailBody(subscriptionEntity, emailConfig.getBody());
 

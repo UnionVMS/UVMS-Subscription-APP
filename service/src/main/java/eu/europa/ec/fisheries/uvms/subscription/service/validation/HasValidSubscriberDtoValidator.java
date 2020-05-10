@@ -23,21 +23,22 @@ import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
  */
 public class HasValidSubscriberDtoValidator implements ConstraintValidator<HasValidSubscriberDto, SubscriptionOutputDto> {
 
+    private static final String SUBSCRIBER_NODE = "subscriber";
     @Override
     public boolean isValid(SubscriptionOutputDto output, ConstraintValidatorContext context) {
         boolean valid = true;
         if (output != null) {
             if(output.getMessageType() != OutgoingMessageType.NONE) {
                 if(output.getSubscriber() != null){
-                    valid = requirePropertyNotNullWithMessage(context, output.getSubscriber().getOrganisationId(),"Organisation ID is required","subscriber","organisationId")
-                            & requirePropertyNotNullWithMessage(context, output.getSubscriber().getEndpointId(),"Endpoint ID is required","subscriber","endpointId")
-                            & requirePropertyNotNullWithMessage(context, output.getSubscriber().getChannelId(),"Channel ID is required","subscriber","channelId");
+                    valid = requirePropertyNotNullWithMessage(context, output.getSubscriber().getOrganisationId(),"Organisation ID is required",SUBSCRIBER_NODE,"organisationId")
+                            & requirePropertyNotNullWithMessage(context, output.getSubscriber().getEndpointId(),"Endpoint ID is required",SUBSCRIBER_NODE,"endpointId")
+                            & requirePropertyNotNullWithMessage(context, output.getSubscriber().getChannelId(),"Channel ID is required",SUBSCRIBER_NODE,"channelId");
                 }
             } else {
                 if(output.getSubscriber() != null){
-                    valid = requirePropertyNullWithMessage(context, output.getSubscriber().getOrganisationId(),"Organisation ID must be empty","subscriber","organisationId")
-                            & requirePropertyNullWithMessage(context, output.getSubscriber().getEndpointId(),"Endpoint ID must be empty","subscriber","endpointId")
-                            & requirePropertyNullWithMessage(context, output.getSubscriber().getChannelId(),"Channel ID must be empty","subscriber","channelId");
+                    valid = requirePropertyNullWithMessage(context, output.getSubscriber().getOrganisationId(),"Organisation ID must be empty",SUBSCRIBER_NODE,"organisationId")
+                            & requirePropertyNullWithMessage(context, output.getSubscriber().getEndpointId(),"Endpoint ID must be empty",SUBSCRIBER_NODE,"endpointId")
+                            & requirePropertyNullWithMessage(context, output.getSubscriber().getChannelId(),"Channel ID must be empty",SUBSCRIBER_NODE,"channelId");
                 }
             }
         }

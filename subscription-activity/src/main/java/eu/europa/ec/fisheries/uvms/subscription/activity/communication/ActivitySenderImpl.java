@@ -9,7 +9,6 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
 
-import javax.annotation.Resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.jms.Queue;

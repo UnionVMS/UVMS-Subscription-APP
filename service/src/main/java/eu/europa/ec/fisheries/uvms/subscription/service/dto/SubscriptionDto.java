@@ -22,8 +22,6 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.SubscriptionHasUniqueName;
 import eu.europa.fisheries.uvms.subscription.model.enums.AccessibilityType;
-import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidSubscriptionExecutionDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidSubscriptionOutputDto;
 import lombok.Data;
 
 /**
@@ -51,10 +49,6 @@ public class SubscriptionDto {
 
     @Valid
     private SubscriptionExecutionDto execution;
-
-    //private List<Object> conditions = new ArrayList<>();
-
-    //private List<Object> areas = new ArrayList<>();
 
     @JsonFormat(shape = STRING, pattern = DATE_TIME_UI_FORMAT)
     public Date startDate;

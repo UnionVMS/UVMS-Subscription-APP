@@ -10,6 +10,7 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.scheduling;
 
 import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -57,7 +58,7 @@ class SubscriptionExecutionSchedulerImpl implements SubscriptionExecutionSchedul
 
 	@Override
 	public Optional<SubscriptionExecutionEntity> scheduleNext(TriggeredSubscriptionEntity triggeredSubscription, SubscriptionExecutionEntity lastExecution) {
-		if (!triggeredSubscription.getActive() || !triggeredSubscription.getSubscription().isActive()) {
+		if (!TRUE.equals(triggeredSubscription.getActive()) || !triggeredSubscription.getSubscription().isActive()) {
 			return Optional.empty();
 		}
 		if (lastExecution == null) {

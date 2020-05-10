@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;

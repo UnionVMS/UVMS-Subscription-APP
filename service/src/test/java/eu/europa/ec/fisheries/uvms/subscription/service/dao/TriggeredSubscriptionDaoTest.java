@@ -62,6 +62,12 @@ public class TriggeredSubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
 	}
 
 	@Test
+	void testEmptyConstructor() {
+		TriggeredSubscriptionDaoImpl sut = new TriggeredSubscriptionDaoImpl();
+		assertNotNull(sut);
+	}
+
+	@Test
 	void testCreateTriggeredSubscription() {
 		em.getTransaction().begin();
 		SubscriptionEntity subscription = subscriptionDao.findById(3L);

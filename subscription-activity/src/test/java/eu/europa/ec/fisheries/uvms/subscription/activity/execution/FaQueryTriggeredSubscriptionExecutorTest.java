@@ -10,6 +10,7 @@
 package eu.europa.ec.fisheries.uvms.subscription.activity.execution;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -68,6 +69,12 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 	@Produces
 	DatatypeFactory getDatatypeFactory() throws Exception {
 		return DatatypeFactory.newInstance();
+	}
+
+	@Test
+	void testEmptyConstructor() {
+		FaQueryTriggeredSubscriptionExecutor sut = new FaQueryTriggeredSubscriptionExecutor();
+		assertNotNull(sut);
 	}
 
 	@Test

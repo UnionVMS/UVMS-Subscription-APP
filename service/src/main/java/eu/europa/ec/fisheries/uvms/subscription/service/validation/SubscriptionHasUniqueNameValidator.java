@@ -3,7 +3,6 @@ package eu.europa.ec.fisheries.uvms.subscription.service.validation;
 import javax.inject.Inject;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import javax.validation.Valid;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionService;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
