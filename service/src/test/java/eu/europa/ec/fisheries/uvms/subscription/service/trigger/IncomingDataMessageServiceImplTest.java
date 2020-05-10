@@ -10,6 +10,7 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
@@ -63,6 +64,12 @@ public class IncomingDataMessageServiceImplTest {
 	{
 		triggeredSubscriptionCreator = mock(TriggeredSubscriptionCreator.class);
 		when(triggeredSubscriptionCreator.getEligibleSubscriptionSource()).thenReturn(SUBSCRIPTION_SOURCE);
+	}
+
+	@Test
+	void testEmptyConstructor() {
+		IncomingDataMessageServiceImpl sut = new IncomingDataMessageServiceImpl();
+		assertNotNull(sut);
 	}
 
 	@Test

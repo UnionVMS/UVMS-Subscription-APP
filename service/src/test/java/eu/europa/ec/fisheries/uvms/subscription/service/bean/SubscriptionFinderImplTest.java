@@ -1,6 +1,7 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,6 +42,12 @@ public class SubscriptionFinderImplTest {
 
 	@Inject
 	private SubscriptionFinderImpl sut;
+
+	@Test
+	void testEmptyConstructor() {
+		SubscriptionFinderImpl sut = new SubscriptionFinderImpl();
+		assertNotNull(sut);
+	}
 
 	@Test
 	void testFindSubscriptionsTriggeredByAreasNullOrEmpty() {

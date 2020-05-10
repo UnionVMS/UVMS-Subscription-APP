@@ -11,6 +11,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
@@ -54,6 +55,12 @@ public class SubscriptionExecutionDaoImplTest extends BaseSubscriptionInMemoryTe
 
 		DbSetup dbSetup = new DbSetup(new DataSourceDestination(ds), operation);
 		dbSetupTracker.launchIfNecessary(dbSetup);
+	}
+
+	@Test
+	void testEmptyConstructor() {
+		SubscriptionExecutionDaoImpl sut = new SubscriptionExecutionDaoImpl();
+		assertNotNull(sut);
 	}
 
 	@Test

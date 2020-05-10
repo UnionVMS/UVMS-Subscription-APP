@@ -3,10 +3,9 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dto.search;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 
-import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.fisheries.uvms.subscription.model.enums.AccessibilityType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import lombok.AllArgsConstructor;
 import lombok.Data;

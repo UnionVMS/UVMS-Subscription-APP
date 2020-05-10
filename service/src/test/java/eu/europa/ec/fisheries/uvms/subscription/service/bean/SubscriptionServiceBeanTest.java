@@ -18,15 +18,18 @@ import javax.inject.Inject;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
 import java.util.Date;
+import java.util.HashSet;
 
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.authentication.AuthenticationContext;
 import eu.europa.ec.fisheries.uvms.subscription.service.authentication.SubscriptionUser;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.AreaDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
@@ -36,6 +39,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMappe
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.UsmClient;
+import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
@@ -548,12 +552,17 @@ public class SubscriptionServiceBeanTest {
 		SubscriptionDto dto = makeSubscriptionDtoForUpdate();
 		SubscriptionEntity subscription = new SubscriptionEntity();
 		subscription.setId(SUBSCR_ID);
+		AreaEntity oldArea = new AreaEntity();
+		oldArea.setGid(111L);
+		oldArea.setAreaType(AreaType.USERAREA);
+		subscription.getAreas().add(oldArea);
 		when(subscriptionDAO.findById(SUBSCR_ID)).thenReturn(subscription);
 		when(subscriptionDAO.update(subscription)).thenReturn(subscription);
 		SubscriptionDto result = sut.update(dto);
 		assertNotNull(result);
 		verify(subscriptionDAO).update(subscription);
 		verify(auditProducer).sendModuleMessage(any(), any());
+		assertTrue(result.getAreas().stream().map(AreaDto::getGid).anyMatch(Long.valueOf(111L)::equals));
 	}
 
 	private SubscriptionDto makeSubscriptionDtoForUpdate() {
@@ -567,6 +576,15 @@ public class SubscriptionServiceBeanTest {
 				.hasEmail(false)
 				.build()
 		);
+		dto.setAreas(new HashSet<>());
+		AreaDto existingArea = new AreaDto();
+		existingArea.setAreaType(AreaType.USERAREA);
+		existingArea.setGid(111L);
+		dto.getAreas().add(existingArea);
+		AreaDto newArea = new AreaDto();
+		newArea.setAreaType(AreaType.USERAREA);
+		newArea.setGid(222L);
+		dto.getAreas().add(newArea);
 		return dto;
 	}
 

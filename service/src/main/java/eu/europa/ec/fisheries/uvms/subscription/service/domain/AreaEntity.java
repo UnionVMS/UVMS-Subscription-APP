@@ -23,6 +23,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
+import java.io.Serializable;
+
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -35,7 +37,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"gid", "areaType"})
 @ToString(exclude = {"subscription"})
-public class AreaEntity {
+public class AreaEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = AUTO)

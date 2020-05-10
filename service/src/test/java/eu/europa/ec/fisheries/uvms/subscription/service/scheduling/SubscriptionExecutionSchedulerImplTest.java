@@ -11,6 +11,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.scheduling;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -46,6 +47,12 @@ public class SubscriptionExecutionSchedulerImplTest {
 
 	@Produces @ApplicationScoped
 	private DateTimeServiceTestImpl dateTimeService = new DateTimeServiceTestImpl();
+
+	@Test
+	void testEmptyConstructor() {
+		SubscriptionExecutionSchedulerImpl sut = new SubscriptionExecutionSchedulerImpl();
+		assertNotNull(sut);
+	}
 
 	@Test
 	void testWithInactive() {

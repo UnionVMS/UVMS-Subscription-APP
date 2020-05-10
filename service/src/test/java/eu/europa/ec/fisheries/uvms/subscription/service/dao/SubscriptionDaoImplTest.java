@@ -51,6 +51,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutpu
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.PaginationDataImpl;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionListQueryImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionSearchCriteriaImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
@@ -133,6 +135,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
                 Arguments.of(createQuery("subscription4", false, 11L, null, 11L, "", null, null, null, null, null, null, null),1),
                 Arguments.of(createQuery("", true, null, null, null, "tade", null, null, null, null, null, null, null),2),
                 Arguments.of(createQuery("", true, null, null, null, "", null, null, zdt("20190101"), null, null, null, null),1),
+                Arguments.of(createQuery("", true, null, null, null, "", null, null, zdt("20190101"), null, null, null, java.util.Collections.emptyList()),1),
                 Arguments.of(createQuery("", true, null, null, null, "", null, null, null, null, null, null, java.util.Collections.singleton(TriggerType.MANUAL)),1),
                 Arguments.of(createQuery("", true, null, null, null, "", null, null, null, null, null, null, Arrays.asList(TriggerType.SCHEDULER, TriggerType.MANUAL)),2)
         );
@@ -177,6 +180,16 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     }
 
     @Test
+    void testListSubscriptionWithNullOrderByData() {
+        SubscriptionListQueryImpl query = new SubscriptionListQueryImpl();
+        query.setCriteria(new SubscriptionSearchCriteriaImpl());
+        query.setPagination(new PaginationDataImpl(0,25));
+        List<SubscriptionEntity> results = sut.listSubscriptions(query);
+        Integer numberOfSavedSubscriptions = findAllSubscriptions().size();
+        assertEquals(numberOfSavedSubscriptions, results.size());
+    }
+
+    @Test
     void testFindByAreas() {
         SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
         List<SubscriptionSearchCriteria.AreaCriterion> areas = Arrays.asList(new SubscriptionSearchCriteria.AreaCriterion(AreaType.EEZ, 101L), new SubscriptionSearchCriteria.AreaCriterion(AreaType.PORT, 222L));
@@ -184,6 +197,16 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         List<SubscriptionEntity> results = sut.listSubscriptions(criteria);
         assertEquals(1, results.size());
         assertEquals(1L, results.get(0).getId());
+    }
+
+    @Test
+    void testFindWithEmptyAreaCriteria() {
+        SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
+        List<SubscriptionSearchCriteria.AreaCriterion> areas = java.util.Collections.emptyList();
+        criteria.setInAnyArea(areas);
+        List<SubscriptionEntity> results = sut.listSubscriptions(criteria);
+        Integer numberOfSavedSubscriptions = findAllSubscriptions().size();
+        assertEquals(numberOfSavedSubscriptions, results.size());
     }
 
     @Test
@@ -210,6 +233,21 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         assertEquals(2, createdSubscription.getAreas().size());
         assertTrue(createdSubscription.getAreas().contains(area1));
         assertTrue(createdSubscription.getAreas().contains(area2));
+    }
+
+    @Test
+    public void createSubscriptionWithNullAreas() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setAreas(null);
+
+        Long id = sut.createEntity(subscription).getId();
+        em.flush();
+
+        SubscriptionEntity createdSubscription = sut.findById(id);
+        assertNull(createdSubscription.getAreas());
     }
 
     @Test
@@ -290,6 +328,30 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         assertTrue(updatedSubscription.getAreas().contains(newArea1));
         assertTrue(updatedSubscription.getAreas().contains(area1));
         assertFalse(updatedSubscription.getAreas().contains(area2));
+    }
+
+    @Test
+    public void updateSubscriptionWithNullAreas() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setAreas(null);
+        Long id = sut.createEntity(subscription).getId();
+        SubscriptionEntity createdSubscription = sut.findById(id);
+
+
+        //update entity areas
+        AreaEntity newArea1 = new AreaEntity();
+        newArea1.setGid(10L);
+        newArea1.setAreaType(AreaType.USERAREA);
+
+        Long updatedId = sut.update(createdSubscription).getId();
+
+        em.flush();
+
+        SubscriptionEntity updatedSubscription = sut.findById(updatedId);
+        assertNull(updatedSubscription.getAreas());
     }
 
     @Test
