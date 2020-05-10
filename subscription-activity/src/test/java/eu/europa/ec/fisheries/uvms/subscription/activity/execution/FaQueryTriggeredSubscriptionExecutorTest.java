@@ -9,8 +9,11 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.activity.execution;
 
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.QUEUED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -25,12 +28,13 @@ import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ReceiverA
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.UsmSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.TriggeredSubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
-import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,27 +83,29 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 
 	@Test
 	void testExecuteNoFaQuery() {
-		setup(OutgoingMessageType.FA_REPORT);
-		sut.execute(TRIGGERED_SUBSCRIPTION_ID);
+		SubscriptionExecutionEntity execution = setup(OutgoingMessageType.FA_REPORT);
+		sut.execute(execution);
 		verifyNoMoreInteractions(activitySender, usmSender);
 	}
 
 	@Test
 	void testExecute() throws Exception {
-		setup(OutgoingMessageType.FA_QUERY);
+		SubscriptionExecutionEntity execution = setup(OutgoingMessageType.FA_QUERY);
 		ReceiverAndDataflow receiverAndDataflow = new ReceiverAndDataflow(RECEIVER, DATAFLOW);
 		when(usmSender.findReceiverAndDataflow(ENDPOINT_ID,CHANNEL_ID)).thenReturn(receiverAndDataflow);
 
-		sut.execute(TRIGGERED_SUBSCRIPTION_ID);
+		sut.execute(execution);
 
 		ArgumentCaptor<CreateAndSendFAQueryRequest> captor = ArgumentCaptor.forClass(CreateAndSendFAQueryRequest.class);
 		verify(activitySender).send(captor.capture());
 		CreateAndSendFAQueryRequest request = captor.getValue();
 		DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
 		assertEquals(datatypeFactory.newXMLGregorianCalendar("2017-03-01T17:39:00Z"), request.getStartDate());
+		assertNull(execution.getExecutionTime());
+		assertEquals(QUEUED, execution.getStatus());
 	}
 
-	private void setup(OutgoingMessageType outgoingMessageType) {
+	private SubscriptionExecutionEntity setup(OutgoingMessageType outgoingMessageType) {
 		SubscriptionEntity subscription = new SubscriptionEntity();
 		SubscriptionSubscriber subscriber = new SubscriptionSubscriber();
 		subscriber.setChannelId(CHANNEL_ID);
@@ -117,6 +123,10 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 		triggeredSubscription.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription, "vesselId", VESSEL_ID));
 		triggeredSubscription.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription, "vesselSchemeId", VESSEL_SCHEME_ID));
 		triggeredSubscription.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription, "occurrence", OCCURRENCE));
-		when(triggeredSubscriptionDao.getById(TRIGGERED_SUBSCRIPTION_ID)).thenReturn(triggeredSubscription);
+		lenient().when(triggeredSubscriptionDao.getById(TRIGGERED_SUBSCRIPTION_ID)).thenReturn(triggeredSubscription);
+		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
+		execution.setTriggeredSubscription(triggeredSubscription);
+		execution.setStatus(QUEUED);
+		return execution;
 	}
 }

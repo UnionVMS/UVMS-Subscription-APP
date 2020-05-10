@@ -9,6 +9,8 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.activity.execution;
 
+import static java.lang.Boolean.TRUE;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.xml.datatype.DatatypeFactory;
@@ -24,17 +26,17 @@ import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ActivityS
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ReceiverAndDataflow;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.UsmSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.execution.TriggeredSubscriptionExecutor;
+import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionExecutor;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 
 /**
- * Implementation of {@link TriggeredSubscriptionExecutor} for executing FA queries.
+ * Implementation of {@link SubscriptionExecutor} for executing FA queries.
  */
 @ApplicationScoped
-public class FaQueryTriggeredSubscriptionExecutor implements TriggeredSubscriptionExecutor {
+public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecutor {
 
-	private TriggeredSubscriptionDao triggeredSubscriptionDao;
 	private ActivitySender activitySender;
 	private UsmSender usmSender;
 	private DatatypeFactory datatypeFactory;
@@ -42,14 +44,12 @@ public class FaQueryTriggeredSubscriptionExecutor implements TriggeredSubscripti
 	/**
 	 * Constructor for dependency injection.
 	 *
-	 * @param triggeredSubscriptionDao The triggered subscription DAO
 	 * @param activitySender The service for communicating with activity
 	 * @param usmSender The service for communicating with USM
 	 * @param datatypeFactory The XML helper object
 	 */
 	@Inject
-	public FaQueryTriggeredSubscriptionExecutor(TriggeredSubscriptionDao triggeredSubscriptionDao, ActivitySender activitySender, UsmSender usmSender, DatatypeFactory datatypeFactory) {
-		this.triggeredSubscriptionDao = triggeredSubscriptionDao;
+	public FaQueryTriggeredSubscriptionExecutor(ActivitySender activitySender, UsmSender usmSender, DatatypeFactory datatypeFactory) {
 		this.activitySender = activitySender;
 		this.usmSender = usmSender;
 		this.datatypeFactory = datatypeFactory;
@@ -64,12 +64,8 @@ public class FaQueryTriggeredSubscriptionExecutor implements TriggeredSubscripti
 	}
 
 	@Override
-	public void execute(Long id) {
-		execute(triggeredSubscriptionDao.getById(id));
-	}
-
-	@Override
-	public void execute(TriggeredSubscriptionEntity triggeredSubscription) {
+	public void execute(SubscriptionExecutionEntity execution) {
+		TriggeredSubscriptionEntity triggeredSubscription = execution.getTriggeredSubscription();
 		SubscriptionEntity subscription = triggeredSubscription.getSubscription();
 		if (subscription.getOutput().getMessageType() == OutgoingMessageType.FA_QUERY) {
 			ReceiverAndDataflow receiverAndDataflow = usmSender.findReceiverAndDataflow(subscription.getOutput().getSubscriber().getEndpointId(), subscription.getOutput().getSubscriber().getChannelId());
@@ -87,7 +83,7 @@ public class FaQueryTriggeredSubscriptionExecutor implements TriggeredSubscripti
 					PluginType.FLUX,
 					vesselId,
 					vesselSchemeId,
-					subscription.getOutput().getConsolidated(),
+					TRUE.equals(subscription.getOutput().getConsolidated()),
 					datatypeFactory.newXMLGregorianCalendar(GregorianCalendar.from(startDate)),
 					datatypeFactory.newXMLGregorianCalendar(GregorianCalendar.from(occurrenceZdt)),
 					receiverAndDataflow.getReceiver(),
