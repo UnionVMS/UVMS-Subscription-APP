@@ -35,7 +35,7 @@ class SubscriptionSchedulerServiceImpl implements SubscriptionSchedulerService {
 
 	@Override
 	public void activatePendingSubscriptionExecutions(Date activationDate) {
-		subscriptionExecutionService.findPendingSubscriptionExecutions(activationDate)
-				.forEach(subscriptionExecutionService::enqueueForExecution);
+		subscriptionExecutionService.findPendingSubscriptionExecutionIds(activationDate)
+				.forEach(subscriptionExecutionService::enqueueForExecutionInNewTransaction);
 	}
 }

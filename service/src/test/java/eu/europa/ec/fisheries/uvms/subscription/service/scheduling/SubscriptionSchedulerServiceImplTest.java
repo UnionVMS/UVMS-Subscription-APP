@@ -19,7 +19,6 @@ import javax.inject.Inject;
 import java.util.Date;
 import java.util.stream.Stream;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionExecutionService;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
@@ -43,10 +42,10 @@ public class SubscriptionSchedulerServiceImplTest {
 	@Test
 	void testActivatePendingSubscriptionExecutions() {
 		Date date = new Date();
-		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
-		when(subscriptionExecutionService.findPendingSubscriptionExecutions(date)).thenReturn(Stream.of(execution));
+		Long executionId = 111L;
+		when(subscriptionExecutionService.findPendingSubscriptionExecutionIds(date)).thenReturn(Stream.of(executionId));
 		sut.activatePendingSubscriptionExecutions(date);
-		verify(subscriptionExecutionService).enqueueForExecution(execution);
+		verify(subscriptionExecutionService).enqueueForExecutionInNewTransaction(executionId);
 		verifyNoMoreInteractions(subscriptionExecutionService);
 	}
 }

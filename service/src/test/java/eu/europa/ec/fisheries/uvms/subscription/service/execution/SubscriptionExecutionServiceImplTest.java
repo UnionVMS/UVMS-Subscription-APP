@@ -11,6 +11,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.execution;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,6 +31,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecu
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType;
+import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,20 +75,33 @@ public class SubscriptionExecutionServiceImplTest {
 	@Test
 	void testFindPendingSubscriptionExecutions() {
 		Date date = new Date();
-		Stream<SubscriptionExecutionEntity> resultFromDao = Stream.of(new SubscriptionExecutionEntity());
-		when(dao.findPendingWithRequestDateBefore(date)).thenReturn(resultFromDao);
-		Stream<SubscriptionExecutionEntity> result = sut.findPendingSubscriptionExecutions(date);
+		Stream<Long> resultFromDao = Stream.of(111L);
+		when(dao.findIdsOfPendingWithRequestDateBefore(date)).thenReturn(resultFromDao);
+		Stream<Long> result = sut.findPendingSubscriptionExecutionIds(date);
 		assertSame(resultFromDao, result);
 	}
 
 	@Test
-	void testEnqueueForExecution() {
+	void testEnqueueForExecutionInNewTransaction() {
+		Long entityId = 111L;
 		SubscriptionExecutionEntity entity = new SubscriptionExecutionEntity();
+		entity.setId(entityId);
 		LocalDateTime now = LocalDateTime.parse("2020-05-05T12:00:00");
 		dateTimeService.setNow(now);
-		sut.enqueueForExecution(entity);
+		when(dao.findById(entityId)).thenReturn(entity);
+		sut.enqueueForExecutionInNewTransaction(entityId);
 		verify(subscriptionExecutionSender).enqueue(entity);
 		assertEquals(SubscriptionExecutionStatusType.QUEUED, entity.getStatus());
+		assertEquals(Date.from(now.toInstant(ZoneOffset.UTC)), entity.getQueuedTime());
+	}
+
+	@Test
+	void testEnqueueForExecutionInNewTransactionThrowsWhenNotFound() {
+		Long entityId = 111L;
+		LocalDateTime now = LocalDateTime.parse("2020-05-05T12:00:00");
+		dateTimeService.setNow(now);
+		when(dao.findById(entityId)).thenReturn(null);
+		assertThrows(EntityDoesNotExistException.class, () -> sut.enqueueForExecutionInNewTransaction(entityId));
 	}
 
 	@Test
