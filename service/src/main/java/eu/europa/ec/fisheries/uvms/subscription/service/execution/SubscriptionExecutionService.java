@@ -27,19 +27,19 @@ public interface SubscriptionExecutionService {
 	SubscriptionExecutionEntity save(SubscriptionExecutionEntity entity);
 
 	/**
-	 * Find any executions that must be activated by the given date.
+	 * Find the ids of any executions that must be activated by the given date.
 	 *
 	 * @param activationDate The activation date
-	 * @return A stream of executions that must be activated by the given date
+	 * @return A stream of ids of executions that must be activated by the given date
 	 */
-	Stream<SubscriptionExecutionEntity> findPendingSubscriptionExecutions(Date activationDate);
+	Stream<Long> findPendingSubscriptionExecutionIds(Date activationDate);
 
 	/**
 	 * Enqueue the given entity for execution and mark it as queued, in a separate transaction.
 	 *
-	 * @param entity The entity to enqueue
+	 * @param executionId The id of the entity to enqueue
 	 */
-	void enqueueForExecution(SubscriptionExecutionEntity entity);
+	void enqueueForExecutionInNewTransaction(Long executionId);
 
 	/**
 	 * Execute the execution with the given id, if it is still elligible for execution.

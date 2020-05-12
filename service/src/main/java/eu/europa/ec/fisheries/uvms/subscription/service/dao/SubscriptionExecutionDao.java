@@ -35,10 +35,10 @@ public interface SubscriptionExecutionDao {
 	SubscriptionExecutionEntity findById(Long id);
 
 	/**
-	 * Find all executions with status {@code PENDING} and {@code requestTime <= requestTimeCutoff}.
+	 * Find ids of all executions with status {@code PENDING} and {@code requestTime <= requestTimeCutoff}.
 	 *
 	 * @param requestTimeCutoff The {@code requestTime} parameter
-	 * @return The executions that match the criteria
+	 * @return The ids of the executions that match the criteria
 	 */
-	Stream<SubscriptionExecutionEntity> findPendingWithRequestDateBefore(Date requestTimeCutoff);
+	Stream<Long> findIdsOfPendingWithRequestDateBefore(Date requestTimeCutoff);
 }

@@ -60,11 +60,11 @@ class SubscriptionExecutionDaoImpl implements SubscriptionExecutionDao {
 	}
 
 	@Override
-	public Stream<SubscriptionExecutionEntity> findPendingWithRequestDateBefore(Date requestTimeCutoff) {
+	public Stream<Long> findIdsOfPendingWithRequestDateBefore(Date requestTimeCutoff) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
-		CriteriaQuery<SubscriptionExecutionEntity> query = cb.createQuery(SubscriptionExecutionEntity.class);
+		CriteriaQuery<Long> query = cb.createQuery(Long.class);
 		Root<SubscriptionExecutionEntity> execution = query.from(SubscriptionExecutionEntity.class);
-		query.select(execution).where(
+		query.select(execution.get(SubscriptionExecutionEntity_.id)).where(
 				cb.equal(execution.get(SubscriptionExecutionEntity_.status), SubscriptionExecutionStatusType.PENDING),
 				cb.lessThanOrEqualTo(execution.get(SubscriptionExecutionEntity_.requestedTime), requestTimeCutoff)
 		);

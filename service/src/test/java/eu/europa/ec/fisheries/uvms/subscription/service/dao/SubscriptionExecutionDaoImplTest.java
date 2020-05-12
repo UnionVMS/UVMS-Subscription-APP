@@ -47,7 +47,7 @@ import org.junit.jupiter.api.Test;
  * Tests for the {@link SubscriptionExecutionDaoImpl}.
  */
 @EnableAutoWeld
-public class SubscriptionExecutionDaoImplTest extends BaseSubscriptionInMemoryTest {
+class SubscriptionExecutionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
 	@Inject
 	private SubscriptionExecutionDaoImpl sut;
@@ -120,10 +120,10 @@ public class SubscriptionExecutionDaoImplTest extends BaseSubscriptionInMemoryTe
 		Long id4 = sut.create(makeExecution(triggeredSubscription, datetime.plus(5L, MINUTES), PENDING)).getId();
 		em.getTransaction().commit();
 
-		Set<Long> results = sut.findPendingWithRequestDateBefore(Date.from(datetime.toInstant(ZoneOffset.UTC))).map(SubscriptionExecutionEntity::getId).collect(Collectors.toSet());
+		Set<Long> results = sut.findIdsOfPendingWithRequestDateBefore(Date.from(datetime.toInstant(ZoneOffset.UTC))).collect(Collectors.toSet());
 		assertEquals(new HashSet<>(Arrays.asList(id1, id2)), results);
 
-		results = sut.findPendingWithRequestDateBefore(Date.from(datetime.plus(5L, MINUTES).toInstant(ZoneOffset.UTC))).map(SubscriptionExecutionEntity::getId).collect(Collectors.toSet());
+		results = sut.findIdsOfPendingWithRequestDateBefore(Date.from(datetime.plus(5L, MINUTES).toInstant(ZoneOffset.UTC))).collect(Collectors.toSet());
 		assertEquals(new HashSet<>(Arrays.asList(id1, id2, id4)), results);
 	}
 

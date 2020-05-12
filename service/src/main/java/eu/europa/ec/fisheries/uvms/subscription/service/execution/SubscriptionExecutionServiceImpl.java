@@ -25,6 +25,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionExecutio
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
+import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 
 /**
  * Implementation of the {@link SubscriptionExecutionService}.
@@ -71,13 +72,14 @@ class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 	}
 
 	@Override
-	public Stream<SubscriptionExecutionEntity> findPendingSubscriptionExecutions(Date activationDate) {
-		return dao.findPendingWithRequestDateBefore(activationDate);
+	public Stream<Long> findPendingSubscriptionExecutionIds(Date activationDate) {
+		return dao.findIdsOfPendingWithRequestDateBefore(activationDate);
 	}
 
 	@Transactional(REQUIRES_NEW)
 	@Override
-	public void enqueueForExecution(SubscriptionExecutionEntity entity) {
+	public void enqueueForExecutionInNewTransaction(Long executionId) {
+		SubscriptionExecutionEntity entity = Optional.ofNullable(dao.findById(executionId)).orElseThrow(() -> new EntityDoesNotExistException("SubscriptionExecutionEntity with id " + executionId));
 		entity.setQueuedTime(dateTimeService.getNowAsDate());
 		entity.setStatus(QUEUED);
 		subscriptionExecutionSender.enqueue(entity);
