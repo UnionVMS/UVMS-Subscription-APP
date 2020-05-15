@@ -48,7 +48,6 @@ class ActivitySenderImplTest {
         CreateAndSendFAQueryRequest request = new CreateAndSendFAQueryRequest(ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY, PluginType.FLUX, Collections.singletonList(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.CFR, "CFR123456789")), true,
                 DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-01-01T10:00:00"), DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-02-01T10:00:00"),
                 "receiver", "dataflow");
-        when(subscriptionProducer.getDestination()).thenReturn(destination);
         Assertions.assertDoesNotThrow(() -> sut.send(request));
     }
 }

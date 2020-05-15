@@ -16,6 +16,7 @@ import javax.jms.Queue;
 import eu.europa.ec.fisheries.uvms.activity.model.exception.ActivityModelMarshallException;
 import eu.europa.ec.fisheries.uvms.activity.model.mapper.JAXBMarshaller;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryRequest;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardFAReportRequest;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.ExecutionException;
@@ -44,7 +45,16 @@ class ActivitySenderImpl implements ActivitySender {
 	@Override
 	public void send(CreateAndSendFAQueryRequest message) {
 		try {
-			subscriptionProducer.sendMessageToSpecificQueueSameTx(JAXBMarshaller.marshallJaxBObjectToString(message), activityQueue, subscriptionProducer.getDestination());
+			subscriptionProducer.sendMessageToSpecificQueueSameTx(JAXBMarshaller.marshallJaxBObjectToString(message), activityQueue, null);
+		} catch (MessageException | ActivityModelMarshallException e) {
+			throw new ExecutionException(e);
+		}
+	}
+
+	@Override
+	public void send(ForwardFAReportRequest message) {
+		try {
+			subscriptionProducer.sendMessageToSpecificQueueSameTx(JAXBMarshaller.marshallJaxBObjectToString(message), activityQueue, null);
 		} catch (MessageException | ActivityModelMarshallException e) {
 			throw new ExecutionException(e);
 		}

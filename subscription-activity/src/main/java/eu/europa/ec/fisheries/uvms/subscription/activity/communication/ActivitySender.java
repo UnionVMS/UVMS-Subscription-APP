@@ -10,6 +10,7 @@
 package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
 
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryRequest;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardFAReportRequest;
 
 /**
  * Service for sending messages to Activity.
@@ -21,4 +22,11 @@ public interface ActivitySender {
 	 * @param message The message with query data
 	 */
 	void send(CreateAndSendFAQueryRequest message);
+
+		/**
+	 * Ask Activity to forward an FA Report.
+	 *
+	 * @param message The message with the report data
+	 */
+	void send(ForwardFAReportRequest message);
 }
