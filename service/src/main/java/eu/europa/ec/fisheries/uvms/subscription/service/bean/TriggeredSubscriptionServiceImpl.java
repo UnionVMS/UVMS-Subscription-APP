@@ -13,7 +13,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import java.util.Set;
+
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.TriggeredSubscriptionDao;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 
 /**
@@ -46,5 +49,10 @@ class TriggeredSubscriptionServiceImpl implements TriggeredSubscriptionService {
 	@Override
 	public TriggeredSubscriptionEntity save(TriggeredSubscriptionEntity triggeredSubscription) {
 		return triggeredSubscriptionDao.create(triggeredSubscription);
+	}
+
+	@Override
+	public boolean isDuplicate(TriggeredSubscriptionEntity entity, Set<TriggeredSubscriptionDataEntity> dataForDuplicates) {
+		return triggeredSubscriptionDao.activeExists(entity.getSubscription(), dataForDuplicates);
 	}
 }

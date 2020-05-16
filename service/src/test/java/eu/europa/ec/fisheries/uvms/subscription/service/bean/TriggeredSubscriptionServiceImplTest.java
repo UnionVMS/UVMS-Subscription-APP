@@ -9,13 +9,19 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.TriggeredSubscriptionDao;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
@@ -41,5 +47,15 @@ public class TriggeredSubscriptionServiceImplTest {
 		TriggeredSubscriptionEntity entity = new TriggeredSubscriptionEntity();
 		sut.save(entity);
 		verify(triggeredSubscriptionDao).create(eq(entity));
+	}
+
+	@Test
+	void testIsDuplicate() {
+		SubscriptionEntity subscription = new SubscriptionEntity();
+		TriggeredSubscriptionEntity entity = new TriggeredSubscriptionEntity();
+		entity.setSubscription(subscription);
+		Set<TriggeredSubscriptionDataEntity > dataForDuplicates = new HashSet<>();
+		assertFalse(sut.isDuplicate(entity, dataForDuplicates));
+		verify(triggeredSubscriptionDao).activeExists(subscription, dataForDuplicates);
 	}
 }

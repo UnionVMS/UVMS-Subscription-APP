@@ -9,8 +9,10 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
+import java.util.Set;
 import java.util.stream.Stream;
 
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 
 /**
@@ -33,4 +35,19 @@ public interface TriggeredSubscriptionCreator {
 	 * @return A possibly empty but never null stream of not persisted triggered subscription objects
 	 */
 	Stream<TriggeredSubscriptionEntity> createTriggeredSubscriptions(String representation);
+
+	/**
+	 * Extract the set of triggered subscription data for the given {@code TriggeredSubscriptionEntity} that
+	 * should be used to check if there exists another active instance of the same subscription.
+	 * <p>
+	 * For example, data for a subscription triggered by a movement are the vessel id and the occurrence time,
+	 * i.e. {@code TriggeredSubscriptionEntity.data} has something like {@code {vesselId: 123, occurrenceTime: "2020-05-16 12:00"}}.
+	 * We need to keep the vessel id as a criterion: if the same {@code SubscriptionEntity} has active triggered
+	 * subscriptions for the same vessel id, then this is duplicate.
+	 * On the other hand, the occurrence time is not important. So, this method should return only {@code {vesselId: 123}}.
+	 *
+	 * @param entity The triggered subscription to check if it is duplicate
+	 * @return The data to use as criteria
+	 */
+	Set<TriggeredSubscriptionDataEntity> extractTriggeredSubscriptionDataForDuplicates(TriggeredSubscriptionEntity entity);
 }

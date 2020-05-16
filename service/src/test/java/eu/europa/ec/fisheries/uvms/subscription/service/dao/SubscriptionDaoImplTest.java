@@ -193,6 +193,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     void testFindByAreas() {
         SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
         List<SubscriptionSearchCriteria.AreaCriterion> areas = Arrays.asList(new SubscriptionSearchCriteria.AreaCriterion(AreaType.EEZ, 101L), new SubscriptionSearchCriteria.AreaCriterion(AreaType.PORT, 222L));
+        criteria.setActive(true);
         criteria.setInAnyArea(areas);
         List<SubscriptionEntity> results = sut.listSubscriptions(criteria);
         assertEquals(1, results.size());

@@ -13,8 +13,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -23,10 +25,14 @@ import static org.mockito.Mockito.when;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.TriggeredSubscriptionService;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionExecutionService;
 import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
@@ -89,6 +95,21 @@ public class IncomingDataMessageServiceImplTest {
 		assertEquals(Arrays.asList(dummy1, dummy2), captor.getAllValues());
 		verify(subscriptionExecutionService).save(exec1);
 		verifyNoMoreInteractions(subscriptionExecutionService);
+	}
+
+	@Test
+	void testHandleForDuplicate() {
+		TriggeredSubscriptionEntity dummy = new TriggeredSubscriptionEntity();
+		when(triggeredSubscriptionCreator.createTriggeredSubscriptions(REPRESENTATION)).thenReturn(Stream.of(dummy));
+		when(triggeredSubscriptionService.isDuplicate(eq(dummy), any())).thenReturn(true);
+		Set<TriggeredSubscriptionDataEntity> dummyCriteria = new HashSet<>();
+		when(triggeredSubscriptionCreator.extractTriggeredSubscriptionDataForDuplicates(dummy)).thenReturn(dummyCriteria);
+
+		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION);
+
+		verify(triggeredSubscriptionService, never()).save(any());
+		verify(triggeredSubscriptionService).isDuplicate(dummy, dummyCriteria);
+		verify(subscriptionExecutionScheduler, never()).scheduleNext(any());
 	}
 
 	@Test

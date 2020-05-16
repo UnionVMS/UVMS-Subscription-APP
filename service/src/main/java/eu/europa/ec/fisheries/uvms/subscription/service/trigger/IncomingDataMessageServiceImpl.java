@@ -16,9 +16,11 @@ import javax.transaction.Transactional;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.TriggeredSubscriptionService;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionExecutionService;
 import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
 
@@ -66,10 +68,18 @@ class IncomingDataMessageServiceImpl implements IncomingDataMessageService {
 		TriggeredSubscriptionCreator triggeredSubscriptionCreator = Optional.ofNullable(subscriptionCreators.get(subscriptionSource))
 				.orElseThrow(() -> new IllegalStateException("unknown subscription source: " + subscriptionSource));
 		triggeredSubscriptionCreator.createTriggeredSubscriptions(representation)
+				.filter(notAlreadyTriggered(triggeredSubscriptionCreator))
 				.map(triggeredSubscriptionService::save)
 				.map(subscriptionExecutionScheduler::scheduleNext)
 				.filter(Optional::isPresent)
 				.map(Optional::get)
 				.forEach(subscriptionExecutionService::save);
+	}
+
+	private Predicate<TriggeredSubscriptionEntity> notAlreadyTriggered(TriggeredSubscriptionCreator triggeredSubscriptionCreator) {
+		return triggeredSubscriptionEntity -> Optional.of(triggeredSubscriptionEntity)
+				.map(triggeredSubscriptionCreator::extractTriggeredSubscriptionDataForDuplicates)
+				.map(criteria -> !triggeredSubscriptionService.isDuplicate(triggeredSubscriptionEntity, criteria))
+				.orElse(false);
 	}
 }

@@ -26,13 +26,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionFinder;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AreaCriterion;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
@@ -116,5 +120,19 @@ public class MovementTriggeredSubscriptionCreatorTest {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Test
+	void testExtractTriggeredSubscriptionDataForDuplicates() {
+		TriggeredSubscriptionEntity e = new TriggeredSubscriptionEntity();
+		e.getData().add(new TriggeredSubscriptionDataEntity(e, "vesselId", "VESSEL ID"));
+		e.getData().add(new TriggeredSubscriptionDataEntity(e, "vesselSchemeId", "VESSEL SCHEME ID"));
+		e.getData().add(new TriggeredSubscriptionDataEntity(e, "occurrence", "OCCURRENCE"));
+		e.getData().add(new TriggeredSubscriptionDataEntity(e, "somethingElse", "XXX"));
+		Set<TriggeredSubscriptionDataEntity> result = sut.extractTriggeredSubscriptionDataForDuplicates(e);
+		assertEquals(new HashSet<>(Arrays.asList(
+				new TriggeredSubscriptionDataEntity(e, "vesselSchemeId", "VESSEL SCHEME ID"),
+				new TriggeredSubscriptionDataEntity(e, "vesselId", "VESSEL ID")
+		)), result);
 	}
 }

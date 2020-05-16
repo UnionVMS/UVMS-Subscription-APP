@@ -9,6 +9,10 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
+import java.util.Set;
+
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 
 /**
@@ -30,4 +34,14 @@ public interface TriggeredSubscriptionDao {
 	 * @return The found triggered subscription, throws {@code EntityDoesNotExistException} if not found
 	 */
 	TriggeredSubscriptionEntity getById(Long id);
+
+	/**
+	 * Check if the database contains an active triggered instance of the given subscription,
+	 * having the given data.
+	 *
+	 * @param subscription The subscription
+	 * @param dataCriteria The data
+	 * @return Whether a duplicate exists
+	 */
+	boolean activeExists(SubscriptionEntity subscription, Set<TriggeredSubscriptionDataEntity> dataCriteria);
 }
