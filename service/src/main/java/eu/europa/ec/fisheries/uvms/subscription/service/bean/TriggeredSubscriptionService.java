@@ -9,6 +9,9 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
+import java.util.Set;
+
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 
 /**
@@ -22,4 +25,14 @@ public interface TriggeredSubscriptionService {
 	 * @return The saved entity
 	 */
 	TriggeredSubscriptionEntity save(TriggeredSubscriptionEntity triggeredSubscription);
+
+	/**
+	 * Check if the subscription of the given {@code TriggeredSubscriptionEntity} already has another active
+	 * triggered subscription, taking into account the given data for duplicates.
+	 *
+	 * @param entity            The candidate triggered subscription to check if there are already duplicates
+	 * @param dataForDuplicates The data to use as criteria
+	 * @return Whether the given entity is duplicate
+	 */
+	boolean isDuplicate(TriggeredSubscriptionEntity entity, Set<TriggeredSubscriptionDataEntity> dataForDuplicates);
 }

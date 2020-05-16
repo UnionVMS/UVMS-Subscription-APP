@@ -10,15 +10,18 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.PENDING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.stream.Collectors;
@@ -27,8 +30,10 @@ import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +43,7 @@ import org.junit.jupiter.api.Test;
  * Tests for the {@link TriggeredSubscriptionDao}.
  */
 @EnableAutoWeld
-public class TriggeredSubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
+public class TriggeredSubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
 	@Inject
 	private SubscriptionDaoImpl subscriptionDao;
@@ -71,11 +76,7 @@ public class TriggeredSubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
 	void testCreateTriggeredSubscription() {
 		em.getTransaction().begin();
 		SubscriptionEntity subscription = subscriptionDao.findById(3L);
-		TriggeredSubscriptionEntity entity = new TriggeredSubscriptionEntity();
-		entity.setSubscription(subscription);
-		entity.setSource("SOURCE");
-		entity.setCreationDate(new Date());
-		entity.setData(new HashSet<>());
+		TriggeredSubscriptionEntity entity = makeTriggeredSubscription(subscription);
 		addTriggeredSubscriptionDataEntity(entity, "key1", "value1");
 		addTriggeredSubscriptionDataEntity(entity, "key2", "value2");
 		entity = sut.create(entity);
@@ -92,11 +93,48 @@ public class TriggeredSubscriptionDaoTest extends BaseSubscriptionInMemoryTest {
 		assertThrows(EntityDoesNotExistException.class, () -> sut.getById(99999999L));
 	}
 
+	@Test
+	void testActiveExists() {
+		em.getTransaction().begin();
+		SubscriptionEntity subscription2 = subscriptionDao.findById(2L);
+		TriggeredSubscriptionEntity trig2 = makeTriggeredSubscription(subscription2);
+		addTriggeredSubscriptionDataEntity(trig2, "key1", "value1");
+		SubscriptionEntity subscription3 = subscriptionDao.findById(3L);
+		TriggeredSubscriptionEntity trig3 = makeTriggeredSubscription(subscription3);
+		addTriggeredSubscriptionDataEntity(trig3, "key2", "value2");
+		trig2 = sut.create(trig2);
+		trig3 = sut.create(trig3);
+		em.persist(makeExecution(trig2, PENDING));
+		em.persist(makeExecution(trig3, PENDING));
+		em.getTransaction().commit();
+		em.clear();
+
+		assertTrue(sut.activeExists(subscription2, Collections.singleton(new TriggeredSubscriptionDataEntity(null, "key1", "value1"))));
+		assertFalse(sut.activeExists(subscription3, Collections.singleton(new TriggeredSubscriptionDataEntity(null, "key1", "value1"))));
+	}
+
+	private TriggeredSubscriptionEntity makeTriggeredSubscription(SubscriptionEntity subscription) {
+		TriggeredSubscriptionEntity entity = new TriggeredSubscriptionEntity();
+		entity.setSubscription(subscription);
+		entity.setSource("SOURCE");
+		entity.setCreationDate(new Date());
+		entity.setActive(true);
+		return entity;
+	}
+
 	private void addTriggeredSubscriptionDataEntity(TriggeredSubscriptionEntity entity, String key, String value) {
 		TriggeredSubscriptionDataEntity data = new TriggeredSubscriptionDataEntity();
 		data.setTriggeredSubscription(entity);
 		data.setKey(key);
 		data.setValue(value);
 		entity.getData().add(data);
+	}
+
+	private SubscriptionExecutionEntity makeExecution(TriggeredSubscriptionEntity entity, SubscriptionExecutionStatusType status) {
+		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
+		execution.setTriggeredSubscription(entity);
+		execution.setStatus(status);
+		execution.setRequestedTime(new Date());
+		return execution;
 	}
 }

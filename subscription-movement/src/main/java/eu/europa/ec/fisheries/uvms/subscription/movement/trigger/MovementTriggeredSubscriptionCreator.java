@@ -50,6 +50,10 @@ import lombok.Getter;
 @ApplicationScoped
 public class MovementTriggeredSubscriptionCreator implements TriggeredSubscriptionCreator {
 
+	private static final String KEY_VESSEL_ID = "vesselId";
+	private static final String KEY_VESSEL_SCHEME_ID = "vesselSchemeId";
+	private static final String KEY_OCCURRENCE = "occurrence";
+
 	private static final String SOURCE = "movement";
 
 	private SubscriptionFinder subscriptionFinder;
@@ -127,14 +131,14 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 	private Set<TriggeredSubscriptionDataEntity> makeTriggeredSubscriptionData(TriggeredSubscriptionEntity triggeredSubscription, MovementAndSubscription input) {
 		Set<TriggeredSubscriptionDataEntity> result = new HashSet<>();
 		Optional.ofNullable(input.getMovement().getAssetId()).ifPresent(assetId -> {
-			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, "vesselId", assetId.getValue()));
-			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, "vesselSchemeId", assetId.getIdType().toString()));
+			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_VESSEL_ID, assetId.getValue()));
+			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_VESSEL_SCHEME_ID, assetId.getIdType().toString()));
 		});
 		Optional.ofNullable(input.getMovement().getPositionTime()).ifPresent(positionTime -> {
 			GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
 			calendar.setTime(positionTime);
 			XMLGregorianCalendar xmlCalendar = datatypeFactory.newXMLGregorianCalendar(calendar);
-			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, "occurrence", xmlCalendar.toXMLFormat()));
+			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_OCCURRENCE, xmlCalendar.toXMLFormat()));
 		});
 		return result;
 	}
@@ -144,5 +148,12 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 	private static class MovementAndSubscription {
 		private final MovementType movement;
 		private final SubscriptionEntity subscription;
+	}
+
+	@Override
+	public Set<TriggeredSubscriptionDataEntity> extractTriggeredSubscriptionDataForDuplicates(TriggeredSubscriptionEntity entity) {
+		return entity.getData().stream()
+				.filter(d -> KEY_VESSEL_ID.equals(d.getKey()) || KEY_VESSEL_SCHEME_ID.equals(d.getKey()))
+				.collect(Collectors.toSet());
 	}
 }
