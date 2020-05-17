@@ -28,13 +28,13 @@ public class SubscriptionOutputDtoValidator implements ConstraintValidator<Valid
         boolean valid = true;
         if (output != null) {
             if(output.getMessageType() == OutgoingMessageType.FA_QUERY || output.getMessageType() == OutgoingMessageType.FA_REPORT) {
-                valid = requirePropertyNotNullWithMessage(context, output.getLogbook(), "logbook", "Logbook is required")
-                        & requirePropertyNotNullWithMessage(context, output.getConsolidated(), "consolidated", "Consolidated is required")
-                        & requirePropertyNotNullWithMessage(context, output.getHistory(), "history", "History is required")
-                        & requirePropertyNotNullWithMessage(context, output.getHistoryUnit(), "historyUnit", "History unit is required");
+                valid = requirePropertyNotNullWithMessage(context, output.getLogbook(), "logbook", "Logbook is required");
+                valid &= requirePropertyNotNullWithMessage(context, output.getConsolidated(), "consolidated", "Consolidated is required");
+                valid &= requirePropertyNotNullWithMessage(context, output.getHistory(), "history", "History is required");
+                valid &= requirePropertyNotNullWithMessage(context, output.getHistoryUnit(), "historyUnit", "History unit is required");
             }
             if (output.getHasEmail() != null && output.getHasEmail()) {
-                valid = valid & requirePropertyNotNullWithMessage(context, output.getEmailConfiguration(), "emailConfiguration", "EmailConfiguration is required");
+                valid &= requirePropertyNotNullWithMessage(context, output.getEmailConfiguration(), "emailConfiguration", "EmailConfiguration is required");
             }
         }
         return valid;
