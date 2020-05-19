@@ -33,6 +33,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutpu
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
+import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
@@ -52,10 +54,9 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 	private static final Long TRIGGERED_SUBSCRIPTION_ID = 33L;
 	private static final Long CHANNEL_ID = 22L;
 	private static final Long ENDPOINT_ID = 11L;
+	private static final String CONNECT_ID = "connectid";
 	private static final String RECEIVER = "RECEIVER";
 	private static final String DATAFLOW = "DATAFLOW";
-	private static final String VESSEL_ID = "VESSEL_ID";
-	private static final String VESSEL_SCHEME_ID = "VESSEL_SCHEME_ID";
 	private static final String OCCURRENCE = "2017-03-04T17:39:00Z";
 
 	@Produces @Mock
@@ -63,6 +64,9 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 
 	@Produces @Mock
 	private ActivitySender activitySender;
+
+	@Produces @Mock
+	private AssetSender assetSender;
 
 	@Produces @Mock
 	private UsmSender usmSender;
@@ -93,6 +97,9 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 		SubscriptionExecutionEntity execution = setup(OutgoingMessageType.FA_QUERY);
 		ReceiverAndDataflow receiverAndDataflow = new ReceiverAndDataflow(RECEIVER, DATAFLOW);
 		when(usmSender.findReceiverAndDataflow(ENDPOINT_ID,CHANNEL_ID)).thenReturn(receiverAndDataflow);
+		VesselIdentifiersHolder idsHolder = new VesselIdentifiersHolder();
+		idsHolder.setCfr("CFR123456789");
+		when(assetSender.findVesselIdentifiers(CONNECT_ID)).thenReturn(idsHolder);
 
 		sut.execute(execution);
 
@@ -120,8 +127,7 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
 		triggeredSubscription.setId(TRIGGERED_SUBSCRIPTION_ID);
 		triggeredSubscription.setSubscription(subscription);
-		triggeredSubscription.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription, "vesselId", VESSEL_ID));
-		triggeredSubscription.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription, "vesselSchemeId", VESSEL_SCHEME_ID));
+		triggeredSubscription.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription, "connectId", CONNECT_ID));
 		triggeredSubscription.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription, "occurrence", OCCURRENCE));
 		lenient().when(triggeredSubscriptionDao.getById(TRIGGERED_SUBSCRIPTION_ID)).thenReturn(triggeredSubscription);
 		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();

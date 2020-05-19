@@ -7,19 +7,28 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
 
-import javax.inject.Qualifier;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package eu.europa.ec.fisheries.uvms.subscription.service.messaging;
+
+import javax.ejb.LocalBean;
+import javax.ejb.Stateless;
+
+import eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants;
+import eu.europa.ec.fisheries.uvms.commons.message.impl.AbstractProducer;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * Qualifier for injecting the Activity queue.
+ * Subscription producer communicating with Asset module
  */
-@Qualifier
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
-public @interface UserQueue {
+@Stateless
+@LocalBean
+@Slf4j
+@Getter
+public class SubscriptionAssetProducerBean extends AbstractProducer {
+
+    @Override
+    public String getDestinationName() {
+        return MessageConstants.QUEUE_ASSET_EVENT;
+    }
 }
