@@ -50,8 +50,7 @@ import lombok.Getter;
 @ApplicationScoped
 public class MovementTriggeredSubscriptionCreator implements TriggeredSubscriptionCreator {
 
-	private static final String KEY_VESSEL_ID = "vesselId";
-	private static final String KEY_VESSEL_SCHEME_ID = "vesselSchemeId";
+	private static final String KEY_CONNECT_ID = "connectId";
 	private static final String KEY_OCCURRENCE = "occurrence";
 
 	private static final String SOURCE = "movement";
@@ -130,9 +129,8 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 
 	private Set<TriggeredSubscriptionDataEntity> makeTriggeredSubscriptionData(TriggeredSubscriptionEntity triggeredSubscription, MovementAndSubscription input) {
 		Set<TriggeredSubscriptionDataEntity> result = new HashSet<>();
-		Optional.ofNullable(input.getMovement().getAssetId()).ifPresent(assetId -> {
-			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_VESSEL_ID, assetId.getValue()));
-			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_VESSEL_SCHEME_ID, assetId.getIdType().toString()));
+		Optional.ofNullable(input.getMovement().getConnectId()).ifPresent(connectId -> {
+			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_CONNECT_ID, connectId));
 		});
 		Optional.ofNullable(input.getMovement().getPositionTime()).ifPresent(positionTime -> {
 			GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
@@ -153,7 +151,7 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 	@Override
 	public Set<TriggeredSubscriptionDataEntity> extractTriggeredSubscriptionDataForDuplicates(TriggeredSubscriptionEntity entity) {
 		return entity.getData().stream()
-				.filter(d -> KEY_VESSEL_ID.equals(d.getKey()) || KEY_VESSEL_SCHEME_ID.equals(d.getKey()))
+				.filter(d -> KEY_CONNECT_ID.equals(d.getKey()))
 				.collect(Collectors.toSet());
 	}
 }
