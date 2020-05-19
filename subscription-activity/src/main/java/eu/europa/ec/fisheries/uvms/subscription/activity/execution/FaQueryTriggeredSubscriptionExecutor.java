@@ -15,16 +15,21 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.xml.datatype.DatatypeFactory;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityModuleMethod;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.PluginType;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierSchemeIdEnum;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ActivitySender;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ReceiverAndDataflow;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.UsmSender;
+import eu.europa.ec.fisheries.uvms.subscription.activity.communication.asset.AssetSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
@@ -39,6 +44,7 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 
 	private ActivitySender activitySender;
 	private UsmSender usmSender;
+	private AssetSender assetSender;
 	private DatatypeFactory datatypeFactory;
 
 	/**
@@ -49,9 +55,10 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 	 * @param datatypeFactory The XML helper object
 	 */
 	@Inject
-	public FaQueryTriggeredSubscriptionExecutor(ActivitySender activitySender, UsmSender usmSender, DatatypeFactory datatypeFactory) {
+	public FaQueryTriggeredSubscriptionExecutor(ActivitySender activitySender, UsmSender usmSender, AssetSender assetSender, DatatypeFactory datatypeFactory) {
 		this.activitySender = activitySender;
 		this.usmSender = usmSender;
+		this.assetSender = assetSender;
 		this.datatypeFactory = datatypeFactory;
 	}
 
@@ -70,10 +77,12 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 		if (subscription.getOutput().getMessageType() == OutgoingMessageType.FA_QUERY) {
 			ReceiverAndDataflow receiverAndDataflow = usmSender.findReceiverAndDataflow(subscription.getOutput().getSubscriber().getEndpointId(), subscription.getOutput().getSubscriber().getChannelId());
 			Map<String, String> dataMap = toDataMap(triggeredSubscription);
-			String vesselId = dataMap.get("vesselId"); // TODO make these constants
-			Objects.requireNonNull(vesselId, "vesselId not found in data of " + triggeredSubscription.getId());
-			String vesselSchemeId = dataMap.get("vesselSchemeId");
-			Objects.requireNonNull(vesselSchemeId, "vesselSchemeId not found in data of " + triggeredSubscription.getId());
+			String connectId = dataMap.get("connectId"); // TODO make these constants
+			Objects.requireNonNull(connectId, "connectId not found in data of " + triggeredSubscription.getId());
+			List<VesselIdentifierType> vesselIdentifiers = new ArrayList<>();
+			assetSender.findVesselIdentifiers(connectId).forEach( (key, value) ->
+					vesselIdentifiers.add(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.fromValue(key.name()), value))
+			);
 			String occurrence = dataMap.get("occurrence");
 			Objects.requireNonNull(occurrence, "occurrence not found in data of " + triggeredSubscription.getId());
 			ZonedDateTime occurrenceZdt = datatypeFactory.newXMLGregorianCalendar(occurrence).toGregorianCalendar().toZonedDateTime();
@@ -81,8 +90,7 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 			CreateAndSendFAQueryRequest message = new CreateAndSendFAQueryRequest(
 					ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY,
 					PluginType.FLUX,
-					vesselId,
-					vesselSchemeId,
+					vesselIdentifiers,
 					TRUE.equals(subscription.getOutput().getConsolidated()),
 					datatypeFactory.newXMLGregorianCalendar(GregorianCalendar.from(startDate)),
 					datatypeFactory.newXMLGregorianCalendar(GregorianCalendar.from(occurrenceZdt)),

@@ -125,14 +125,12 @@ public class MovementTriggeredSubscriptionCreatorTest {
 	@Test
 	void testExtractTriggeredSubscriptionDataForDuplicates() {
 		TriggeredSubscriptionEntity e = new TriggeredSubscriptionEntity();
-		e.getData().add(new TriggeredSubscriptionDataEntity(e, "vesselId", "VESSEL ID"));
-		e.getData().add(new TriggeredSubscriptionDataEntity(e, "vesselSchemeId", "VESSEL SCHEME ID"));
+		e.getData().add(new TriggeredSubscriptionDataEntity(e, "connectId", "CONNECT_ID"));
 		e.getData().add(new TriggeredSubscriptionDataEntity(e, "occurrence", "OCCURRENCE"));
 		e.getData().add(new TriggeredSubscriptionDataEntity(e, "somethingElse", "XXX"));
 		Set<TriggeredSubscriptionDataEntity> result = sut.extractTriggeredSubscriptionDataForDuplicates(e);
 		assertEquals(new HashSet<>(Arrays.asList(
-				new TriggeredSubscriptionDataEntity(e, "vesselSchemeId", "VESSEL SCHEME ID"),
-				new TriggeredSubscriptionDataEntity(e, "vesselId", "VESSEL ID")
+				new TriggeredSubscriptionDataEntity(e, "connectId", "CONNECT_ID")
 		)), result);
 	}
 }

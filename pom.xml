@@ -133,7 +133,11 @@
 				<artifactId>movement-model</artifactId>
 				<version>${uvms.movement.module.version}</version>
 			</dependency>
-
+			<dependency>
+				<groupId>eu.europa.ec.fisheries.uvms.asset</groupId>
+				<artifactId>asset-model</artifactId>
+				<version>${uvms.asset.module.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-databind</artifactId>
