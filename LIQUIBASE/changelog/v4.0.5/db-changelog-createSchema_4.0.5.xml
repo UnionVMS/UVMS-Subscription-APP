@@ -9,5 +9,7 @@
     <include file="/schema/subscription.xml" />
     <include file="/schema/triggeredsubscription.xml" />
     <include file="/schema/subscriptionexecution.xml" />
+    <include file="/schema/asset.xml" />
+    <include file="/schema/assetgroup.xml" />
 
 </databaseChangeLog>

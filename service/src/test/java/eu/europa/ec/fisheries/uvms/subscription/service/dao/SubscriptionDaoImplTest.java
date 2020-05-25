@@ -45,6 +45,8 @@ import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetGroupEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
@@ -237,18 +239,87 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     }
 
     @Test
-    public void createSubscriptionWithNullAreas() {
+    public void createSubscriptionWithAssets() {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
 
+        AssetEntity asset1 = new AssetEntity();
+        asset1.setGuid("guid1");
+        asset1.setName("name1");
+
+        AssetEntity asset2 = new AssetEntity();
+        asset2.setGuid("guid2");
+        asset2.setName("name2");
+
         SubscriptionEntity subscription = SubscriptionTestHelper.random();
-        subscription.setAreas(null);
+        subscription.setAssets(Collections.asSet(asset1, asset2));
 
         Long id = sut.createEntity(subscription).getId();
         em.flush();
 
         SubscriptionEntity createdSubscription = sut.findById(id);
-        assertNull(createdSubscription.getAreas());
+        assertNotNull(createdSubscription.getAreas());
+        assertEquals(2, createdSubscription.getAssets().size());
+        assertTrue(createdSubscription.getAssets().contains(asset1));
+        assertTrue(createdSubscription.getAssets().contains(asset2));
+    }
+
+    @Test
+    public void createSubscriptionWithAssetGroups() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        AssetGroupEntity assetGroup1 = new AssetGroupEntity();
+        assetGroup1.setGuid("guid1");
+        assetGroup1.setName("name1");
+
+        AssetGroupEntity assetGroup2 = new AssetGroupEntity();
+        assetGroup2.setGuid("guid2");
+        assetGroup2.setName("name2");
+
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setAssetGroups(Collections.asSet(assetGroup1, assetGroup2));
+
+        Long id = sut.createEntity(subscription).getId();
+        em.flush();
+
+        SubscriptionEntity createdSubscription = sut.findById(id);
+        assertNotNull(createdSubscription.getAreas());
+        assertEquals(2, createdSubscription.getAssetGroups().size());
+        assertTrue(createdSubscription.getAssetGroups().contains(assetGroup1));
+        assertTrue(createdSubscription.getAssetGroups().contains(assetGroup2));
+    }
+
+    @Test
+    public void createSubscriptionWithEmptyAreas() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setAreas(java.util.Collections.emptySet());
+
+        Long id = sut.createEntity(subscription).getId();
+        em.flush();
+
+        SubscriptionEntity createdSubscription = sut.findById(id);
+        assertTrue(createdSubscription.getAreas().isEmpty());
+    }
+
+    @Test
+    public void createSubscriptionWithEmptyAssetsAndAssetGroups() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setAssets(java.util.Collections.emptySet());
+        subscription.setAssetGroups(java.util.Collections.emptySet());
+
+        Long id = sut.createEntity(subscription).getId();
+        em.flush();
+
+        SubscriptionEntity createdSubscription = sut.findById(id);
+        assertTrue(createdSubscription.getAssets().isEmpty());
+        assertTrue(createdSubscription.getAssetGroups().isEmpty());
     }
 
     @Test
@@ -296,6 +367,98 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     }
 
     @Test
+    public void updateSubscriptionWithNewAssets() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        //create entity
+        AssetEntity asset1 = new AssetEntity();
+        asset1.setGuid("uu1");
+        asset1.setName("name1");
+        AssetEntity asset2 = new AssetEntity();
+        asset2.setGuid("uu2");
+        asset2.setName("name2");
+
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setAssets(Collections.asSet(asset1, asset2));
+        Long id = sut.createEntity(subscription).getId();
+        SubscriptionEntity createdSubscription = sut.findById(id);
+
+
+        //update entity assets
+
+        AssetEntity newAsset1 = new AssetEntity();
+        newAsset1.setGuid("new_uu1");
+        newAsset1.setName("new_name1");
+        AssetEntity newAsset2 = new AssetEntity();
+        newAsset2.setGuid("new_uu2");
+        newAsset2.setName("new_name2");
+        AssetEntity newAsset3 = new AssetEntity();
+        newAsset3.setGuid("new_uu3");
+        newAsset3.setName("new_name3");
+
+        createdSubscription.setAssets(Collections.asSet(newAsset1, newAsset2, newAsset3));
+        Long updatedId = sut.update(createdSubscription).getId();
+
+        em.flush();
+
+        SubscriptionEntity updatedSubscription = sut.findById(updatedId);
+        assertNotNull(updatedSubscription.getAssets());
+        assertEquals(3, updatedSubscription.getAssets().size());
+        assertTrue(updatedSubscription.getAssets().contains(newAsset1));
+        assertTrue(updatedSubscription.getAssets().contains(newAsset2));
+        assertTrue(updatedSubscription.getAssets().contains(newAsset3));
+        assertFalse(updatedSubscription.getAssets().contains(asset1));
+        assertFalse(updatedSubscription.getAssets().contains(asset2));
+    }
+
+    @Test
+    public void updateSubscriptionWithNewAssetGroups() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        //create entity
+        AssetGroupEntity assetGroup1 = new AssetGroupEntity();
+        assetGroup1.setGuid("uu1");
+        assetGroup1.setName("name1");
+        AssetGroupEntity assetGroup2 = new AssetGroupEntity();
+        assetGroup2.setGuid("uu2");
+        assetGroup2.setName("name2");
+
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setAssetGroups(Collections.asSet(assetGroup1, assetGroup2));
+        Long id = sut.createEntity(subscription).getId();
+        SubscriptionEntity createdSubscription = sut.findById(id);
+
+
+        //update entity assets
+
+        AssetGroupEntity newAssetGroup1 = new AssetGroupEntity();
+        newAssetGroup1.setGuid("new_uu1");
+        newAssetGroup1.setName("new_name1");
+        AssetGroupEntity newAssetGroup2 = new AssetGroupEntity();
+        newAssetGroup2.setGuid("new_uu2");
+        newAssetGroup2.setName("new_name2");
+        AssetGroupEntity newAssetGroup3 = new AssetGroupEntity();
+        newAssetGroup3.setGuid("new_uu3");
+        newAssetGroup3.setName("new_name3");
+
+        createdSubscription.setAssetGroups(Collections.asSet(newAssetGroup1, newAssetGroup2, newAssetGroup3));
+        Long updatedId = sut.update(createdSubscription).getId();
+
+        em.flush();
+
+        SubscriptionEntity updatedSubscription = sut.findById(updatedId);
+        assertNotNull(updatedSubscription.getAssetGroups());
+        assertEquals(3, updatedSubscription.getAssetGroups().size());
+        assertTrue(updatedSubscription.getAssetGroups().contains(newAssetGroup1));
+        assertTrue(updatedSubscription.getAssetGroups().contains(newAssetGroup2));
+        assertTrue(updatedSubscription.getAssetGroups().contains(newAssetGroup3));
+        assertFalse(updatedSubscription.getAssetGroups().contains(assetGroup1));
+        assertFalse(updatedSubscription.getAssetGroups().contains(assetGroup2));
+    }
+
+    @Test
     public void updateSubscriptionAreas() {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
@@ -332,27 +495,94 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     }
 
     @Test
-    public void updateSubscriptionWithNullAreas() {
+    public void updateSubscriptionAssets() {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
 
+        //create entity
+        AssetEntity asset1 = new AssetEntity();
+        asset1.setGuid("uu1");
+        asset1.setName("name1");
+        AssetEntity asset2 = new AssetEntity();
+        asset2.setGuid("uu2");
+        asset2.setName("name2");
         SubscriptionEntity subscription = SubscriptionTestHelper.random();
-        subscription.setAreas(null);
+        subscription.setAssets(Collections.asSet(asset1, asset2));
         Long id = sut.createEntity(subscription).getId();
         SubscriptionEntity createdSubscription = sut.findById(id);
 
 
-        //update entity areas
-        AreaEntity newArea1 = new AreaEntity();
-        newArea1.setGid(10L);
-        newArea1.setAreaType(AreaType.USERAREA);
+        //update entity assets
+        AssetEntity newAsset1 = new AssetEntity();
+        newAsset1.setGuid("new_uu1");
+        newAsset1.setName("new_name1");
 
+        createdSubscription.setAssets(Collections.asSet(asset1, newAsset1));
         Long updatedId = sut.update(createdSubscription).getId();
 
         em.flush();
 
         SubscriptionEntity updatedSubscription = sut.findById(updatedId);
-        assertNull(updatedSubscription.getAreas());
+        assertNotNull(updatedSubscription.getAssets());
+        assertEquals(2, updatedSubscription.getAssets().size());
+        assertTrue(updatedSubscription.getAssets().contains(newAsset1));
+        assertTrue(updatedSubscription.getAssets().contains(asset1));
+        assertFalse(updatedSubscription.getAssets().contains(asset2));
+    }
+
+    @Test
+    public void updateSubscriptionWithEmptyAreas() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setAreas(java.util.Collections.emptySet());
+        Long id = sut.createEntity(subscription).getId();
+
+        SubscriptionEntity createdSubscription = sut.findById(id);
+        createdSubscription.setName("new_name");
+        Long updatedId = sut.update(createdSubscription).getId();
+
+        em.flush();
+
+        SubscriptionEntity updatedSubscription = sut.findById(updatedId);
+        assertTrue(updatedSubscription.getAreas().isEmpty());
+    }
+
+    @Test
+    public void updateSubscriptionWithEmptyAssets() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        Long id = sut.createEntity(subscription).getId();
+
+        SubscriptionEntity createdSubscription = sut.findById(id);
+        createdSubscription.setName("new_name");
+        Long updatedId = sut.update(createdSubscription).getId();
+
+        em.flush();
+
+        SubscriptionEntity updatedSubscription = sut.findById(updatedId);
+        assertTrue(updatedSubscription.getAssets().isEmpty());
+    }
+
+    @Test
+    public void updateSubscriptionWithEmptyAssetGroups() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        Long id = sut.createEntity(subscription).getId();
+
+        SubscriptionEntity createdSubscription = sut.findById(id);
+        createdSubscription.setName("new_name");
+        Long updatedId = sut.update(createdSubscription).getId();
+
+        em.flush();
+
+        SubscriptionEntity updatedSubscription = sut.findById(updatedId);
+        assertTrue(updatedSubscription.getAssetGroups().isEmpty());
     }
 
     @Test
@@ -380,6 +610,54 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     }
 
     @Test
+    public void deleteSubscriptionWithAssets() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        Integer originalNumberOfSavedAssets = findAllAssets().size();
+
+        //create subscription
+        AssetEntity asset1 = new AssetEntity();
+        asset1.setGuid("uu1");
+        asset1.setName("name1");
+        AssetEntity asset2 = new AssetEntity();
+        asset2.setGuid("uu2");
+        asset2.setName("name2");
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setAssets(Collections.asSet(asset1, asset2));
+        Long id = sut.createEntity(subscription).getId();
+
+        sut.delete(id);
+        em.flush();
+        Integer numberOfSavedAssets = findAllAssets().size();
+        assertEquals(originalNumberOfSavedAssets, numberOfSavedAssets);
+    }
+
+    @Test
+    public void deleteSubscriptionWithAssetGroups() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        Integer originalNumberOfSavedAssetGroups = findAllAssetGroups().size();
+
+        //create subscription
+        AssetGroupEntity assetGroup1 = new AssetGroupEntity();
+        assetGroup1.setGuid("uu1");
+        assetGroup1.setName("name1");
+        AssetGroupEntity assetGroup2 = new AssetGroupEntity();
+        assetGroup2.setGuid("uu2");
+        assetGroup2.setName("name2");
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setAssetGroups(Collections.asSet(assetGroup1, assetGroup2));
+        Long id = sut.createEntity(subscription).getId();
+
+        sut.delete(id);
+        em.flush();
+        Integer numberOfSavedAssetGroups = findAllAssetGroups().size();
+        assertEquals(originalNumberOfSavedAssetGroups, numberOfSavedAssetGroups);
+    }
+
+    @Test
     @SneakyThrows
     public void testListSubscriptionForEnrichment(){
         List<SubscriptionEntity> subscriptionList = findAllSubscriptions();
@@ -400,6 +678,8 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         em.getTransaction().begin();
         SubscriptionEntity subscription = findAllSubscriptions().get(0);
         Set<AreaEntity> detachedAreas = subscription.getAreas().stream().peek(em::detach).collect(toSet());
+        Set<AssetEntity> detachedAssets = subscription.getAssets().stream().peek(em::detach).collect(toSet());
+        Set<AssetGroupEntity> detachedAssetGroups = subscription.getAssetGroups().stream().peek(em::detach).collect(toSet());
         em.detach(subscription);
         subscription.setAreas(detachedAreas);
         subscription.setDescription("updated description");
@@ -560,6 +840,16 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
     private List<AreaEntity> findAllAreas() {
         TypedQuery<AreaEntity> query = em.createQuery("SELECT area FROM AreaEntity area ORDER BY area.subscription.id", AreaEntity.class);
+        return query.getResultList();
+    }
+
+    private List<AssetEntity> findAllAssets() {
+        TypedQuery<AssetEntity> query = em.createQuery("SELECT area FROM AssetEntity area ORDER BY area.subscription.id", AssetEntity.class);
+        return query.getResultList();
+    }
+
+    private List<AssetGroupEntity> findAllAssetGroups() {
+        TypedQuery<AssetGroupEntity> query = em.createQuery("SELECT area FROM AssetGroupEntity area ORDER BY area.subscription.id", AssetGroupEntity.class);
         return query.getResultList();
     }
 

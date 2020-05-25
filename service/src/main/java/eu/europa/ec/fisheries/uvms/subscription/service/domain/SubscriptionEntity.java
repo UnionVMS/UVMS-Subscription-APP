@@ -104,4 +104,26 @@ public class SubscriptionEntity implements Serializable {
     @Valid
     private Set<AreaEntity> areas = new HashSet<>();
 
+    @OneToMany(mappedBy = "subscription", cascade = ALL, orphanRemoval = true)
+    @Valid
+    private Set<AssetEntity> assets = new HashSet<>();
+
+    @OneToMany(mappedBy = "subscription", cascade = ALL, orphanRemoval = true)
+    @Valid
+    private Set<AssetGroupEntity> assetGroups = new HashSet<>();
+
+    public void setAreas(Set<AreaEntity> areas) {
+        this.areas.clear();
+        this.areas.addAll(areas);
+    }
+
+    public void setAssets(Set<AssetEntity> assets) {
+        this.assets.clear();
+        this.assets.addAll(assets);
+    }
+
+    public void setAssetGroups(Set<AssetGroupEntity> assetGroups) {
+        this.assetGroups.clear();
+        this.assetGroups.addAll(assetGroups);
+    }
 }

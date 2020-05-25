@@ -11,15 +11,25 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.mapper;
 
 import java.util.Base64;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetGroupEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEmailConfiguration;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.AreaDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.AssetDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEmailConfiguration;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfigurationDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
+import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -31,6 +41,7 @@ public interface SubscriptionMapper {
     @Mapping(source = "subscription.validityPeriod.startDate", target = "startDate")
     @Mapping(source = "subscription.validityPeriod.endDate", target = "endDate")
     @Mapping(expression = "java(subscriptionOutputToSubscriptionOutputDto(subscription.getOutput(), emailBody))", target = "output")
+    @Mapping(expression = "java(collectEntityAssetsToSet(subscription.getAssets(), subscription.getAssetGroups()))", target = "assets")
     SubscriptionDto mapEntityToDto(SubscriptionEntity subscription, EmailBodyEntity emailBody);
 
     @Mapping(expression = "java(subscriptionEmailConfigurationToSubscriptionEmailConfigurationDto(output.getEmailConfiguration(), emailBody))", target = "emailConfiguration")
@@ -44,11 +55,17 @@ public interface SubscriptionMapper {
     @Mapping(source = "subscription.startDate", target = "validityPeriod.startDate")
     @Mapping(source = "subscription.endDate", target = "validityPeriod.endDate")
     @Mapping(source = "subscription.output.emailConfiguration.password", target = "output.emailConfiguration.password", qualifiedByName = "encodePasswordAsBase64")
+    @Mapping(expression = "java(getAreaEntitiesFromAreaDtos(subscription.getAreas()))", target = "areas")
+    @Mapping(expression = "java(extractAssetEntitiesFromDto(subscription.getAssets()))", target = "assets")
+    @Mapping(expression = "java(extractAssetGroupEntitiesFromDto(subscription.getAssets()))", target = "assetGroups")
     SubscriptionEntity mapDtoToEntity(SubscriptionDto subscription);
 
     @Mapping(source = "startDate", target = "validityPeriod.startDate")
     @Mapping(source = "endDate", target = "validityPeriod.endDate")
     @Mapping(source = "dto.output.emailConfiguration.password", target = "output.emailConfiguration.password", qualifiedByName = "encodePasswordAsBase64")
+    @Mapping(expression = "java(getAreaEntitiesFromAreaDtos(dto.getAreas()))", target = "areas")
+    @Mapping(expression = "java(extractAssetEntitiesFromDto(dto.getAssets()))", target = "assets")
+    @Mapping(expression = "java(extractAssetGroupEntitiesFromDto(dto.getAssets()))", target = "assetGroups")
     void updateEntity(SubscriptionDto dto, @MappingTarget SubscriptionEntity entity);
 
     SubscriptionListDto asListDto(SubscriptionEntity entity);
@@ -70,4 +87,78 @@ public interface SubscriptionMapper {
             return null;
         }
     }
+
+    default Set<AssetDto> collectEntityAssetsToSet(Set<AssetEntity> assetEntities, Set<AssetGroupEntity> assetGroups) {
+        Set<AssetDto> assets = new HashSet<>();
+        assets.addAll(getAssetDtosFromAssetEntities(assetEntities));
+        assets.addAll(getAssetDtosFromAssetGroupEntities(assetGroups));
+        return assets;
+    }
+
+    default Set<AssetDto> getAssetDtosFromAssetEntities(Set<AssetEntity> assetEntities) {
+        return assetEntities != null
+                ? assetEntities.stream()
+                    .map(assetEntity -> new AssetDto(assetEntity.getId(), assetEntity.getGuid(), assetEntity.getName(), AssetType.ASSET))
+                    .collect(Collectors.toSet())
+                : Collections.emptySet();
+    }
+
+    default Set<AssetDto> getAssetDtosFromAssetGroupEntities(Set<AssetGroupEntity> assetGroupEntities) {
+        return assetGroupEntities != null
+                ? assetGroupEntities.stream()
+                    .map(assetGroupEntity -> new AssetDto(assetGroupEntity.getId(), assetGroupEntity.getGuid(), assetGroupEntity.getName(), AssetType.VGROUP))
+                    .collect(Collectors.toSet())
+                : Collections.emptySet();
+    }
+
+    default Set<AreaEntity> getAreaEntitiesFromAreaDtos(Set<AreaDto> areaDtos) {
+        return areaDtos != null
+                ? areaDtos.stream()
+                    .map(this::areaEntityFromDto)
+                    .collect(Collectors.toSet())
+                : Collections.emptySet();
+    }
+
+    default Set<AssetEntity> extractAssetEntitiesFromDto(Set<AssetDto> assetDtos) {
+        return assetDtos != null
+                ? assetDtos.stream()
+                    .filter(dto -> dto.getType().equals(AssetType.ASSET))
+                    .map(this::assetEntityFromDto)
+                    .collect(Collectors.toSet())
+                : Collections.emptySet();
+    }
+
+    default Set<AssetGroupEntity> extractAssetGroupEntitiesFromDto(Set<AssetDto> assetDtos) {
+        return assetDtos != null
+                ? assetDtos.stream()
+                    .filter(dto -> dto.getType().equals(AssetType.VGROUP))
+                    .map(this::assetGroupEntityFromDto)
+                    .collect(Collectors.toSet())
+                : Collections.emptySet();
+    }
+
+    default AreaEntity areaEntityFromDto(AreaDto dto) {
+        AreaEntity areaEntity = new AreaEntity();
+        areaEntity.setId(dto.getId());
+        areaEntity.setGid(dto.getGid());
+        areaEntity.setAreaType(dto.getAreaType());
+        return areaEntity;
+    }
+
+    default AssetEntity assetEntityFromDto(AssetDto dto) {
+        AssetEntity assetEntity = new AssetEntity();
+        assetEntity.setId(dto.getId());
+        assetEntity.setGuid(dto.getGuid());
+        assetEntity.setName(dto.getName());
+        return assetEntity;
+    }
+
+    default AssetGroupEntity assetGroupEntityFromDto(AssetDto dto) {
+        AssetGroupEntity assetGroupEntity = new AssetGroupEntity();
+        assetGroupEntity.setId(dto.getId());
+        assetGroupEntity.setGuid(dto.getGuid());
+        assetGroupEntity.setName(dto.getName());
+        return assetGroupEntity;
+    }
+
 }

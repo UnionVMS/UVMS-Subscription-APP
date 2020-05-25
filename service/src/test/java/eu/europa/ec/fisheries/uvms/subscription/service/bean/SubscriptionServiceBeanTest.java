@@ -19,6 +19,7 @@ import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Set;
 
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
@@ -30,6 +31,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.AreaDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.AssetDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
@@ -40,8 +42,9 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAu
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.UsmClient;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
-import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
+import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import org.hibernate.validator.cdi.ValidationExtension;
@@ -424,6 +427,47 @@ public class SubscriptionServiceBeanTest {
 		assertEquals(PASSWORD_PLACEHOLDER, result.getOutput().getEmailConfiguration().getPassword());
 		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
 		assertEquals(false, result.getOutput().getEmailConfiguration().getIsXml());
+	}
+
+	@Test
+	void createSubscriptionWithAssetCriteria() {
+		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				EMAIL_BODY, true, true, PASSWORD, false, false);
+
+		Set<AssetDto> assetDtoSet = new HashSet<>();
+		assetDtoSet.add(new AssetDto(null,"0001", "name1", AssetType.ASSET));
+		assetDtoSet.add(new AssetDto(null,"0002", "name2", AssetType.ASSET));
+		assetDtoSet.add(new AssetDto(null,"0003", "name3", AssetType.VGROUP));
+		assetDtoSet.add(new AssetDto(null,"0004", "name4", AssetType.VGROUP));
+		assetDtoSet.add(new AssetDto(null,"0005", "name5", AssetType.VGROUP));
+		dto.setAssets(assetDtoSet);
+
+		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+		when(subscriptionDAO.createEmailBodyEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+
+		SubscriptionDto result = sut.create(dto);
+
+		assertNotNull(result);
+		assertEquals(SUBSCR_ID, result.getId());
+		assertEquals(SUBSCR_NAME, result.getName());
+		assertEquals(Boolean.TRUE, result.getActive());
+		assertEquals(ORGANISATION_ID, result.getOutput().getSubscriber().getOrganisationId());
+		assertEquals(ENDPOINT_ID, result.getOutput().getSubscriber().getEndpointId());
+		assertEquals(CHANNEL_ID, result.getOutput().getSubscriber().getChannelId());
+		assertEquals(TriggerType.SCHEDULER, result.getExecution().getTriggerType());
+		assertEquals(OutgoingMessageType.FA_QUERY, result.getOutput().getMessageType());
+		assertEquals(SubscriptionTimeUnit.DAYS, result.getOutput().getHistoryUnit());
+		//assertEquals(0,dto.getStartDate().toInstant().truncatedTo(ChronoUnit.SECONDS).compareTo(result.getStartDate().toInstant().truncatedTo(ChronoUnit.SECONDS)));
+		assertEquals(dto.getStartDate(),result.getStartDate());
+		assertEquals(EMAIL_BODY, result.getOutput().getEmailConfiguration().getBody());
+		assertEquals(true, result.getOutput().getEmailConfiguration().getIsPdf());
+		assertEquals(true, result.getOutput().getEmailConfiguration().getHasAttachments());
+		assertEquals(PASSWORD_PLACEHOLDER, result.getOutput().getEmailConfiguration().getPassword());
+		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
+		assertEquals(false, result.getOutput().getEmailConfiguration().getIsXml());
+		assertEquals(2, result.getAssets().stream().filter(assetDto -> assetDto.getType().equals(AssetType.ASSET)).count());
+		assertEquals(3, result.getAssets().stream().filter(assetDto -> assetDto.getType().equals(AssetType.VGROUP)).count());
 	}
 
 	@Test

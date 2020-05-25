@@ -212,6 +212,8 @@ class SubscriptionDaoImpl implements SubscriptionDao {
     @Override
     public SubscriptionEntity createEntity(SubscriptionEntity entity) {
         setAreasSubscription(entity);
+        setAssetsSubscription(entity);
+        setAssetGroupsSubscription(entity);
         em.persist(entity);
         return entity;
     }
@@ -245,7 +247,11 @@ class SubscriptionDaoImpl implements SubscriptionDao {
     @Override
     public SubscriptionEntity update(SubscriptionEntity entity) {
         setAreasSubscription(entity);
+        setAssetsSubscription(entity);
+        setAssetGroupsSubscription(entity);
         updateAreas(entity);
+        updateAssets(entity);
+        updateAssetGroups(entity);
         return em.merge(entity);
     }
 
@@ -287,9 +293,33 @@ class SubscriptionDaoImpl implements SubscriptionDao {
         }
     }
 
+    private void setAssetsSubscription(SubscriptionEntity subscription) {
+        if(subscription.getAssets() != null){
+            subscription.getAssets().forEach(asset -> asset.setSubscription(subscription));
+        }
+    }
+
+    private void setAssetGroupsSubscription(SubscriptionEntity subscription) {
+        if(subscription.getAssetGroups() != null){
+            subscription.getAssetGroups().forEach(assetGroup -> assetGroup.setSubscription(subscription));
+        }
+    }
+
     private void updateAreas(SubscriptionEntity subscription) {
         if(subscription.getAreas() != null){
             subscription.getAreas().stream().filter(area -> area.getId()!=null).forEach(em::merge);
+        }
+    }
+
+    private void updateAssets(SubscriptionEntity subscription) {
+        if(subscription.getAssets() != null){
+            subscription.getAssets().stream().filter(asset -> asset.getId()!=null).forEach(em::merge);
+        }
+    }
+
+    private void updateAssetGroups(SubscriptionEntity subscription) {
+        if(subscription.getAssetGroups() != null){
+            subscription.getAssetGroups().stream().filter(assetGroup -> assetGroup.getId()!=null).forEach(em::merge);
         }
     }
 }

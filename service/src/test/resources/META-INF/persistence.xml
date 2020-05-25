@@ -13,6 +13,8 @@
 		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity</class>
 		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity</class>
 		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity</class>
+		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetEntity</class>
+		<class>eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetGroupEntity</class>
 
 		<properties>
 			<property name="hibernate.default_schema" value="subscription" />

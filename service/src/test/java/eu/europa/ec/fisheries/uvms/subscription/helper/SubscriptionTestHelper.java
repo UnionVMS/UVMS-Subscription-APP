@@ -36,8 +36,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDt
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDTO;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
-import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 
 
