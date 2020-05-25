@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
+    <changeSet id="UNIONVMS-4569-asset" author="gmanifavas">
+        <createTable tableName="asset">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="pk_asset" />
+            </column>
+            <column name="guid" type="VARCHAR(36)"/>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="cfr" type="VARCHAR(12)"/>
+            <column name="ircs" type="VARCHAR(8)"/>
+            <column name="iccat" type="VARCHAR(16)"/>
+            <column name="ext_mark" type="VARCHAR(16)"/>
+            <column name="uvi" type="VARCHAR(8)"/>
+            <column name="subscription_id" type="BIGINT"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="asset" baseColumnNames="subscription_id"
+                                 referencedTableName="subscription" referencedColumnNames="id"
+                                 constraintName="fk_asset_subscription" />
+
+        <addUniqueConstraint constraintName="uk_asset" columnNames="subscription_id, guid" tableName="asset"/>
+    </changeSet>
+</databaseChangeLog>

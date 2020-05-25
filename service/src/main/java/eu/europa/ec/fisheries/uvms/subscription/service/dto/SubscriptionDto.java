@@ -58,4 +58,7 @@ public class SubscriptionDto {
 
     @Valid
     private Set<AreaDto> areas;
+
+    @Valid
+    private Set<AssetDto> assets;
 }

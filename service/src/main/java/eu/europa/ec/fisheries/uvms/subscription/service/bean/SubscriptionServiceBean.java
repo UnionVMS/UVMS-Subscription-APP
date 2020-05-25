@@ -30,10 +30,13 @@ import eu.europa.ec.fisheries.uvms.subscription.service.authentication.Authentic
 import eu.europa.ec.fisheries.uvms.subscription.service.authorisation.AllowedRoles;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetGroupEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.AreaDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.AssetDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfigurationDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListResponseDto;
@@ -46,6 +49,7 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
+import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -168,6 +172,7 @@ class SubscriptionServiceBean implements SubscriptionService {
             throw new EntityDoesNotExistException("Subscription with id " + subscription.getId());
         }
         updateExistingAreasWithId(subscription.getAreas(), entityById.getAreas());
+        updateExistingAssetsWithId(subscription.getAssets(), entityById.getAssets(), entityById.getAssetGroups());
         mapper.updateEntity(subscription, entityById);
         SubscriptionEntity subscriptionEntity = subscriptionDAO.update(entityById);
         EmailBodyEntity emailBodyEntity = null;
@@ -227,6 +232,18 @@ class SubscriptionServiceBean implements SubscriptionService {
                         areaDto.setId(areaEntity.getId());
                         break;
                     }
+                }
+            }
+        }
+    }
+
+    private void updateExistingAssetsWithId(Set<AssetDto> newAssets, Set<AssetEntity> oldAssets, Set<AssetGroupEntity> oldAssetGroups) {
+        if(newAssets != null) {
+            for(AssetDto assetDto: newAssets) {
+                if(assetDto.getType().equals(AssetType.ASSET) && oldAssets != null) {
+                    oldAssets.stream().filter(asset -> asset.getGuid().equals(assetDto.getGuid())).findFirst().ifPresent(asset -> assetDto.setId(asset.getId()));
+                } else if(assetDto.getType().equals(AssetType.VGROUP) && oldAssetGroups != null) {
+                    oldAssetGroups.stream().filter(assetGroup -> assetGroup.getGuid().equals(assetDto.getGuid())).findFirst().ifPresent(assetGroup -> assetDto.setId(assetGroup.getId()));
                 }
             }
         }
