@@ -9,6 +9,7 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset;
 
+import java.util.Date;
 import java.util.List;
 
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
@@ -34,4 +35,13 @@ public interface AssetSender {
 	 * @return objects containing vessel identifiers of assets
 	 */
 	List<AssetHistGuidIdWithVesselIdentifiers> findMultipleVesselIdentifiers(List<String> assetHistGuids);
+
+	/**
+	 * Find the asset history UUID ({@code connectId}) of the given asset at the given date.
+	 *
+	 * @param assetGuid      The asset UUID
+	 * @param occurrenceDate The date
+	 * @return The asset history UUID
+	 */
+	String findAssetHistoryGuid(String assetGuid, Date occurrenceDate);
 }

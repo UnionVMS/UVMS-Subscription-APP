@@ -21,6 +21,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAs
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionUserConsumerBean;
 import eu.europa.ec.fisheries.uvms.user.model.exception.ModelMarshallException;
 import eu.europa.ec.fisheries.uvms.user.model.mapper.JAXBMarshaller;
+import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest;
+import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHistGuidsRequest;
@@ -88,6 +90,24 @@ public class JmsAssetClient implements AssetClient {
 			}
 			return response;
 		} catch (MessageException | ModelMarshallException | JMSException | JAXBException e) {
+			throw new ApplicationException(e);
+		}
+	}
+
+	@Override
+	public FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse findAssetHistGuidByAssetGuidAndOccurrenceDate(FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest request) {
+		try {
+			String correlationID = subscriptionAssetProducerBean.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request),
+					subscriptionAssetProducerBean.getDestination(),
+					subscriptionUserConsumer.getDestination());
+
+			FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse response = null;
+			if(correlationID != null) {
+				TextMessage message = subscriptionUserConsumer.getMessage(correlationID, TextMessage.class );
+				response = JAXBMarshaller.unmarshallTextMessage(message, FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse.class);
+			}
+			return response;
+		} catch (MessageException | ModelMarshallException e) {
 			throw new ApplicationException(e);
 		}
 	}

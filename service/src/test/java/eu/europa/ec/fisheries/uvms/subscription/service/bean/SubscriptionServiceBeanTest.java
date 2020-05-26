@@ -41,6 +41,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMappe
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.UsmClient;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
@@ -79,6 +80,9 @@ public class SubscriptionServiceBeanTest {
 
 	@Produces @Mock
 	private UsmClient usmClient;
+
+	@Produces @Mock
+	private AssetSender assetSender;
 
 	@Produces
 	private SubscriptionMapper mapper = new SubscriptionMapperImpl();
@@ -580,7 +584,7 @@ public class SubscriptionServiceBeanTest {
 
 		SubscriptionDto result = sut.update(dto);
 
-		assertEquals(null, result.getOutput().getEmailConfiguration().getPassword());
+		assertNull(result.getOutput().getEmailConfiguration().getPassword());
 		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
 	}
 

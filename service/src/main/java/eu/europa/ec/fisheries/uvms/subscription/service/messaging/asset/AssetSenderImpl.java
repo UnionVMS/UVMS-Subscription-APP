@@ -11,9 +11,12 @@ package eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.Date;
 import java.util.List;
 
 import eu.europa.ec.fisheries.wsdl.asset.module.AssetModuleMethod;
+import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest;
+import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHistGuidsRequest;
@@ -63,5 +66,15 @@ public class AssetSenderImpl implements AssetSender {
         request.getAssetHistoryGuids().addAll(assetHistGuids);
         FindVesselIdsByMultipleAssetHistGuidsResponse response = assetClient.findVesselIdsByMultipleAssetHistGuid(request);
         return response.getIdentifiers();
+    }
+
+    @Override
+    public String findAssetHistoryGuid(String assetGuid, Date occurrenceDate) {
+        FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest request = new FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest();
+        request.setMethod(AssetModuleMethod.FIND_ASSET_HIST_GUID_BY_ASSET_GUID_AND_OCCURRENCE_DATE);
+        request.setAssetGuid(assetGuid);
+        request.setOccurrenceDate(occurrenceDate);
+        FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse response = assetClient.findAssetHistGuidByAssetGuidAndOccurrenceDate(request);
+        return response.getAssetHistGuid();
     }
 }
