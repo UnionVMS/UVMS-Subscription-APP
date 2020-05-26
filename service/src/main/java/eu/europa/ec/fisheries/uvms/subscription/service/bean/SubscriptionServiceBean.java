@@ -21,7 +21,9 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
@@ -45,6 +47,9 @@ import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMappe
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.UsmClient;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
+import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
+import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
@@ -68,6 +73,9 @@ class SubscriptionServiceBean implements SubscriptionService {
     private UsmClient usmClient;
 
     @Inject
+    private AssetSender assetSender;
+
+    @Inject
     private SubscriptionMapper mapper;
 
     @Inject
@@ -81,6 +89,7 @@ class SubscriptionServiceBean implements SubscriptionService {
 
     @Inject
     private AuthenticationContext authenticationContext;
+
 
     @Override
     @AllowedRoles(VIEW_SUBSCRIPTION)
@@ -153,6 +162,7 @@ class SubscriptionServiceBean implements SubscriptionService {
     @AllowedRoles(MANAGE_SUBSCRIPTION)
     public SubscriptionDto create(@Valid @NotNull SubscriptionDto subscription) {
         SubscriptionEntity entity = mapper.mapDtoToEntity(subscription);
+        enrichNewAssets(entity.getAssets());
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
         EmailBodyEntity emailBodyEntity = null;
         if (TRUE.equals(subscription.getOutput().getHasEmail())) {
@@ -173,7 +183,9 @@ class SubscriptionServiceBean implements SubscriptionService {
         }
         updateExistingAreasWithId(subscription.getAreas(), entityById.getAreas());
         updateExistingAssetsWithId(subscription.getAssets(), entityById.getAssets(), entityById.getAssetGroups());
+        Map<Long, AssetEntity> subscriptionAssets = entityById.getAssets().stream().collect(Collectors.toMap(AssetEntity::getId, Function.identity()));
         mapper.updateEntity(subscription, entityById);
+        enrichAssets(entityById, subscriptionAssets);
         SubscriptionEntity subscriptionEntity = subscriptionDAO.update(entityById);
         EmailBodyEntity emailBodyEntity = null;
         if (TRUE.equals(subscription.getOutput().getHasEmail())) {
@@ -193,6 +205,39 @@ class SubscriptionServiceBean implements SubscriptionService {
         }
         sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), subscriptionEntity.getId().toString(), authenticationContext.getUserPrincipal().getName()));
         return mapper.mapEntityToDto(subscriptionEntity, emailBodyEntity);
+    }
+
+    private void enrichAssets(SubscriptionEntity entity, Map<Long, AssetEntity> subscriptionAssets) {
+        Set<AssetEntity> newAssets = entity.getAssets().stream()
+                .peek(asset -> {
+                    AssetEntity assetEntity = subscriptionAssets.get(asset.getId());
+                    if (assetEntity != null) {
+                        asset.setCfr(assetEntity.getCfr());
+                        asset.setIccat(assetEntity.getIccat());
+                        asset.setIrcs(assetEntity.getIrcs());
+                        asset.setUvi(assetEntity.getUvi());
+                        asset.setExt_mark(assetEntity.getExt_mark());
+                    }
+                })
+                .filter(asset -> !subscriptionAssets.containsKey(asset.getId()))
+                .collect(Collectors.toSet());
+        enrichNewAssets(newAssets);
+    }
+
+    private void enrichNewAssets(Set<AssetEntity> assets) {
+        List<String> newAssetsIds = assets.stream().map(AssetEntity::getGuid).collect(Collectors.toList());
+        Map<String, AssetHistGuidIdWithVesselIdentifiers> newIdentifiers = assetSender.findMultipleVesselIdentifiers(newAssetsIds).stream().collect(Collectors.toMap(AssetHistGuidIdWithVesselIdentifiers::getAssetHistGuid, Function.identity()));
+        assets.forEach(asset -> {
+            AssetHistGuidIdWithVesselIdentifiers guidWithIdentifiers = newIdentifiers.get(asset.getGuid());
+            if(guidWithIdentifiers != null) {
+                VesselIdentifiersHolder identifiers = guidWithIdentifiers.getIdentifiers();
+                asset.setCfr(identifiers.getCfr());
+                asset.setIrcs(identifiers.getIrcs());
+                asset.setIccat(identifiers.getIccat());
+                asset.setUvi(identifiers.getUvi());
+                asset.setExt_mark(identifiers.getExtMark());
+            }
+        });
     }
 
     @Override

@@ -18,9 +18,12 @@ import static org.mockito.Mockito.when;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import eu.europa.ec.fisheries.wsdl.asset.module.AssetModuleMethod;
+import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest;
+import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHistGuidsRequest;
@@ -43,6 +46,7 @@ public class AssetSenderImplTest {
 
 	private static final String ASSET_GUID1 = "G1";
 	private static final String ASSET_GUID2 = "G2";
+	private static final String ASSET_HIST_GUID = "AHG";
 
 	@Produces @Mock
 	private AssetClient assetClient;
@@ -75,5 +79,21 @@ public class AssetSenderImplTest {
 		FindVesselIdsByMultipleAssetHistGuidsRequest request = captor.getValue();
 		assertEquals(AssetModuleMethod.FIND_VESSEL_IDS_BY_MULTIPLE_ASSET_HIST_GUID, request.getMethod());
 		assertEquals(Arrays.asList(ASSET_GUID1, ASSET_GUID2), request.getAssetHistoryGuids());
+	}
+
+	@Test
+	void testFindAssetHistoryGuid() {
+		FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse response = new FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse();
+		response.setAssetHistGuid(ASSET_HIST_GUID);
+		Date date = new Date();
+		when(assetClient.findAssetHistGuidByAssetGuidAndOccurrenceDate(any())).thenReturn(response);
+		String result = sut.findAssetHistoryGuid(ASSET_GUID1, date);
+		assertEquals(ASSET_HIST_GUID, result);
+		ArgumentCaptor<FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest> captor = ArgumentCaptor.forClass(FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest.class);
+		verify(assetClient).findAssetHistGuidByAssetGuidAndOccurrenceDate(captor.capture());
+		FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest request = captor.getValue();
+		assertEquals(AssetModuleMethod.FIND_ASSET_HIST_GUID_BY_ASSET_GUID_AND_OCCURRENCE_DATE, request.getMethod());
+		assertEquals(ASSET_GUID1, request.getAssetGuid());
+		assertEquals(date, request.getOccurrenceDate());
 	}
 }
