@@ -1,5 +1,9 @@
 package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
@@ -14,7 +18,9 @@ import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryRe
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.PluginType;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierSchemeIdEnum;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
+import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
+import eu.europa.fisheries.uvms.subscription.model.exceptions.ExecutionException;
 import lombok.SneakyThrows;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Assertions;
@@ -50,5 +56,15 @@ class ActivitySenderImplTest {
                 "receiver", "dataflow");
         when(subscriptionProducer.getDestination()).thenReturn(destination);
         Assertions.assertDoesNotThrow(() -> sut.send(request));
+        verify(subscriptionProducer).sendMessageToSpecificQueueSameTx(any(), eq(activityQueue), eq(destination));
+    }
+
+    @Test
+    @SneakyThrows
+    void testSendWithException() {
+        CreateAndSendFAQueryRequest request = new CreateAndSendFAQueryRequest();
+        when(subscriptionProducer.getDestination()).thenReturn(destination);
+        when(subscriptionProducer.sendMessageToSpecificQueueSameTx(any(), eq(activityQueue), eq(destination))).thenThrow(MessageException.class);
+        assertThrows(ExecutionException.class, () -> sut.send(request));
     }
 }

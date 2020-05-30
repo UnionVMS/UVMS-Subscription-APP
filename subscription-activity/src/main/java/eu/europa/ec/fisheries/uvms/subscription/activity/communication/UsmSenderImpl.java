@@ -2,7 +2,6 @@ package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.persistence.EntityNotFoundException;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.UsmClient;
 import eu.europa.ec.fisheries.wsdl.user.types.Channel;
@@ -39,7 +38,7 @@ class UsmSenderImpl implements UsmSender {
 	public ReceiverAndDataflow findReceiverAndDataflow(Long endpointId, Long channelId) {
 		EndPoint endpoint = usmClient.findEndpoint(endpointId);
 		if(endpoint == null){
-			throw new EntityNotFoundException("Endpoint with id " + endpoint + " not found.");
+			throw new EntityDoesNotExistException("Endpoint with id " + endpoint + " not found.");
 		}
 		String dataflow = endpoint.getChannels().stream()
 				.filter(channel -> channel.getId() == channelId)

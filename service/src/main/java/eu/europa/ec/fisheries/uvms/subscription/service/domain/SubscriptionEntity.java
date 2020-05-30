@@ -16,17 +16,21 @@ import static javax.persistence.GenerationType.AUTO;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
@@ -34,7 +38,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
-import eu.europa.fisheries.uvms.subscription.model.enums.AccessibilityType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -48,10 +52,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Table(name = "subscription")
 @NamedQueries({
-        @NamedQuery(name = SubscriptionEntity.BY_NAME, query = "SELECT s FROM SubscriptionEntity s " +
-                //"LEFT JOIN FETCH s.conditions c " +
-                //"LEFT JOIN FETCH s.areas a " +
-                "WHERE s.name = :name")
+        @NamedQuery(name = SubscriptionEntity.BY_NAME, query = "SELECT s FROM SubscriptionEntity s WHERE s.name = :name")
 })
 @EqualsAndHashCode(exclude = {"id"})
 public class SubscriptionEntity implements Serializable {
@@ -63,19 +64,10 @@ public class SubscriptionEntity implements Serializable {
     @Column(name = "id")
     @GeneratedValue(strategy = AUTO)
     private Long id;
-//
-//    @OneToMany(mappedBy = "subscription", cascade = ALL, orphanRemoval = true)
-//    @Valid
-//    private Set<ConditionEntity> conditions = new HashSet<>();
-//
 
     @Column(unique = true, name = "name")
     @NotNull
     private String name;
-
-    @Enumerated(STRING)
-    @Column(name = "accessibility")
-    private AccessibilityType accessibility;
 
     @Column(name = "description")
     private String description;
@@ -100,6 +92,15 @@ public class SubscriptionEntity implements Serializable {
     @Valid
     private SubscriptionExecution execution;
 
+    @Column(name = "has_areas")
+    private Boolean hasAreas;
+
+    @Column(name = "has_assets")
+    private Boolean hasAssets;
+
+    @Column(name = "has_start_activities")
+    private Boolean hasStartActivities;
+
     @OneToMany(mappedBy = "subscription", cascade = ALL, orphanRemoval = true)
     @Valid
     private Set<AreaEntity> areas = new HashSet<>();
@@ -111,6 +112,32 @@ public class SubscriptionEntity implements Serializable {
     @OneToMany(mappedBy = "subscription", cascade = ALL, orphanRemoval = true)
     @Valid
     private Set<AssetGroupEntity> assetGroups = new HashSet<>();
+
+    @Column(name = "deadline")
+    @Min(0)
+    private Integer deadline;
+
+    @Column(name = "deadline_unit")
+    @Enumerated(STRING)
+    private SubscriptionTimeUnit deadlineUnit;
+
+    @Column(name = "stop_when_quit_area")
+    @NotNull
+    private boolean stopWhenQuitArea;
+
+    @ElementCollection
+    @CollectionTable(
+            name = "start_activities",
+            joinColumns=@JoinColumn(name="subscription_id")
+    )
+    private Set<SubscriptionFishingActivity> startActivities = new HashSet<>();
+
+    @ElementCollection
+    @CollectionTable(
+            name = "stop_activities",
+            joinColumns=@JoinColumn(name="subscription_id")
+    )
+    private Set<SubscriptionFishingActivity> stopActivities = new HashSet<>();
 
     public void setAreas(Set<AreaEntity> areas) {
         this.areas.clear();

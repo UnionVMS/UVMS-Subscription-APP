@@ -1,5 +1,5 @@
 /*
- Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2016.
+ Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2020.
 
  This file is part of the Integrated Fisheries Data Management (IFDM) Suite. The IFDM Suite is free software: you can redistribute it
  and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of
@@ -19,6 +19,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.xml.datatype.DatatypeFactory;
@@ -26,9 +27,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -57,11 +60,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class MovementTriggeredSubscriptionCreatorTest {
 
+	private static final Date NOW = new Date();
+
 	@Produces @Mock
 	private SubscriptionFinder subscriptionFinder;
 
 	@Produces @Mock
 	private AssetSender assetSender;
+
+	@Produces @ApplicationScoped
+	private DateTimeServiceTestImpl dateTimeService = new DateTimeServiceTestImpl();
 
 	@Inject
 	private MovementTriggeredSubscriptionCreator sut;
@@ -78,21 +86,27 @@ public class MovementTriggeredSubscriptionCreatorTest {
 	}
 
 	@Test
+	void testGetEligibleSubscriptionSource() {
+		assertEquals("movement", sut.getEligibleSubscriptionSource());
+	}
+
+	@Test
 	void testJAXBExceptionResultsInApplicationException() {
 		assertThrows(MessageFormatException.class, () -> sut.createTriggeredSubscriptions("bad"));
 	}
 
 	@Test
 	void testNOKReturnsEmptyStream() {
-		String representation = readResource("CreateMovementBatchResponse-NOK.xml");
-		long size = sut.createTriggeredSubscriptions(representation).count();
-		assertEquals(0, size);
-		verifyNoInteractions(subscriptionFinder);
+		verifyEmptyStreamForResource("CreateMovementBatchResponse-NOK.xml");
 	}
 
 	@Test
 	void testDoNotTriggerOnDuplicateMovements() {
-		String representation = readResource("CreateMovementBatchResponse-OK-duplicate.xml");
+		verifyEmptyStreamForResource("CreateMovementBatchResponse-OK-duplicate.xml");
+	}
+
+	private void verifyEmptyStreamForResource(String resourceName) {
+		String representation = readResource(resourceName);
 		long size = sut.createTriggeredSubscriptions(representation).count();
 		assertEquals(0, size);
 		verifyNoInteractions(subscriptionFinder);
@@ -100,18 +114,12 @@ public class MovementTriggeredSubscriptionCreatorTest {
 
 	@Test
 	void testDoNotTriggerOnOKResponseAndNullMovements() {
-		String representation = readResource("CreateMovementBatchResponse-OK-no-movements.xml");
-		long size = sut.createTriggeredSubscriptions(representation).count();
-		assertEquals(0, size);
-		verifyNoInteractions(subscriptionFinder);
+		verifyEmptyStreamForResource("CreateMovementBatchResponse-OK-no-movements.xml");
 	}
 
 	@Test
 	void testDoNotTriggerOnOKResponseAndNullMovementPositionTime() {
-		String representation = readResource("CreateMovementBatchResponse-OK-null-position-time.xml");
-		long size = sut.createTriggeredSubscriptions(representation).count();
-		assertEquals(0, size);
-		verifyNoInteractions(subscriptionFinder);
+		verifyEmptyStreamForResource("CreateMovementBatchResponse-OK-null-position-time.xml");
 	}
 
 	@Test
@@ -119,11 +127,16 @@ public class MovementTriggeredSubscriptionCreatorTest {
 		SubscriptionEntity subscription = new SubscriptionEntity();
 		when(subscriptionFinder.findTriggeredSubscriptions(any(), any(), any(), any())).thenReturn(Collections.singletonList(subscription));
 		String representation = readResource("CreateMovementBatchResponse-OK.xml");
+		dateTimeService.setNow(NOW);
+
 		List<TriggeredSubscriptionEntity> result = sut.createTriggeredSubscriptions(representation).collect(Collectors.toList());
+
 		assertEquals(1, result.size());
 		assertSame(subscription, result.get(0).getSubscription());
 		assertNotNull(result.get(0).getCreationDate());
 		assertTrue(result.get(0).getActive());
+		assertEquals(NOW, result.get(0).getCreationDate());
+		assertEquals(Date.from(LocalDateTime.of(2017,3,4,17,39).toInstant(ZoneOffset.UTC)), result.get(0).getEffectiveFrom());
 		@SuppressWarnings("unchecked")
 		ArgumentCaptor<Collection<AreaCriterion>> areasCaptor = ArgumentCaptor.forClass(Collection.class);
 		@SuppressWarnings("unchecked")
@@ -160,7 +173,7 @@ public class MovementTriggeredSubscriptionCreatorTest {
 		e.getData().add(new TriggeredSubscriptionDataEntity(e, "occurrence", "OCCURRENCE"));
 		e.getData().add(new TriggeredSubscriptionDataEntity(e, "somethingElse", "XXX"));
 		Set<TriggeredSubscriptionDataEntity> result = sut.extractTriggeredSubscriptionDataForDuplicates(e);
-		assertEquals(new HashSet<>(Arrays.asList(
+		assertEquals(new HashSet<>(Collections.singletonList(
 				new TriggeredSubscriptionDataEntity(e, "connectId", "CONNECT_ID")
 		)), result);
 	}

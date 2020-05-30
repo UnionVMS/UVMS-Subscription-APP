@@ -4,7 +4,6 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
-import eu.europa.fisheries.uvms.subscription.model.enums.AccessibilityType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import lombok.AllArgsConstructor;
@@ -26,7 +25,6 @@ public class SubscriptionSearchCriteriaImpl implements SubscriptionSearchCriteri
     private ZonedDateTime endDate;
     private ZonedDateTime validAt;
     private OutgoingMessageType messageType;
-    private AccessibilityType accessibilityType;
     private Collection<AreaCriterion> inAnyArea;
     private Collection<AssetCriterion> withAnyAsset;
     private Collection<TriggerType> withAnyTriggerType;

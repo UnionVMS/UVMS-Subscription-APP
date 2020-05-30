@@ -38,4 +38,18 @@
 			<column name="active" type="BOOLEAN"/>
 		</addColumn>
 	</changeSet>
+
+	<changeSet id="UNIONVMS-4579-triggeredsubscription-effective-from" author="nikospara">
+		<addColumn tableName="triggered_subscription">
+			<column name="effective_from" type="TIMESTAMP WITHOUT TIME ZONE" />
+		</addColumn>
+		<update tableName="triggered_subscription">
+			<column name="effective_from" valueComputed="creation_date" />
+		</update>
+		<addNotNullConstraint tableName="triggered_subscription" columnName="effective_from" />
+
+		<rollback>
+			<dropColumn tableName="triggered_subscription" columnName="effective_from" />
+		</rollback>
+	</changeSet>
 </databaseChangeLog>
