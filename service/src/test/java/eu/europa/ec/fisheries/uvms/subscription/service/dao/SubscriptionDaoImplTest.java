@@ -14,6 +14,8 @@ import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 import static eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper.createDateRangeQuery;
 import static eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper.createQuery;
 import static eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper.zdt;
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionFaReportDocumentType.DECLARATION;
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionFaReportDocumentType.NOTIFICATION;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier.CFR;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier.ICCAT;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier.IRCS;
@@ -34,10 +36,12 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
@@ -50,6 +54,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetGroupEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionFishingActivity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
@@ -68,6 +73,8 @@ import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionFaReportDocumentType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import lombok.SneakyThrows;
@@ -112,6 +119,9 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         assertNotNull(subscription);
         assertEquals("subscription3", subscription.getName());
         assertEquals("C lorem ipsum", subscription.getDescription());
+        assertEquals(3, subscription.getDeadline());
+        assertEquals(SubscriptionTimeUnit.MONTHS, subscription.getDeadlineUnit());
+        assertTrue(subscription.isStopWhenQuitArea());
     }
 
     @Test
@@ -898,6 +908,51 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         SubscriptionEntity subscriptionFromDb = em.find(SubscriptionEntity.class, id);
         assertNotNull(subscriptionFromDb);
         assertEquals(EnumSet.of(UVI, ICCAT), subscriptionFromDb.getOutput().getVesselIds());
+    }
+
+    @Test
+    public void createAndUpdateSubscriptionWithActivities(){
+        em.getTransaction().begin();
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        Set<SubscriptionFishingActivity> startActivities = new HashSet<>();
+        SubscriptionFishingActivity startActivity = new SubscriptionFishingActivity(DECLARATION, "1");
+        startActivities.add(startActivity);
+        subscription.setStartActivities(startActivities);
+        Set<SubscriptionFishingActivity> stopActivities = new HashSet<>();
+        SubscriptionFishingActivity stopActivity = new SubscriptionFishingActivity(NOTIFICATION,"2");
+        stopActivities.add(stopActivity);
+        subscription.setStopActivities(stopActivities);
+        Long id = sut.createEntity(subscription).getId();
+        em.getTransaction().commit();
+        em.clear();
+
+        em.getTransaction().begin();
+        SubscriptionEntity retrievedSubscription = sut.findById(id);
+        SubscriptionFishingActivity start = retrievedSubscription.getStartActivities().iterator().next();
+        SubscriptionFishingActivity stop = retrievedSubscription.getStopActivities().iterator().next();
+
+        assertEquals(startActivity, start);
+        assertEquals(stopActivity, stop);
+
+        Set<SubscriptionFishingActivity> updatedStopActivities = new HashSet<>();
+        SubscriptionFishingActivity stopActivity1 = new SubscriptionFishingActivity(NOTIFICATION,"22");
+        SubscriptionFishingActivity stopActivity2 = new SubscriptionFishingActivity(DECLARATION,"23");
+        updatedStopActivities.add(stopActivity1);
+        updatedStopActivities.add(stopActivity2);
+        retrievedSubscription.setStopActivities(updatedStopActivities);
+
+        retrievedSubscription.getStartActivities().remove(start);
+        retrievedSubscription.getStartActivities().add(new SubscriptionFishingActivity(DECLARATION, "3"));
+        em.getTransaction().commit();
+        em.clear();
+
+        retrievedSubscription = sut.findById(id);
+        assertEquals(1, retrievedSubscription.getStartActivities().size());
+        assertEquals(DECLARATION, retrievedSubscription.getStartActivities().iterator().next().getType());
+        assertEquals("3", retrievedSubscription.getStartActivities().iterator().next().getValue());
+        assertEquals(2, retrievedSubscription.getStopActivities().size());
+        assertEquals(Arrays.asList(NOTIFICATION, DECLARATION), retrievedSubscription.getStopActivities().stream().sorted(Comparator.comparing(SubscriptionFishingActivity::getValue)).map(SubscriptionFishingActivity::getType).collect(Collectors.toList()));
+        assertEquals(Arrays.asList("22", "23"), retrievedSubscription.getStopActivities().stream().sorted(Comparator.comparing(SubscriptionFishingActivity::getValue)).map(SubscriptionFishingActivity::getValue).collect(Collectors.toList()));
     }
 
     private List<SubscriptionEntity> findAllSubscriptions() {

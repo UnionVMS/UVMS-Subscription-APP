@@ -21,7 +21,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.SubscriptionHasUniqueName;
-import eu.europa.fisheries.uvms.subscription.model.enums.AccessibilityType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import lombok.Data;
 
 /**
@@ -35,8 +35,6 @@ public class SubscriptionDto {
 
     @NotEmpty
     private String name;
-
-    private AccessibilityType accessibility;
 
     private String description;
 
@@ -61,4 +59,16 @@ public class SubscriptionDto {
 
     @Valid
     private Set<AssetDto> assets;
+
+    private Integer deadline;
+
+    private SubscriptionTimeUnit deadlineUnit;
+
+    private boolean stopWhenQuitArea;
+
+    @Valid
+    private Set<SubscriptionFishingActivityDto> startActivities;
+
+    @Valid
+    private Set<SubscriptionFishingActivityDto> stopActivities;
 }

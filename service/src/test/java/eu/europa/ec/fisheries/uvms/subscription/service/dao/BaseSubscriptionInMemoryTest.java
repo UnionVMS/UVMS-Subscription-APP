@@ -28,11 +28,11 @@ public abstract class BaseSubscriptionInMemoryTest extends BaseDAOTest {
     static final Operation DELETE_ALL = sequenceOf(deleteAllFrom("subscription.subscription"));
 
     static final Operation INSERT_SUBSCRIPTION = sequenceOf(insertInto("subscription.subscription")
-            .columns("id", "name", "active", "description", "trigger_type", "start_date", "end_date", "alert", "message_type", "channel_id", "organisation_id", "endpoint_id", "vessel_ids", "password")
-            .values(1L, "subscription1", "1", "A lorem ipsum tade", TriggerType.SCHEDULER,    d("20170101"), d("20181231"), "1", OutgoingMessageType.NONE, 11L, 10L, 2L, 0b0, null)
-            .values(2L, "subscription2", "1", "B lorem ipsum tade", TriggerType.INC_POSITION, d("20180101"), d("20181231"), "1", OutgoingMessageType.FA_QUERY, 11L, 11L, 2L, 0b10, null)
-            .values(3L, "subscription3", "1", "C lorem ipsum", TriggerType.MANUAL,            d("20190101"), d("20191231"), "1", OutgoingMessageType.FA_REPORT, 11L, 5L, 2L, 0b11, "test")
-            .values(4L, "subscription4", "0", "D lorem ipsum", TriggerType.SCHEDULER,         d("20200101"), d("20201231"), "0", OutgoingMessageType.POSITION, 11L, 11L, 2L, 0b01, "abcd1234").build(),
+            .columns("id", "name", "active", "description", "trigger_type", "start_date", "end_date", "alert", "message_type", "channel_id", "organisation_id", "endpoint_id", "vessel_ids", "password", "deadline", "deadline_unit", "stop_when_quit_area")
+            .values(1L, "subscription1", "1", "A lorem ipsum tade", TriggerType.SCHEDULER,    d("20170101"), d("20181231"), "1", OutgoingMessageType.NONE, 11L, 10L, 2L, 0b0, null, 11, "DAYS", false)
+            .values(2L, "subscription2", "1", "B lorem ipsum tade", TriggerType.INC_POSITION, d("20180101"), d("20181231"), "1", OutgoingMessageType.FA_QUERY, 11L, 11L, 2L, 0b10, null, 2, "WEEKS", false)
+            .values(3L, "subscription3", "1", "C lorem ipsum", TriggerType.MANUAL,            d("20190101"), d("20191231"), "1", OutgoingMessageType.FA_REPORT, 11L, 5L, 2L, 0b11, "test", 3, "MONTHS", true)
+            .values(4L, "subscription4", "0", "D lorem ipsum", TriggerType.SCHEDULER,         d("20200101"), d("20201231"), "0", OutgoingMessageType.POSITION, 11L, 11L, 2L, 0b01, "abcd1234", 44, "DAYS", true).build(),
             sql("alter sequence subscription.hibernate_sequence restart with 100000"));
 
     static final Operation INSERT_CONDITION = sequenceOf(insertInto("subscription.condition").columns("id", "position", "subscription_id", "message_type", "criteria_type", "sub_criteria_type", "value_type", "value", "condition_type")

@@ -22,6 +22,8 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.xml.datatype.DatatypeFactory;
 
+import java.util.EnumSet;
+
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryRequest;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ActivitySender;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ReceiverAndDataflow;
@@ -37,6 +39,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSen
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -99,6 +102,7 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 		when(usmSender.findReceiverAndDataflow(ENDPOINT_ID,CHANNEL_ID)).thenReturn(receiverAndDataflow);
 		VesselIdentifiersHolder idsHolder = new VesselIdentifiersHolder();
 		idsHolder.setCfr("CFR123456789");
+		idsHolder.setIrcs("DUMMY IRCS");
 		when(assetSender.findVesselIdentifiers(CONNECT_ID)).thenReturn(idsHolder);
 
 		sut.execute(execution);
@@ -108,6 +112,8 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 		CreateAndSendFAQueryRequest request = captor.getValue();
 		DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
 		assertEquals(datatypeFactory.newXMLGregorianCalendar("2017-03-01T17:39:00Z"), request.getStartDate());
+		assertEquals(1, request.getVesselIdentifiers().size());
+		assertEquals("DUMMY IRCS", request.getVesselIdentifiers().get(0).getValue());
 		assertNull(execution.getExecutionTime());
 		assertEquals(QUEUED, execution.getStatus());
 	}
@@ -123,6 +129,7 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 		output.setHistory(3);
 		output.setHistoryUnit(SubscriptionTimeUnit.DAYS);
 		output.setConsolidated(true);
+		output.setVesselIds(EnumSet.of(SubscriptionVesselIdentifier.IRCS));
 		subscription.setOutput(output);
 		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
 		triggeredSubscription.setId(TRIGGERED_SUBSCRIPTION_ID);
