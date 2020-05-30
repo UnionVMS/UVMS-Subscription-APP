@@ -15,6 +15,7 @@ import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import javax.persistence.Column;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
 import java.util.Collections;
@@ -28,6 +29,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.authentication.Authentic
 import eu.europa.ec.fisheries.uvms.subscription.service.authentication.SubscriptionUser;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetGroupEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
@@ -35,6 +38,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.AreaDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.AssetDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionFishingActivityDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDTO;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
@@ -43,9 +47,12 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAu
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.UsmClient;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
+import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
+import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionFaReportDocumentType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
@@ -55,6 +62,7 @@ import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -75,6 +83,27 @@ public class SubscriptionServiceBeanTest {
 	private static final String EMAIL_BODY = "lorem ipsum";
 	private static final String PASSWORD = "1234";
 	private static final String PASSWORD_PLACEHOLDER = "********";
+
+	private static final Long ASSET_ID = 111L;
+	private static final String ASSET_GUID = "GUID";
+	private static final String ASSET_NAME = "asset name";
+	private static final String CFR = "cfr";
+	private static final String IRCS = "ircs";
+	private static final String ICCAT = "iccat";
+	private static final String EXT_MARK = "EXT_MARK";
+	private static final String UVI = "UVI";
+
+	private static final String ASSET_NEW_GUID = "NEW GUID";
+	private static final String ASSET_NEW_NAME = "NEW NAME";
+	private static final String NEW_CFR = "NEW cfr";
+	private static final String NEW_IRCS = "NEW ircs";
+	private static final String NEW_ICCAT = "NEW iccat";
+	private static final String NEW_EXT_MARK = "NEW EXT_MARK";
+	private static final String NEW_UVI = "NEW UVI";
+
+	private static final Long ASSET_GROUP_ID = 222L;
+	private static final String ASSET_GROUP_GUID = "GROUP GUID";
+	private static final String ASSET_GROUP_NAME = "GROUP NAME";
 
 	@Produces @Mock
 	private SubscriptionDao subscriptionDAO;
@@ -432,6 +461,35 @@ public class SubscriptionServiceBeanTest {
 		assertEquals(PASSWORD_PLACEHOLDER, result.getOutput().getEmailConfiguration().getPassword());
 		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
 		assertEquals(false, result.getOutput().getEmailConfiguration().getIsXml());
+
+		ArgumentCaptor<SubscriptionEntity> captor = ArgumentCaptor.forClass(SubscriptionEntity.class);
+		verify(subscriptionDAO).createEntity(captor.capture());
+		SubscriptionEntity subscription = captor.getValue();
+		assertFalse(subscription.getHasAreas());
+		assertFalse(subscription.getHasAssets());
+		assertFalse(subscription.getHasStartActivities());
+	}
+
+	@Test
+	void testCreateWithNonEmptyStartConditions() {
+		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				EMAIL_BODY, true, true, PASSWORD, false, false);
+		dto.setAssets(Collections.singleton(new AssetDto(null, "guid", "name", AssetType.ASSET)));
+		dto.setAreas(Collections.singleton(new AreaDto(null, 1L, AreaType.USERAREA)));
+		dto.setStartActivities(Collections.singleton(new SubscriptionFishingActivityDto(SubscriptionFaReportDocumentType.DECLARATION, "val")));
+
+		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+		when(subscriptionDAO.createEmailBodyEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+
+		SubscriptionDto result = sut.create(dto);
+
+		ArgumentCaptor<SubscriptionEntity> captor = ArgumentCaptor.forClass(SubscriptionEntity.class);
+		verify(subscriptionDAO).createEntity(captor.capture());
+		SubscriptionEntity subscription = captor.getValue();
+		assertTrue(subscription.getHasAreas());
+		assertTrue(subscription.getHasAssets());
+		assertTrue(subscription.getHasStartActivities());
 	}
 
 	@Test
@@ -605,13 +663,51 @@ public class SubscriptionServiceBeanTest {
 		oldArea.setGid(111L);
 		oldArea.setAreaType(AreaType.USERAREA);
 		subscription.getAreas().add(oldArea);
+		AssetEntity originalAsset = makeAsset(ASSET_ID, ASSET_GUID, ASSET_NAME, CFR, IRCS, ICCAT, EXT_MARK, UVI);
+		subscription.getAssets().add(originalAsset);
+		subscription.getAssetGroups().add(makeAssetGroup(ASSET_GROUP_ID, ASSET_GROUP_GUID, ASSET_GROUP_NAME));
 		when(subscriptionDAO.findById(SUBSCR_ID)).thenReturn(subscription);
 		when(subscriptionDAO.update(subscription)).thenReturn(subscription);
+		AssetHistGuidIdWithVesselIdentifiers ids = new AssetHistGuidIdWithVesselIdentifiers();
+		ids.setAssetHistGuid(ASSET_NEW_GUID);
+		VesselIdentifiersHolder idHolder = new VesselIdentifiersHolder();
+		idHolder.setCfr(NEW_CFR);
+		idHolder.setIrcs(NEW_IRCS);
+		idHolder.setIccat(NEW_ICCAT);
+		idHolder.setExtMark(NEW_EXT_MARK);
+		idHolder.setUvi(NEW_UVI);
+		ids.setIdentifiers(idHolder);
+		when(assetSender.findMultipleVesselIdentifiers(any())).thenReturn(Collections.singletonList(ids));
 		SubscriptionDto result = sut.update(dto);
 		assertNotNull(result);
 		verify(subscriptionDAO).update(subscription);
+		assertTrue(subscription.getHasAreas());
+		assertTrue(subscription.getHasAssets());
+		assertFalse(subscription.getHasStartActivities());
 		verify(auditProducer).sendModuleMessage(any(), any());
 		assertTrue(result.getAreas().stream().map(AreaDto::getGid).anyMatch(Long.valueOf(111L)::equals));
+		assertEquals(2, subscription.getAssets().size());
+		assertTrue(subscription.getAssets().stream().noneMatch(a -> a == originalAsset));
+		AssetEntity updatedAsset = subscription.getAssets().stream().filter(a -> a.getId().equals(ASSET_ID)).findFirst().get();
+		assertEquals(ASSET_GUID, updatedAsset.getGuid());
+		assertEquals(ASSET_NAME, updatedAsset.getName());
+		assertEquals(CFR, updatedAsset.getCfr());
+		assertEquals(IRCS, updatedAsset.getIrcs());
+		assertEquals(ICCAT, updatedAsset.getIccat());
+		assertEquals(EXT_MARK, updatedAsset.getExtMark());
+		assertEquals(UVI, updatedAsset.getUvi());
+		AssetEntity addedAsset = subscription.getAssets().stream().filter(a -> a.getId() == null).findFirst().get();
+		assertEquals(ASSET_NEW_GUID, addedAsset.getGuid());
+		assertEquals(ASSET_NEW_NAME, addedAsset.getName());
+		assertEquals(NEW_CFR, addedAsset.getCfr());
+		assertEquals(NEW_IRCS, addedAsset.getIrcs());
+		assertEquals(NEW_ICCAT, addedAsset.getIccat());
+		assertEquals(NEW_EXT_MARK, addedAsset.getExtMark());
+		assertEquals(NEW_UVI, addedAsset.getUvi());
+		assertEquals(1, subscription.getAssetGroups().size());
+		assertEquals(ASSET_GROUP_ID, subscription.getAssetGroups().iterator().next().getId());
+		assertEquals(ASSET_GROUP_GUID, subscription.getAssetGroups().iterator().next().getGuid());
+		assertEquals(ASSET_GROUP_NAME, subscription.getAssetGroups().iterator().next().getName());
 	}
 
 	@Test
@@ -656,6 +752,10 @@ public class SubscriptionServiceBeanTest {
 		newArea.setAreaType(AreaType.USERAREA);
 		newArea.setGid(222L);
 		dto.getAreas().add(newArea);
+		dto.setAssets(new HashSet<>());
+		dto.getAssets().add(new AssetDto(ASSET_ID, ASSET_GUID, ASSET_NAME, AssetType.ASSET));
+		dto.getAssets().add(new AssetDto(null, ASSET_NEW_GUID, ASSET_NEW_NAME, AssetType.ASSET));
+		dto.getAssets().add(new AssetDto(ASSET_GROUP_ID, ASSET_GROUP_GUID, ASSET_GROUP_NAME, AssetType.VGROUP));
 		return dto;
 	}
 
@@ -664,5 +764,26 @@ public class SubscriptionServiceBeanTest {
 		sut.delete(SUBSCR_ID);
 		verify(subscriptionDAO).delete(SUBSCR_ID);
 		verify(auditProducer).sendModuleMessage(any(), any());
+	}
+
+	private AssetEntity makeAsset(Long id, String guid, String name, String cfr, String ircs, String iccat, String extMark, String uvi) {
+		AssetEntity a = new AssetEntity();
+		a.setId(id);
+		a.setGuid(guid);
+		a.setName(name);
+		a.setCfr(cfr);
+		a.setIrcs(ircs);
+		a.setIccat(iccat);
+		a.setExtMark(extMark);
+		a.setUvi(uvi);
+		return a;
+	}
+
+	private AssetGroupEntity makeAssetGroup(Long id, String guid, String name) {
+		AssetGroupEntity group = new AssetGroupEntity();
+		group.setId(id);
+		group.setGuid(guid);
+		group.setName(name);
+		return group;
 	}
 }

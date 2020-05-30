@@ -14,38 +14,28 @@ import static javax.persistence.EnumType.STRING;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Enumerated;
-import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-import java.io.Serializable;
-
-import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
-import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionFaReportDocumentType;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Encapsulates instructions for how and when to execute a subscription.
+ * A fishing activity configured as start or stop condition for a subscription.
  */
 @Embeddable
 @Data
-public class SubscriptionExecution implements Serializable {
-
-    @Enumerated(STRING)
-    @NotNull
-    @Column(name = "trigger_type")
-    private TriggerType triggerType;
-
-	@Column(name = "frequency")
-	@Min(0)
-    private Integer frequency;
-
-	@Column(name = "frequency_unit")
+@NoArgsConstructor
+@AllArgsConstructor
+public class SubscriptionFishingActivity {
 	@Enumerated(STRING)
-	private SubscriptionTimeUnit frequencyUnit;
+	@Column(name = "type")
+	@NotNull
+	private SubscriptionFaReportDocumentType type;
 
-	@Column(name = "immediate")
-	private Boolean immediate;
-
-	@Column(name = "time_expr")
-	private String timeExpression;
+	@Column(name = "value")
+	@NotBlank
+	private String value;
 }

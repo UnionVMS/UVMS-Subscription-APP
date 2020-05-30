@@ -187,9 +187,6 @@ class SubscriptionDaoImpl implements SubscriptionDao {
         if(criteria.getMessageType() != null){
             predicates.add(cb.equal(subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.messageType), criteria.getMessageType()));
         }
-        if(criteria.getAccessibilityType() != null){
-            predicates.add(cb.equal(subscription.get(SubscriptionEntity_.accessibility), criteria.getAccessibilityType()));
-        }
         if(criteria.getInAnyArea() != null && !criteria.getInAnyArea().isEmpty()) {
             predicates.add(makeAreasSubquery(query, subscription, cb, criteria.getInAnyArea()));
         }

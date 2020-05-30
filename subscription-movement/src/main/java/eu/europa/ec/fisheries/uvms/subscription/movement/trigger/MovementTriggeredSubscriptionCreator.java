@@ -18,7 +18,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +40,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.Subscripti
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionCreator;
+import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
@@ -62,17 +62,22 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 	private SubscriptionFinder subscriptionFinder;
 	private DatatypeFactory datatypeFactory;
 	private AssetSender assetSender;
+	private DateTimeService dateTimeService;
 
 	/**
 	 * Constructor for injection.
 	 *
 	 * @param subscriptionFinder The finder
+	 * @param datatypeFactory The data type factory
+	 * @param assetSender The asset sender
+	 * @param dateTimeService The date/time service
 	 */
 	@Inject
-	public MovementTriggeredSubscriptionCreator(SubscriptionFinder subscriptionFinder, DatatypeFactory datatypeFactory, AssetSender assetSender) {
+	public MovementTriggeredSubscriptionCreator(SubscriptionFinder subscriptionFinder, DatatypeFactory datatypeFactory, AssetSender assetSender, DateTimeService dateTimeService) {
 		this.subscriptionFinder = subscriptionFinder;
 		this.datatypeFactory = datatypeFactory;
 		this.assetSender = assetSender;
+		this.dateTimeService = dateTimeService;
 	}
 
 	/**
@@ -131,15 +136,18 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 		TriggeredSubscriptionEntity result = new TriggeredSubscriptionEntity();
 		result.setSubscription(input.getSubscription());
 		result.setSource(SOURCE);
-		result.setCreationDate(new Date());
+		result.setCreationDate(dateTimeService.getNowAsDate());
 		result.setActive(true);
+		result.setEffectiveFrom(input.getMovement().getPositionTime());
 		result.setData(makeTriggeredSubscriptionData(result, input));
 		return result;
 	}
 
 	private Set<TriggeredSubscriptionDataEntity> makeTriggeredSubscriptionData(TriggeredSubscriptionEntity triggeredSubscription, MovementAndSubscription input) {
 		Set<TriggeredSubscriptionDataEntity> result = new HashSet<>();
-		Optional.ofNullable(input.getMovement().getConnectId()).ifPresent(connectId -> result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_CONNECT_ID, connectId)));
+		Optional.ofNullable(input.getMovement().getConnectId()).ifPresent(connectId ->
+			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_CONNECT_ID, connectId))
+		);
 		Optional.ofNullable(input.getMovement().getPositionTime()).ifPresent(positionTime -> {
 			GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
 			calendar.setTime(positionTime);

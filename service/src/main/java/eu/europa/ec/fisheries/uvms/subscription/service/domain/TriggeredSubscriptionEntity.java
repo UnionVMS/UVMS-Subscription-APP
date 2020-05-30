@@ -49,6 +49,10 @@ public class TriggeredSubscriptionEntity {
 	@Column(name = "creation_date")
 	private Date creationDate;
 
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "effective_from")
+	private Date effectiveFrom;
+
 	@ManyToOne
 	@JoinColumn(name = "subscription_id")
 	private SubscriptionEntity subscription;

@@ -83,21 +83,11 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 			Objects.requireNonNull(connectId, "connectId not found in data of " + triggeredSubscription.getId());
 			List<VesselIdentifierType> vesselIdentifiers = new ArrayList<>();
 			VesselIdentifiersHolder idsHolder = assetSender.findVesselIdentifiers(connectId);
-			if(idsHolder.getCfr() != null && subscription.getOutput().getVesselIds().contains(SubscriptionVesselIdentifier.CFR)){
-				vesselIdentifiers.add(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.CFR, idsHolder.getCfr()));
-			}
-			if(idsHolder.getIrcs() != null && subscription.getOutput().getVesselIds().contains(SubscriptionVesselIdentifier.IRCS)){
-				vesselIdentifiers.add(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.IRCS, idsHolder.getIrcs()));
-			}
-			if(idsHolder.getIccat() != null && subscription.getOutput().getVesselIds().contains(SubscriptionVesselIdentifier.ICCAT)){
-				vesselIdentifiers.add(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.ICCAT, idsHolder.getIccat()));
-			}
-			if(idsHolder.getUvi() != null && subscription.getOutput().getVesselIds().contains(SubscriptionVesselIdentifier.UVI)){
-				vesselIdentifiers.add(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.UVI, idsHolder.getUvi()));
-			}
-			if(idsHolder.getExtMark() != null && subscription.getOutput().getVesselIds().contains(SubscriptionVesselIdentifier.EXT_MARK)){
-				vesselIdentifiers.add(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.EXT_MARK, idsHolder.getExtMark()));
-			}
+			addIdentifier(subscription, vesselIdentifiers, idsHolder.getCfr(), SubscriptionVesselIdentifier.CFR, VesselIdentifierSchemeIdEnum.CFR);
+			addIdentifier(subscription, vesselIdentifiers, idsHolder.getIrcs(), SubscriptionVesselIdentifier.IRCS, VesselIdentifierSchemeIdEnum.IRCS);
+			addIdentifier(subscription, vesselIdentifiers, idsHolder.getIccat(), SubscriptionVesselIdentifier.ICCAT, VesselIdentifierSchemeIdEnum.ICCAT);
+			addIdentifier(subscription, vesselIdentifiers, idsHolder.getUvi(), SubscriptionVesselIdentifier.UVI, VesselIdentifierSchemeIdEnum.UVI);
+			addIdentifier(subscription, vesselIdentifiers, idsHolder.getExtMark(), SubscriptionVesselIdentifier.EXT_MARK, VesselIdentifierSchemeIdEnum.EXT_MARK);
 			String occurrence = dataMap.get("occurrence");
 			Objects.requireNonNull(occurrence, "occurrence not found in data of " + triggeredSubscription.getId());
 			ZonedDateTime occurrenceZdt = datatypeFactory.newXMLGregorianCalendar(occurrence).toGregorianCalendar().toZonedDateTime();
@@ -113,6 +103,12 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 					receiverAndDataflow.getDataflow()
 			);
 			activitySender.send(message);
+		}
+	}
+
+	private void addIdentifier(SubscriptionEntity subscription, List<VesselIdentifierType> vesselIdentifiers, String identifier, SubscriptionVesselIdentifier configuredSchemeId, VesselIdentifierSchemeIdEnum outputSchemeId) {
+		if(identifier != null && subscription.getOutput().getVesselIds().contains(configuredSchemeId)) {
+			vesselIdentifiers.add(new VesselIdentifierType(outputSchemeId, identifier));
 		}
 	}
 }
