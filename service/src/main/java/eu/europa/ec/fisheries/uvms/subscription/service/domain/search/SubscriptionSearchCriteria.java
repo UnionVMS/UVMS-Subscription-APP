@@ -4,7 +4,6 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
-import eu.europa.fisheries.uvms.subscription.model.enums.AccessibilityType;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
@@ -26,7 +25,6 @@ public interface SubscriptionSearchCriteria {
 	ZonedDateTime getEndDate();
 	ZonedDateTime getValidAt();
 	OutgoingMessageType getMessageType();
-	AccessibilityType getAccessibilityType();
 	/** Demand that the subscription fulfills any of the given area criteria. */
 	Collection<AreaCriterion> getInAnyArea();
 	/** Demand that the subscription fulfills any of the given asset criteria. */

@@ -1,5 +1,5 @@
 /*
- Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2016.
+ Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2020.
 
  This file is part of the Integrated Fisheries Data Management (IFDM) Suite. The IFDM Suite is free software: you can redistribute it
  and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of
@@ -7,26 +7,26 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
+package eu.europa.ec.fisheries.uvms.subscription.service.dto;
 
-package eu.europa.ec.fisheries.uvms.subscription.service.dto.search;
-
-import static eu.europa.fisheries.uvms.subscription.model.enums.ColumnType.*;
-import static eu.europa.fisheries.uvms.subscription.model.enums.DirectionType.ASC;
-
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
-import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionFaReportDocumentType;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Deprecated
+/**
+ * DTO for the fishing activity configuration of subscriptions.
+ */
 @Data
-public class OrderByDto {
+@NoArgsConstructor
+@AllArgsConstructor
+public class SubscriptionFishingActivityDto {
+	@NotNull
+	private SubscriptionFaReportDocumentType type;
 
-    @NotNull
-    private ColumnType column = ID;
-
-    @NotNull
-    private DirectionType direction = ASC;
-
+	@NotBlank
+	private String value;
 }

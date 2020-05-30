@@ -22,6 +22,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -163,6 +164,9 @@ class SubscriptionServiceBean implements SubscriptionService {
     public SubscriptionDto create(@Valid @NotNull SubscriptionDto subscription) {
         SubscriptionEntity entity = mapper.mapDtoToEntity(subscription);
         enrichNewAssets(entity.getAssets());
+        entity.setHasAreas(subscription.getAreas() != null && !subscription.getAreas().isEmpty());
+        entity.setHasAssets(subscription.getAssets() != null && !subscription.getAssets().isEmpty());
+        entity.setHasStartActivities(subscription.getStartActivities() != null && !subscription.getStartActivities().isEmpty());
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
         EmailBodyEntity emailBodyEntity = null;
         if (TRUE.equals(subscription.getOutput().getHasEmail())) {
@@ -176,7 +180,6 @@ class SubscriptionServiceBean implements SubscriptionService {
     @SneakyThrows
     @AllowedRoles(MANAGE_SUBSCRIPTION)
     public SubscriptionDto update(@Valid @NotNull SubscriptionDto subscription) {
-
         SubscriptionEntity entityById = subscriptionDAO.findById(subscription.getId());
         if (entityById == null){
             throw new EntityDoesNotExistException("Subscription with id " + subscription.getId());
@@ -186,6 +189,9 @@ class SubscriptionServiceBean implements SubscriptionService {
         Map<Long, AssetEntity> subscriptionAssets = entityById.getAssets().stream().collect(Collectors.toMap(AssetEntity::getId, Function.identity()));
         mapper.updateEntity(subscription, entityById);
         enrichAssets(entityById, subscriptionAssets);
+        entityById.setHasAreas(subscription.getAreas() != null && !subscription.getAreas().isEmpty());
+        entityById.setHasAssets(subscription.getAssets() != null && !subscription.getAssets().isEmpty());
+        entityById.setHasStartActivities(subscription.getStartActivities() != null && !subscription.getStartActivities().isEmpty());
         SubscriptionEntity subscriptionEntity = subscriptionDAO.update(entityById);
         EmailBodyEntity emailBodyEntity = null;
         if (TRUE.equals(subscription.getOutput().getHasEmail())) {
@@ -209,7 +215,7 @@ class SubscriptionServiceBean implements SubscriptionService {
 
     private void enrichAssets(SubscriptionEntity entity, Map<Long, AssetEntity> subscriptionAssets) {
         Set<AssetEntity> newAssets = entity.getAssets().stream()
-                .peek(asset -> {
+                .map(asset -> {
                     AssetEntity assetEntity = subscriptionAssets.get(asset.getId());
                     if (assetEntity != null) {
                         asset.setCfr(assetEntity.getCfr());
@@ -217,11 +223,16 @@ class SubscriptionServiceBean implements SubscriptionService {
                         asset.setIrcs(assetEntity.getIrcs());
                         asset.setUvi(assetEntity.getUvi());
                         asset.setExtMark(assetEntity.getExtMark());
+                        return null;
+                    } else {
+                        return asset;
                     }
                 })
-                .filter(asset -> !subscriptionAssets.containsKey(asset.getId()))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-        enrichNewAssets(newAssets);
+        if (!newAssets.isEmpty()) {
+            enrichNewAssets(newAssets);
+        }
     }
 
     private void enrichNewAssets(Set<AssetEntity> assets) {

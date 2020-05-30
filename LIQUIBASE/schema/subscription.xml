@@ -205,27 +205,50 @@
         </addColumn>
     </changeSet>
 
-
     <changeSet id="UNIONVMS-4466-add-frequency-unit" author="gmanifavas">
         <addColumn tableName="subscription">
             <column name="frequency_unit" type="VARCHAR(10)"/>
         </addColumn>
     </changeSet>
-    <!-- ENABLE LATER...
-    <changeSet id="UNIONVMS-9999-subscription-dead-columns" author="nikospara">
+
+    <changeSet id="UNIONVMS-4466-subscription-dead-code" author="nikospara">
         <dropColumn tableName="subscription" columnName="subscription_type" />
         <dropUniqueConstraint tableName="subscription" constraintName="uk_4olkrsd7yct4foeqt404bgr0f" />
         <dropColumn tableName="subscription" columnName="subscription_guid" />
         <dropColumn tableName="subscription" columnName="accessibility" />
         <dropColumn tableName="subscription" columnName="delay" />
         <dropColumn tableName="subscription" columnName="state_type" />
+        <dropTable tableName="condition" />
 
         <rollback>
-            <addColumn tableName="subscription">
-                <column name="subscription_type" type="VARCHAR(255)" defaultValue="TX_PULL">
+            <createTable tableName="condition">
+                <column name="id" type="BIGINT">
                     <constraints nullable="false"/>
                 </column>
-                <column name="message_type" type="VARCHAR(255)" defaultValue="FLUX_FA_REPORT_MESSAGE">
+                <column name="composite_type" type="VARCHAR(255)"/>
+                <column name="condition" type="VARCHAR(255)"/>
+                <column name="condition_type" type="VARCHAR(255)">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="criteria_type" type="VARCHAR(255)"/>
+                <column name="message_type" type="VARCHAR(255)"/>
+                <column name="end_operator" type="VARCHAR(255)"/>
+                <column name="position" type="INT">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="start_operator" type="VARCHAR(255)"/>
+                <column name="sub_criteria_type" type="VARCHAR(255)"/>
+                <column name="value" type="VARCHAR(255)"/>
+                <column name="value_type" type="VARCHAR(255)"/>
+                <column name="subscription_id" type="BIGINT"/>
+            </createTable>
+            <addPrimaryKey columnNames="id" constraintName="condition_pkey" tableName="condition"/>
+            <createIndex indexName="condition_i_1" tableName="condition">
+                <column name="subscription_id" type="bigint"/>
+            </createIndex>
+            <addForeignKeyConstraint baseColumnNames="subscription_id" baseTableName="condition" constraintName="fk_om5bdiadsxse0i02kiyleyy7k" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="subscription"/>
+            <addColumn tableName="subscription">
+                <column name="subscription_type" type="VARCHAR(255)" defaultValue="TX_PULL">
                     <constraints nullable="false"/>
                 </column>
                 <column name="subscription_guid" type="VARCHAR(36)" />
@@ -243,9 +266,56 @@
             </sql>
             <addUniqueConstraint columnNames="subscription_guid" constraintName="uk_4olkrsd7yct4foeqt404bgr0f" tableName="subscription"/>
             <dropDefaultValue tableName="subscription" columnName="subscription_type" />
-            <dropDefaultValue tableName="subscription" columnName="message_type" />
             <dropDefaultValue tableName="subscription" columnName="state_type" />
         </rollback>
     </changeSet>
-    -->
+
+    <changeSet id="UNIONVMS-4579-stop-conditions" author="nikospara">
+        <addColumn tableName="subscription">
+            <column name="has_areas" type="BOOLEAN" valueComputed="((SELECT count(*) FROM area WHERE subscription_id=subscription.id)>0)" />
+            <column name="has_assets" type="BOOLEAN" valueComputed="((SELECT count(*) FROM asset WHERE subscription_id=subscription.id)>0 OR (SELECT count(*) FROM asset_group WHERE subscription_id=subscription.id)>0)" />
+            <column name="has_start_activities" type="BOOLEAN" />
+            <column name="deadline" type="INT" />
+            <column name="deadline_unit" type="VARCHAR(10)" />
+            <column name="stop_when_quit_area" type="BOOLEAN" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <createTable tableName="start_activities">
+            <column name="subscription_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(16)" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="subscription_id,type,value" constraintName="pk_start_activities" tableName="start_activities"/>
+
+        <createIndex tableName="start_activities" indexName="idx_start_activities_subscription">
+            <column name="subscription_id" />
+        </createIndex>
+
+        <createTable tableName="stop_activities">
+            <column name="subscription_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(16)" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="subscription_id,type,value" constraintName="pk_stop_activities" tableName="stop_activities"/>
+
+        <createIndex tableName="stop_activities" indexName="idx_stop_activities_subscription">
+            <column name="subscription_id" />
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>
