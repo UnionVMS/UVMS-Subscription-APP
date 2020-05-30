@@ -26,7 +26,9 @@ import eu.europa.fisheries.uvms.subscription.model.exceptions.ApplicationExcepti
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Subscription facility that accepts incoming data change messages from JMS and takes care of any protocol-related tasks.
+ * Subscription facility that accepts incoming data change messages from other modules through JMS
+ * and takes care of any protocol-related tasks before forwarding to the {@link IncomingDataMessageService}
+ * that implements the business logic.
  */
 @MessageDriven(mappedName = MessageConstants.QUEUE_SUBSCRIPTION_DATA, activationConfig = {
 		@ActivationConfigProperty(propertyName = MessageConstants.MESSAGING_TYPE_STR, propertyValue = MessageConstants.CONNECTION_TYPE),

@@ -65,30 +65,39 @@ public class SubscriptionExecutionSchedulerImplTest {
 		triggeredSubscription.setActive(true);
 
 		assertFalse(sut.scheduleNext(triggeredSubscription, null).isPresent());
+		assertFalse(triggeredSubscription.getActive());
 	}
 
 	@Test
 	void testImmediateForFirstExecution() {
-		SubscriptionExecution executionInput = new SubscriptionExecution();
-		executionInput.setImmediate(true);
-		SubscriptionEntity subscription = new SubscriptionEntity();
-		subscription.setActive(true);
-		subscription.setExecution(executionInput);
-		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
-		triggeredSubscription.setActive(true);
-		triggeredSubscription.setSubscription(subscription);
-		LocalDateTime now = LocalDateTime.parse("2020-05-05T12:00:00");
-		dateTimeService.setNow(now);
-
+		TriggeredSubscriptionEntity triggeredSubscription = makeTriggeredSubscriptionEntityForFirstExecution(true);
 		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, null);
-
 		assertSubscriptionExecutionEntity(result, triggeredSubscription, dateTimeService.getNowAsDate());
+		assertTrue(triggeredSubscription.getActive());
 	}
 
 	@Test
 	void testWithFrequencyForFirstExecution() {
+		TriggeredSubscriptionEntity triggeredSubscription = makeTriggeredSubscriptionEntityForFirstExecution(false);
+
+		// timeExpression is later than now, so in this day
+		triggeredSubscription.getSubscription().getExecution().setTimeExpression("13:00");
+		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, null);
+
+		assertSubscriptionExecutionEntity(result, triggeredSubscription, LocalDateTime.parse("2020-05-05T13:00:00"));
+		assertTrue(triggeredSubscription.getActive());
+
+		// timeExpression is earlier than now, so next day
+		triggeredSubscription.getSubscription().getExecution().setTimeExpression("11:00");
+		result = sut.scheduleNext(triggeredSubscription, null);
+
+		assertSubscriptionExecutionEntity(result, triggeredSubscription, LocalDateTime.parse("2020-05-06T11:00:00"));
+		assertTrue(triggeredSubscription.getActive());
+	}
+
+	private TriggeredSubscriptionEntity makeTriggeredSubscriptionEntityForFirstExecution(boolean immediate) {
 		SubscriptionExecution executionInput = new SubscriptionExecution();
-		executionInput.setImmediate(false);
+		executionInput.setImmediate(immediate);
 		executionInput.setFrequency(0);
 		SubscriptionEntity subscription = new SubscriptionEntity();
 		subscription.setActive(true);
@@ -98,18 +107,7 @@ public class SubscriptionExecutionSchedulerImplTest {
 		triggeredSubscription.setSubscription(subscription);
 		LocalDateTime now = LocalDateTime.parse("2020-05-05T12:00:00");
 		dateTimeService.setNow(now);
-
-		// timeExpression is later than now, so in this day
-		executionInput.setTimeExpression("13:00");
-		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, null);
-
-		assertSubscriptionExecutionEntity(result, triggeredSubscription, LocalDateTime.parse("2020-05-05T13:00:00"));
-
-		// timeExpression is earlier than now, so next day
-		executionInput.setTimeExpression("11:00");
-		result = sut.scheduleNext(triggeredSubscription, null);
-
-		assertSubscriptionExecutionEntity(result, triggeredSubscription, LocalDateTime.parse("2020-05-06T11:00:00"));
+		return triggeredSubscription;
 	}
 
 	@Test
@@ -123,6 +121,7 @@ public class SubscriptionExecutionSchedulerImplTest {
 		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, prevExecution);
 
 		assertSubscriptionExecutionEntity(result, triggeredSubscription, LocalDateTime.parse("2020-05-08T11:00:00"));
+		assertTrue(triggeredSubscription.getActive());
 	}
 
 	@Test
@@ -136,6 +135,7 @@ public class SubscriptionExecutionSchedulerImplTest {
 		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, prevExecution);
 
 		assertSubscriptionExecutionEntity(result, triggeredSubscription, LocalDateTime.parse("2020-05-08T11:00:00"));
+		assertTrue(triggeredSubscription.getActive());
 	}
 
 	@Test
@@ -148,6 +148,37 @@ public class SubscriptionExecutionSchedulerImplTest {
 		prevExecution.setRequestedTime(Date.from(LocalDateTime.parse("2020-05-05T11:00:00").toInstant(ZoneOffset.UTC)));
 
 		assertFalse(sut.scheduleNext(triggeredSubscription, prevExecution).isPresent());
+		assertFalse(triggeredSubscription.getActive());
+	}
+
+	@Test
+	void testDeadlineStopCondition() {
+		SubscriptionExecution executionInput = new SubscriptionExecution();
+		executionInput.setImmediate(true);
+		TriggeredSubscriptionEntity triggeredSubscription = setup(executionInput, "2020-05-05T12:00:00");
+		SubscriptionExecutionEntity prevExecution = new SubscriptionExecutionEntity();
+		prevExecution.setRequestedTime(Date.from(LocalDateTime.parse("2020-05-05T11:00:00").toInstant(ZoneOffset.UTC)));
+		triggeredSubscription.setEffectiveFrom(Date.from(LocalDateTime.parse("2020-05-01T11:00:00").toInstant(ZoneOffset.UTC)));
+		triggeredSubscription.getSubscription().setDeadline(4);
+		triggeredSubscription.getSubscription().setDeadlineUnit(SubscriptionTimeUnit.DAYS);
+
+		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, prevExecution);
+
+		assertFalse(result.isPresent());
+		assertFalse(triggeredSubscription.getActive());
+	}
+
+	@Test
+	void testSubscriptionExecutesOnceEvenIfDeadlineIsZero() {
+		TriggeredSubscriptionEntity triggeredSubscription = makeTriggeredSubscriptionEntityForFirstExecution(true);
+		triggeredSubscription.setEffectiveFrom(Date.from(LocalDateTime.parse("2020-05-01T11:00:00").toInstant(ZoneOffset.UTC)));
+		triggeredSubscription.getSubscription().setDeadline(0);
+		triggeredSubscription.getSubscription().setDeadlineUnit(SubscriptionTimeUnit.DAYS);
+
+		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, null);
+
+		assertSubscriptionExecutionEntity(result, triggeredSubscription, dateTimeService.getNowAsDate());
+		assertTrue(triggeredSubscription.getActive());
 	}
 
 	private TriggeredSubscriptionEntity setup(SubscriptionExecution executionInput, String now) {
