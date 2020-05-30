@@ -15,6 +15,7 @@ import static java.lang.Boolean.TRUE;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -59,7 +60,7 @@ class SubscriptionExecutionSchedulerImpl implements SubscriptionExecutionSchedul
 	@Override
 	public Optional<SubscriptionExecutionEntity> scheduleNext(TriggeredSubscriptionEntity triggeredSubscription, SubscriptionExecutionEntity lastExecution) {
 		if (!TRUE.equals(triggeredSubscription.getActive()) || !triggeredSubscription.getSubscription().isActive()) {
-			return Optional.empty();
+			return finish(triggeredSubscription);
 		}
 		if (lastExecution == null) {
 			return makeNextSubscriptionExecutionEntity(triggeredSubscription, calculateBaseTime(triggeredSubscription));
@@ -68,12 +69,15 @@ class SubscriptionExecutionSchedulerImpl implements SubscriptionExecutionSchedul
 		Objects.requireNonNull(triggeredSubscription.getSubscription().getExecution().getFrequency());
 		Objects.requireNonNull(triggeredSubscription.getSubscription().getExecution().getFrequencyUnit());
 		if (Integer.valueOf(0).equals(triggeredSubscription.getSubscription().getExecution().getFrequency())) {
-			return Optional.empty();
+			return finish(triggeredSubscription);
 		}
-		return makeNextSubscriptionExecutionEntity(triggeredSubscription, calculateTimeWithFrequency(triggeredSubscription, lastExecution));
+		return makeNextSubscriptionExecutionEntity(triggeredSubscription, calculateNextExecutionTime(triggeredSubscription, lastExecution));
 	}
 
 	private Optional<SubscriptionExecutionEntity> makeNextSubscriptionExecutionEntity(TriggeredSubscriptionEntity triggeredSubscription, Instant requestedTime) {
+		if (requestedTime == null) {
+			return finish(triggeredSubscription);
+		}
 		SubscriptionExecutionEntity next = new SubscriptionExecutionEntity();
 		next.setTriggeredSubscription(triggeredSubscription);
 		Date now = dateTimeService.getNowAsDate();
@@ -95,9 +99,23 @@ class SubscriptionExecutionSchedulerImpl implements SubscriptionExecutionSchedul
 		return requestedTime;
 	}
 
-	private Instant calculateTimeWithFrequency(TriggeredSubscriptionEntity triggeredSubscription, SubscriptionExecutionEntity lastExecution) {
+	private Instant calculateNextExecutionTime(TriggeredSubscriptionEntity triggeredSubscription, SubscriptionExecutionEntity lastExecution) {
+		if (triggeredSubscription.getSubscription().getDeadline() != null && dateTimeService.getNow().isAfter(calculateDeadline(triggeredSubscription))) {
+			return null;
+		}
 		Date previousRequestedTime = lastExecution.getRequestedTime();
 		Objects.requireNonNull(previousRequestedTime);
 		return previousRequestedTime.toInstant().plus(triggeredSubscription.getSubscription().getExecution().getFrequency().longValue(), triggeredSubscription.getSubscription().getExecution().getFrequencyUnit().getTemporalUnit());
+	}
+
+	private LocalDateTime calculateDeadline(TriggeredSubscriptionEntity triggeredSubscription) {
+		Objects.requireNonNull(triggeredSubscription.getSubscription().getDeadlineUnit());
+		LocalDateTime effectiveFrom = LocalDateTime.ofInstant(triggeredSubscription.getEffectiveFrom().toInstant(), ZoneOffset.UTC);
+		return effectiveFrom.plus(triggeredSubscription.getSubscription().getDeadline(), triggeredSubscription.getSubscription().getDeadlineUnit().getTemporalUnit());
+	}
+
+	private Optional<SubscriptionExecutionEntity> finish(TriggeredSubscriptionEntity triggeredSubscription) {
+		triggeredSubscription.setActive(false);
+		return Optional.empty();
 	}
 }
