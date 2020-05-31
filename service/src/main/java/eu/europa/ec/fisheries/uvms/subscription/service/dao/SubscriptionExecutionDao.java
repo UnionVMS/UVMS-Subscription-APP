@@ -13,6 +13,8 @@ import java.util.Date;
 import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType;
 
 /**
  * DAO for the {@link SubscriptionExecutionEntity}.
@@ -41,4 +43,13 @@ public interface SubscriptionExecutionDao {
 	 * @return The ids of the executions that match the criteria
 	 */
 	Stream<Long> findIdsOfPendingWithRequestDateBefore(Date requestTimeCutoff);
+
+	/**
+	 * Find executions of the given triggered subscription having the given status.
+	 *
+	 * @param triggeredSubscription The triggered subscription
+	 * @param status                The status
+	 * @return The executions
+	 */
+	Stream<SubscriptionExecutionEntity> findByTriggeredSubscriptionAndStatus(TriggeredSubscriptionEntity triggeredSubscription, SubscriptionExecutionStatusType status);
 }
