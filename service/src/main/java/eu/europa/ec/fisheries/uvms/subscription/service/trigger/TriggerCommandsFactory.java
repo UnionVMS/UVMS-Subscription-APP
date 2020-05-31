@@ -29,4 +29,12 @@ public interface TriggerCommandsFactory {
 	 * @return The command
 	 */
 	Command createTriggerSubscriptionCommand(TriggeredSubscriptionEntity triggeredSubscription, Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> extractTriggeredSubscriptionDataForDuplicates);
+
+	/**
+	 * Make a command to stop all triggered subscriptions that match the criteria.
+	 *
+	 * @param stopConditionCriteria The criteria
+	 * @return The command
+	 */
+	Command createStopSubscriptionCommand(StopConditionCriteria stopConditionCriteria);
 }

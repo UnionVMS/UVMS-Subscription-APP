@@ -58,4 +58,9 @@ class TriggerCommandsFactoryImpl implements TriggerCommandsFactory {
 	public Command createTriggerSubscriptionCommand(TriggeredSubscriptionEntity triggeredSubscription, Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> extractTriggeredSubscriptionDataForDuplicates) {
 		return new TriggerSubscriptionCommand(extractTriggeredSubscriptionDataForDuplicates, triggeredSubscriptionService, subscriptionExecutionScheduler, subscriptionExecutionService, triggeredSubscription);
 	}
+
+	@Override
+	public Command createStopSubscriptionCommand(StopConditionCriteria stopConditionCriteria) {
+		return new StopSubscriptionCommand(triggeredSubscriptionService, subscriptionExecutionService, stopConditionCriteria);
+	}
 }
