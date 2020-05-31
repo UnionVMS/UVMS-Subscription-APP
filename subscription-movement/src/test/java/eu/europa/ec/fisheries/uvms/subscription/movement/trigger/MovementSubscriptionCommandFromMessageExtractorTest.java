@@ -11,6 +11,7 @@ package eu.europa.ec.fisheries.uvms.subscription.movement.trigger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -45,6 +46,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscrip
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsFactory;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.MessageFormatException;
@@ -110,6 +112,21 @@ public class MovementSubscriptionCommandFromMessageExtractorTest {
 		verifyEmptyStreamForResource("CreateMovementBatchResponse-OK-duplicate.xml");
 	}
 
+	@Test
+	void testNoPositionTime() {
+		String representation = readResource("CreateMovementBatchResponse-OK-null-position-time.xml");
+		List<Command> commands = sut.extractCommands(representation).collect(Collectors.toList());
+
+		assertEquals(1, commands.size());
+		ArgumentCaptor<StopConditionCriteria> stopConditionCriteriaArgumentCaptor = ArgumentCaptor.forClass(StopConditionCriteria.class);
+		verify(triggerCommandsFactory).createStopSubscriptionCommand(stopConditionCriteriaArgumentCaptor.capture());
+		StopConditionCriteria stopConditionCriteria = stopConditionCriteriaArgumentCaptor.getValue();
+		assertEquals("93b63a1c-45ea-11e7-bec7-4c32759615eb", stopConditionCriteria.getConnectId());
+		String notInAreaCriteria = stopConditionCriteria.getAreas().stream().map(ac -> ac.getType().toString() + '-' + ac.getGid()).sorted().collect(Collectors.joining(","));
+		assertEquals("FMZ-270,STATRECT-73", notInAreaCriteria);
+		assertNull(stopConditionCriteria.getActivities());
+	}
+
 	private void verifyEmptyStreamForResource(String resourceName) {
 		String representation = readResource(resourceName);
 		long size = sut.extractCommands(representation).count();
@@ -123,11 +140,6 @@ public class MovementSubscriptionCommandFromMessageExtractorTest {
 	}
 
 	@Test
-	void testDoNotTriggerOnOKResponseAndNullMovementPositionTime() {
-		verifyEmptyStreamForResource("CreateMovementBatchResponse-OK-null-position-time.xml");
-	}
-
-	@Test
 	void testOK() {
 		SubscriptionEntity subscription = new SubscriptionEntity();
 		when(subscriptionFinder.findTriggeredSubscriptions(any(), any(), any(), any())).thenReturn(Collections.singletonList(subscription));
@@ -136,7 +148,7 @@ public class MovementSubscriptionCommandFromMessageExtractorTest {
 
 		List<Command> commands = sut.extractCommands(representation).collect(Collectors.toList());
 
-		assertEquals(1, commands.size());
+		assertEquals(2, commands.size());
 		ArgumentCaptor<TriggeredSubscriptionEntity> triggeredSubscriptionCaptor = ArgumentCaptor.forClass(TriggeredSubscriptionEntity.class);
 		@SuppressWarnings("unchecked")
 		ArgumentCaptor<Function<TriggeredSubscriptionEntity,Set<TriggeredSubscriptionDataEntity>>> dataExtractorCaptor = ArgumentCaptor.forClass(Function.class);
@@ -156,10 +168,18 @@ public class MovementSubscriptionCommandFromMessageExtractorTest {
 		verify(subscriptionFinder).findTriggeredSubscriptions(areasCaptor.capture(), assetsCaptor.capture(), any(), triggerTypeCaptor.capture());
 		String areaCriteria = areasCaptor.getValue().stream().map(ac -> ac.getType().toString() + '-' + ac.getGid()).sorted().collect(Collectors.joining(","));
 		String assetsCriteria = assetsCaptor.getValue().stream().map(ac -> ac.getType().toString() + '-' + ac.getGuid()).collect(Collectors.joining(","));
-		assertEquals("FMZ-270,STATRECT-73", areaCriteria);
+		assertEquals("FMZ-270,STATRECT-14,STATRECT-73", areaCriteria, "includes all movements except EXI");
 		assertEquals("ASSET-93b63a1c-45ea-11e7-bec7-4c32759615eb", assetsCriteria);
 		assertEquals(1, triggerTypeCaptor.getValue().size());
 		assertEquals(TriggerType.INC_POSITION, triggerTypeCaptor.getValue().iterator().next());
+
+		ArgumentCaptor<StopConditionCriteria> stopConditionCriteriaArgumentCaptor = ArgumentCaptor.forClass(StopConditionCriteria.class);
+		verify(triggerCommandsFactory).createStopSubscriptionCommand(stopConditionCriteriaArgumentCaptor.capture());
+		StopConditionCriteria stopConditionCriteria = stopConditionCriteriaArgumentCaptor.getValue();
+		assertEquals("93b63a1c-45ea-11e7-bec7-4c32759615eb", stopConditionCriteria.getConnectId());
+		String notInAreaCriteria = stopConditionCriteria.getAreas().stream().map(ac -> ac.getType().toString() + '-' + ac.getGid()).sorted().collect(Collectors.joining(","));
+		assertEquals("FMZ-270,STATRECT-14,STATRECT-73", notInAreaCriteria, "includes all movements except EXI");
+		assertNull(stopConditionCriteria.getActivities());
 
 		TriggeredSubscriptionEntity e = new TriggeredSubscriptionEntity();
 		e.getData().add(new TriggeredSubscriptionDataEntity(e, "connectId", "CONNECT ID"));
