@@ -16,13 +16,9 @@ import javax.transaction.Transactional;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.bean.TriggeredSubscriptionService;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionExecutionService;
-import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
 
 /**
  * Implementation of the {@link IncomingDataMessageService}.
@@ -31,28 +27,19 @@ import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionE
 @Transactional
 class IncomingDataMessageServiceImpl implements IncomingDataMessageService {
 
-	private TriggeredSubscriptionService triggeredSubscriptionService;
-	private Map<String, TriggeredSubscriptionCreator> subscriptionCreators;
-	private SubscriptionExecutionScheduler subscriptionExecutionScheduler;
-	private SubscriptionExecutionService subscriptionExecutionService;
+	private Map<String,SubscriptionCommandFromMessageExtractor> extractors;
 
 	/**
 	 * Injection constructor.
 	 *
-	 * @param triggeredSubscriptionService   The service
-	 * @param triggeredSubscriptionCreators  All the subscription creators
-	 * @param subscriptionExecutionScheduler The scheduler
-	 * @param subscriptionExecutionService   The subscription execution service
+	 * @param extractors   The services that can translate the representation of an incoming message to subscription-specific commands to execute
 	 */
 	@Inject
-	public IncomingDataMessageServiceImpl(TriggeredSubscriptionService triggeredSubscriptionService, Instance<TriggeredSubscriptionCreator> triggeredSubscriptionCreators, SubscriptionExecutionScheduler subscriptionExecutionScheduler, SubscriptionExecutionService subscriptionExecutionService) {
-		this.triggeredSubscriptionService = triggeredSubscriptionService;
-		subscriptionCreators = triggeredSubscriptionCreators.stream().collect(Collectors.toMap(
-				TriggeredSubscriptionCreator::getEligibleSubscriptionSource,
+	public IncomingDataMessageServiceImpl(Instance<SubscriptionCommandFromMessageExtractor> extractors) {
+		this.extractors = extractors.stream().collect(Collectors.toMap(
+				SubscriptionCommandFromMessageExtractor::getEligibleSubscriptionSource,
 				Function.identity()
 		));
-		this.subscriptionExecutionScheduler = subscriptionExecutionScheduler;
-		this.subscriptionExecutionService = subscriptionExecutionService;
 	}
 
 	/**
@@ -65,21 +52,8 @@ class IncomingDataMessageServiceImpl implements IncomingDataMessageService {
 
 	@Override
 	public void handle(String subscriptionSource, String representation) {
-		TriggeredSubscriptionCreator triggeredSubscriptionCreator = Optional.ofNullable(subscriptionCreators.get(subscriptionSource))
+		SubscriptionCommandFromMessageExtractor extractor = Optional.ofNullable(extractors.get(subscriptionSource))
 				.orElseThrow(() -> new IllegalStateException("unknown subscription source: " + subscriptionSource));
-		triggeredSubscriptionCreator.createTriggeredSubscriptions(representation)
-				.filter(notAlreadyTriggered(triggeredSubscriptionCreator))
-				.map(triggeredSubscriptionService::save)
-				.map(subscriptionExecutionScheduler::scheduleNext)
-				.filter(Optional::isPresent)
-				.map(Optional::get)
-				.forEach(subscriptionExecutionService::save);
-	}
-
-	private Predicate<TriggeredSubscriptionEntity> notAlreadyTriggered(TriggeredSubscriptionCreator triggeredSubscriptionCreator) {
-		return triggeredSubscriptionEntity -> Optional.of(triggeredSubscriptionEntity)
-				.map(triggeredSubscriptionCreator::extractTriggeredSubscriptionDataForDuplicates)
-				.map(criteria -> !triggeredSubscriptionService.isDuplicate(triggeredSubscriptionEntity, criteria))
-				.orElse(false);
+		extractor.extractCommands(representation).forEach(Command::execute);
 	}
 }

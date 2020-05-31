@@ -1,5 +1,5 @@
 /*
- Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2016.
+ Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2020.
 
  This file is part of the Integrated Fisheries Data Management (IFDM) Suite. The IFDM Suite is free software: you can redistribute it
  and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of
@@ -16,8 +16,8 @@ import java.util.Collection;
 import java.util.List;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AreaCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 
 /**
@@ -29,7 +29,7 @@ public interface SubscriptionFinder {
 	 * Find active subscriptions that are triggered by any of the given areas and assets.
 	 *
 	 * @param areas   The areas
-	 * @param assets   The areas
+	 * @param assets  The assets
 	 * @param validAt The assets must be valid at this time
 	 * @param triggerTypes The subscription trigger is any of these, {@code null} to ignore the criterion
 	 * @return A non-null list of subscriptions
