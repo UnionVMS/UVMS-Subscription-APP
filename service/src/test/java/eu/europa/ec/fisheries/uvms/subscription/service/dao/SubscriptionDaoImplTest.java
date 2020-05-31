@@ -56,6 +56,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionFishingActivity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
@@ -73,7 +74,6 @@ import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
-import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionFaReportDocumentType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
@@ -172,7 +172,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
                 Arguments.of(createDateRangeQuery("20180601", null),       new long[] {1,2},     "Start date in the 2 oldest subscriptions"),
                 Arguments.of(createDateRangeQuery(null, "20180601"),       new long[] {1,2},     "End date in the 2 oldest subscriptions"),
                 Arguments.of(createDateRangeQuery("20200101", "20211231"), new long[] {},        "Partially older than the oldest subscription"),
-                Arguments.of(createDateRangeQuery("20210101", "20211231"), new long[] {},        "Fulllly older than the oldest subscription")
+                Arguments.of(createDateRangeQuery("20210101", "20211231"), new long[] {},        "Fully older than the oldest subscription")
         );
     }
 
@@ -206,7 +206,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     @Test
     void testFindByAreas() {
         SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
-        List<SubscriptionSearchCriteria.AreaCriterion> areas = Arrays.asList(new SubscriptionSearchCriteria.AreaCriterion(AreaType.EEZ, 101L), new SubscriptionSearchCriteria.AreaCriterion(AreaType.PORT, 222L));
+        List<AreaCriterion> areas = Arrays.asList(new AreaCriterion(AreaType.EEZ, 101L), new AreaCriterion(AreaType.PORT, 222L));
         criteria.setActive(true);
         criteria.setInAnyArea(areas);
         List<SubscriptionEntity> results = sut.listSubscriptions(criteria);
@@ -217,7 +217,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     @Test
     void testFindByAreasAllowNoAssets() {
         SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
-        List<SubscriptionSearchCriteria.AreaCriterion> areas = java.util.Collections.singletonList(new SubscriptionSearchCriteria.AreaCriterion(AreaType.USERAREA, 103L));
+        List<AreaCriterion> areas = java.util.Collections.singletonList(new AreaCriterion(AreaType.USERAREA, 103L));
         criteria.setActive(true);
         criteria.setInAnyArea(areas);
         List<SubscriptionSearchCriteria.AssetCriterion> assets = Arrays.asList(new SubscriptionSearchCriteria.AssetCriterion(AssetType.ASSET, "asset_guid_1"), new SubscriptionSearchCriteria.AssetCriterion(AssetType.ASSET, "asset_guid_2"));
@@ -265,7 +265,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     void testFindByAssetsAndAssetGroupsAllowNoAreas() {
         SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
         List<SubscriptionSearchCriteria.AssetCriterion> assets = Arrays.asList(new SubscriptionSearchCriteria.AssetCriterion(AssetType.ASSET, "asset_guid_3"), new SubscriptionSearchCriteria.AssetCriterion(AssetType.VGROUP, "asset_group_guid_1"));
-        List<SubscriptionSearchCriteria.AreaCriterion> areas = java.util.Collections.singletonList(new SubscriptionSearchCriteria.AreaCriterion(AreaType.USERAREA, 999L));
+        List<AreaCriterion> areas = java.util.Collections.singletonList(new AreaCriterion(AreaType.USERAREA, 999L));
         criteria.setActive(true);
         criteria.setWithAnyAsset(assets);
         criteria.setInAnyArea(areas);
@@ -277,7 +277,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     @Test
     void testFindWithEmptyAreaCriteria() {
         SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
-        List<SubscriptionSearchCriteria.AreaCriterion> areas = java.util.Collections.emptyList();
+        List<AreaCriterion> areas = java.util.Collections.emptyList();
         criteria.setInAnyArea(areas);
         List<SubscriptionEntity> results = sut.listSubscriptions(criteria);
         Integer numberOfSavedSubscriptions = findAllSubscriptions().size();
@@ -787,8 +787,8 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         em.getTransaction().begin();
         SubscriptionEntity subscription = findAllSubscriptions().get(0);
         Set<AreaEntity> detachedAreas = subscription.getAreas().stream().peek(em::detach).collect(toSet());
-        Set<AssetEntity> detachedAssets = subscription.getAssets().stream().peek(em::detach).collect(toSet());
-        Set<AssetGroupEntity> detachedAssetGroups = subscription.getAssetGroups().stream().peek(em::detach).collect(toSet());
+        subscription.getAssets().forEach(em::detach);
+        subscription.getAssetGroups().forEach(em::detach);
         em.detach(subscription);
         subscription.setAreas(detachedAreas);
         subscription.setDescription("updated description");

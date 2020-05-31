@@ -32,18 +32,20 @@ import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionFinder;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AreaCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsFactory;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.MessageFormatException;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
@@ -54,11 +56,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Tests for the {@link MovementTriggeredSubscriptionCreator}.
+ * Tests for the {@link MovementSubscriptionCommandFromMessageExtractor}.
  */
 @EnableAutoWeld
 @ExtendWith(MockitoExtension.class)
-public class MovementTriggeredSubscriptionCreatorTest {
+public class MovementSubscriptionCommandFromMessageExtractorTest {
 
 	private static final Date NOW = new Date();
 
@@ -69,10 +71,13 @@ public class MovementTriggeredSubscriptionCreatorTest {
 	private AssetSender assetSender;
 
 	@Produces @ApplicationScoped
-	private DateTimeServiceTestImpl dateTimeService = new DateTimeServiceTestImpl();
+	private final DateTimeServiceTestImpl dateTimeService = new DateTimeServiceTestImpl();
+
+	@Produces @Mock
+	private TriggerCommandsFactory triggerCommandsFactory;
 
 	@Inject
-	private MovementTriggeredSubscriptionCreator sut;
+	private MovementSubscriptionCommandFromMessageExtractor sut;
 
 	@Produces
 	DatatypeFactory getDatatypeFactory() throws Exception {
@@ -81,7 +86,7 @@ public class MovementTriggeredSubscriptionCreatorTest {
 
 	@Test
 	void testEmptyConstructor() {
-		MovementTriggeredSubscriptionCreator sut = new MovementTriggeredSubscriptionCreator();
+		MovementSubscriptionCommandFromMessageExtractor sut = new MovementSubscriptionCommandFromMessageExtractor();
 		assertNotNull(sut);
 	}
 
@@ -92,7 +97,7 @@ public class MovementTriggeredSubscriptionCreatorTest {
 
 	@Test
 	void testJAXBExceptionResultsInApplicationException() {
-		assertThrows(MessageFormatException.class, () -> sut.createTriggeredSubscriptions("bad"));
+		assertThrows(MessageFormatException.class, () -> sut.extractCommands("bad"));
 	}
 
 	@Test
@@ -107,7 +112,7 @@ public class MovementTriggeredSubscriptionCreatorTest {
 
 	private void verifyEmptyStreamForResource(String resourceName) {
 		String representation = readResource(resourceName);
-		long size = sut.createTriggeredSubscriptions(representation).count();
+		long size = sut.extractCommands(representation).count();
 		assertEquals(0, size);
 		verifyNoInteractions(subscriptionFinder);
 	}
@@ -129,14 +134,19 @@ public class MovementTriggeredSubscriptionCreatorTest {
 		String representation = readResource("CreateMovementBatchResponse-OK.xml");
 		dateTimeService.setNow(NOW);
 
-		List<TriggeredSubscriptionEntity> result = sut.createTriggeredSubscriptions(representation).collect(Collectors.toList());
+		List<Command> commands = sut.extractCommands(representation).collect(Collectors.toList());
 
-		assertEquals(1, result.size());
-		assertSame(subscription, result.get(0).getSubscription());
-		assertNotNull(result.get(0).getCreationDate());
-		assertTrue(result.get(0).getActive());
-		assertEquals(NOW, result.get(0).getCreationDate());
-		assertEquals(Date.from(LocalDateTime.of(2017,3,4,17,39).toInstant(ZoneOffset.UTC)), result.get(0).getEffectiveFrom());
+		assertEquals(1, commands.size());
+		ArgumentCaptor<TriggeredSubscriptionEntity> triggeredSubscriptionCaptor = ArgumentCaptor.forClass(TriggeredSubscriptionEntity.class);
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<Function<TriggeredSubscriptionEntity,Set<TriggeredSubscriptionDataEntity>>> dataExtractorCaptor = ArgumentCaptor.forClass(Function.class);
+		verify(triggerCommandsFactory).createTriggerSubscriptionCommand(triggeredSubscriptionCaptor.capture(), dataExtractorCaptor.capture());
+		TriggeredSubscriptionEntity triggeredSubscription = triggeredSubscriptionCaptor.getValue();
+		assertSame(subscription, triggeredSubscription.getSubscription());
+		assertNotNull(triggeredSubscription.getCreationDate());
+		assertTrue(triggeredSubscription.getActive());
+		assertEquals(NOW, triggeredSubscription.getCreationDate());
+		assertEquals(Date.from(LocalDateTime.of(2017,3,4,17,39).toInstant(ZoneOffset.UTC)), triggeredSubscription.getEffectiveFrom());
 		@SuppressWarnings("unchecked")
 		ArgumentCaptor<Collection<AreaCriterion>> areasCaptor = ArgumentCaptor.forClass(Collection.class);
 		@SuppressWarnings("unchecked")
@@ -150,6 +160,15 @@ public class MovementTriggeredSubscriptionCreatorTest {
 		assertEquals("ASSET-93b63a1c-45ea-11e7-bec7-4c32759615eb", assetsCriteria);
 		assertEquals(1, triggerTypeCaptor.getValue().size());
 		assertEquals(TriggerType.INC_POSITION, triggerTypeCaptor.getValue().iterator().next());
+
+		TriggeredSubscriptionEntity e = new TriggeredSubscriptionEntity();
+		e.getData().add(new TriggeredSubscriptionDataEntity(e, "connectId", "CONNECT ID"));
+		e.getData().add(new TriggeredSubscriptionDataEntity(e, "vesselId", "VESSEL ID"));
+		e.getData().add(new TriggeredSubscriptionDataEntity(e, "vesselSchemeId", "VESSEL SCHEME ID"));
+		e.getData().add(new TriggeredSubscriptionDataEntity(e, "occurrence", "OCCURRENCE"));
+		e.getData().add(new TriggeredSubscriptionDataEntity(e, "somethingElse", "XXX"));
+		Set<TriggeredSubscriptionDataEntity> result = dataExtractorCaptor.getValue().apply(e);
+		assertEquals(Collections.singleton(new TriggeredSubscriptionDataEntity(e, "connectId", "CONNECT ID")), result);
 	}
 
 	private String readResource(String resourceName) {
@@ -164,17 +183,5 @@ public class MovementTriggeredSubscriptionCreatorTest {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	@Test
-	void testExtractTriggeredSubscriptionDataForDuplicates() {
-		TriggeredSubscriptionEntity e = new TriggeredSubscriptionEntity();
-		e.getData().add(new TriggeredSubscriptionDataEntity(e, "connectId", "CONNECT_ID"));
-		e.getData().add(new TriggeredSubscriptionDataEntity(e, "occurrence", "OCCURRENCE"));
-		e.getData().add(new TriggeredSubscriptionDataEntity(e, "somethingElse", "XXX"));
-		Set<TriggeredSubscriptionDataEntity> result = sut.extractTriggeredSubscriptionDataForDuplicates(e);
-		assertEquals(new HashSet<>(Collections.singletonList(
-				new TriggeredSubscriptionDataEntity(e, "connectId", "CONNECT_ID")
-		)), result);
 	}
 }

@@ -7,17 +7,14 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
+package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
 /**
- * Service that handles incoming messages.
+ * A command executing some subscription functionality..
  */
-public interface IncomingDataMessageService {
+public interface Command {
 	/**
-	 * Handle an incoming message.
-	 *
-	 * @param subscriptionSource The source of this message (movement, activity etc)
-	 * @param representation The representation of this message, to be passed to an appropriate {@link SubscriptionCommandFromMessageExtractor}
+	 * Apply the effect of this command.
 	 */
-	void handle(String subscriptionSource, String representation);
+	void execute();
 }
