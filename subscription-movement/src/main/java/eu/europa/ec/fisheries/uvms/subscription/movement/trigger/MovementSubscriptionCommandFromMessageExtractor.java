@@ -32,6 +32,7 @@ import eu.europa.ec.fisheries.schema.movement.common.v1.SimpleResponse;
 import eu.europa.ec.fisheries.schema.movement.module.v1.CreateMovementBatchResponse;
 import eu.europa.ec.fisheries.schema.movement.v1.MovementMetaDataAreaType;
 import eu.europa.ec.fisheries.schema.movement.v1.MovementType;
+import eu.europa.ec.fisheries.schema.movement.v1.MovementTypeType;
 import eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionFinder;
@@ -41,6 +42,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscrip
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SubscriptionCommandFromMessageExtractor;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsFactory;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
@@ -111,9 +113,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 				.filter(message -> message.getMovements() != null)
 				.flatMap(message -> message.getMovements().stream())
 				.filter(m -> !m.isDuplicate())
-				.flatMap(this::findTriggeredSubscriptions)
-				.map(this::makeTriggeredSubscriptionEntity)
-				.map(this::makeTriggerSubscriptionCommand);
+				.flatMap(this::makeCommandsForMovement);
 	}
 
 	private CreateMovementBatchResponse unmarshal(String representation) {
@@ -124,14 +124,23 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		}
 	}
 
+	private Stream<Command> makeCommandsForMovement(MovementType movement) {
+		return Stream.concat(
+				findTriggeredSubscriptions(movement)
+						.map(this::makeTriggeredSubscriptionEntity)
+						.map(this::makeTriggerSubscriptionCommand),
+				Stream.of(movement)
+						.map(this::makeStopConditionCriteria)
+						.map(triggerCommandsFactory::createStopSubscriptionCommand)
+		);
+	}
+
 	private Stream<MovementAndSubscription> findTriggeredSubscriptions(MovementType movement) {
 		if (movement.getPositionTime() == null) {
 			return Stream.empty();
 		}
 		ZonedDateTime validAt = ZonedDateTime.ofInstant(movement.getPositionTime().toInstant(), ZoneId.of("UTC"));
-		List<AreaCriterion> areas = movement.getMetaData().getAreas().stream()
-				.map(this::toAreaCriterion)
-				.collect(Collectors.toList());
+		List<AreaCriterion> areas = extractAreas(movement).collect(Collectors.toList());
 		List<AssetCriterion> assets = new ArrayList<>();
 		assets.add(new AssetCriterion(AssetType.ASSET, movement.getConnectId()));
 		List<String> assetGroupsForAsset = assetSender.findAssetGroupsForAsset(movement.getConnectId(), movement.getPositionTime());
@@ -140,8 +149,10 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 				.map(subscription -> new MovementAndSubscription(movement, subscription));
 	}
 
-	private AreaCriterion toAreaCriterion(MovementMetaDataAreaType area) {
-		return new AreaCriterion(AreaType.fromValue(area.getAreaType()), Long.valueOf(area.getRemoteId()));
+	private Stream<AreaCriterion> extractAreas(MovementType movement) {
+		return movement.getMetaData().getAreas().stream()
+				.filter(area -> area.getTransitionType() != MovementTypeType.EXI)
+				.map(area -> new AreaCriterion(AreaType.fromValue(area.getAreaType()), Long.valueOf(area.getRemoteId())));
 	}
 
 	private TriggeredSubscriptionEntity makeTriggeredSubscriptionEntity(MovementAndSubscription input) {
@@ -171,6 +182,13 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 
 	private Command makeTriggerSubscriptionCommand(TriggeredSubscriptionEntity triggeredSubscription) {
 		return triggerCommandsFactory.createTriggerSubscriptionCommand(triggeredSubscription, TRIGGERED_SUBSCRIPTION_DATA_FOR_DUPLICATES);
+	}
+
+	private StopConditionCriteria makeStopConditionCriteria(MovementType movement) {
+		StopConditionCriteria criteria = new StopConditionCriteria();
+		criteria.setConnectId(movement.getConnectId());
+		criteria.setAreas(extractAreas(movement).collect(Collectors.toSet()));
+		return criteria;
 	}
 
 	@Getter

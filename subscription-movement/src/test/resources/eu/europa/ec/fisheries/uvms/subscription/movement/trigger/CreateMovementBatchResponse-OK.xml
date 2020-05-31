@@ -44,7 +44,21 @@
 				<code>40G5</code>
 				<name>ICES</name>
 				<areaType>STATRECT</areaType>
-				<transitionType>POS</transitionType>
+				<transitionType>ENT</transitionType>
+			</areas>
+			<areas>
+				<remoteId>111</remoteId>
+				<code>37.2.1</code>
+				<name>MEDITERRANEAN AND BLACK SEA</name>
+				<areaType>FAO</areaType>
+				<transitionType>EXI</transitionType>
+			</areas>
+			<areas>
+				<remoteId>14</remoteId>
+				<code>M16E8</code>
+				<name>GFCM</name>
+				<areaType>STATRECT</areaType>
+				<transitionType>MAN</transitionType>
 			</areas>
 		</metaData>
 		<wkt>POINT ( 15.524 55.688 )</wkt>
