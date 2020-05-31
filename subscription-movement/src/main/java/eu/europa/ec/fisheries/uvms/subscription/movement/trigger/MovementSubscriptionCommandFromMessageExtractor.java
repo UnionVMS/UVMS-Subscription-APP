@@ -1,5 +1,5 @@
 /*
- Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2016.
+ Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2020.
 
  This file is part of the Integrated Fisheries Data Management (IFDM) Suite. The IFDM Suite is free software: you can redistribute it
  and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,14 +33,16 @@ import eu.europa.ec.fisheries.schema.movement.module.v1.CreateMovementBatchRespo
 import eu.europa.ec.fisheries.schema.movement.v1.MovementMetaDataAreaType;
 import eu.europa.ec.fisheries.schema.movement.v1.MovementType;
 import eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils;
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionFinder;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AreaCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
-import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionCreator;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SubscriptionCommandFromMessageExtractor;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsFactory;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
@@ -49,13 +52,18 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Implementation of {@link TriggeredSubscriptionCreator} for movement messages.
+ * Implementation of {@link SubscriptionCommandFromMessageExtractor} for movement messages.
  */
 @ApplicationScoped
-public class MovementTriggeredSubscriptionCreator implements TriggeredSubscriptionCreator {
+public class MovementSubscriptionCommandFromMessageExtractor implements SubscriptionCommandFromMessageExtractor {
 
 	private static final String KEY_CONNECT_ID = "connectId";
 	private static final String KEY_OCCURRENCE = "occurrence";
+
+	private static final Function<TriggeredSubscriptionEntity,Set<TriggeredSubscriptionDataEntity>> TRIGGERED_SUBSCRIPTION_DATA_FOR_DUPLICATES = entity ->
+		entity.getData().stream()
+				.filter(d -> KEY_CONNECT_ID.equals(d.getKey()))
+				.collect(Collectors.toSet());
 
 	private static final String SOURCE = "movement";
 
@@ -63,6 +71,7 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 	private DatatypeFactory datatypeFactory;
 	private AssetSender assetSender;
 	private DateTimeService dateTimeService;
+	private TriggerCommandsFactory triggerCommandsFactory;
 
 	/**
 	 * Constructor for injection.
@@ -71,20 +80,22 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 	 * @param datatypeFactory The data type factory
 	 * @param assetSender The asset sender
 	 * @param dateTimeService The date/time service
+	 * @param triggerCommandsFactory The factory for commands
 	 */
 	@Inject
-	public MovementTriggeredSubscriptionCreator(SubscriptionFinder subscriptionFinder, DatatypeFactory datatypeFactory, AssetSender assetSender, DateTimeService dateTimeService) {
+	public MovementSubscriptionCommandFromMessageExtractor(SubscriptionFinder subscriptionFinder, DatatypeFactory datatypeFactory, AssetSender assetSender, DateTimeService dateTimeService, TriggerCommandsFactory triggerCommandsFactory) {
 		this.subscriptionFinder = subscriptionFinder;
 		this.datatypeFactory = datatypeFactory;
 		this.assetSender = assetSender;
 		this.dateTimeService = dateTimeService;
+		this.triggerCommandsFactory = triggerCommandsFactory;
 	}
 
 	/**
 	 * Constructor for frameworks.
 	 */
 	@SuppressWarnings("unused")
-	MovementTriggeredSubscriptionCreator() {
+	MovementSubscriptionCommandFromMessageExtractor() {
 		// NOOP
 	}
 
@@ -94,14 +105,15 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 	}
 
 	@Override
-	public Stream<TriggeredSubscriptionEntity> createTriggeredSubscriptions(String representation) {
+	public Stream<Command> extractCommands(String representation) {
 		return Stream.of(unmarshal(representation))
 				.filter(message -> message.getResponse() == SimpleResponse.OK)
 				.filter(message -> message.getMovements() != null)
 				.flatMap(message -> message.getMovements().stream())
 				.filter(m -> !m.isDuplicate())
 				.flatMap(this::findTriggeredSubscriptions)
-				.map(this::makeTriggeredSubscriptionEntity);
+				.map(this::makeTriggeredSubscriptionEntity)
+				.map(this::makeTriggerSubscriptionCommand);
 	}
 
 	private CreateMovementBatchResponse unmarshal(String representation) {
@@ -157,17 +169,14 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 		return result;
 	}
 
+	private Command makeTriggerSubscriptionCommand(TriggeredSubscriptionEntity triggeredSubscription) {
+		return triggerCommandsFactory.createTriggerSubscriptionCommand(triggeredSubscription, TRIGGERED_SUBSCRIPTION_DATA_FOR_DUPLICATES);
+	}
+
 	@Getter
 	@AllArgsConstructor
 	private static class MovementAndSubscription {
 		private final MovementType movement;
 		private final SubscriptionEntity subscription;
-	}
-
-	@Override
-	public Set<TriggeredSubscriptionDataEntity> extractTriggeredSubscriptionDataForDuplicates(TriggeredSubscriptionEntity entity) {
-		return entity.getData().stream()
-				.filter(d -> KEY_CONNECT_ID.equals(d.getKey()))
-				.collect(Collectors.toSet());
 	}
 }
