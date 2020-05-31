@@ -10,7 +10,9 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.execution;
 
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.EXECUTED;
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.PENDING;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.QUEUED;
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.STOPPED;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -23,6 +25,7 @@ import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionExecutionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
@@ -96,5 +99,10 @@ class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 					return subscriptionExecutionScheduler.scheduleNext(execution.getTriggeredSubscription(), execution);
 				})
 				.ifPresent(this::save);
+	}
+
+	@Override
+	public void stopPendingExecutions(TriggeredSubscriptionEntity triggeredSubscription) {
+		dao.findByTriggeredSubscriptionAndStatus(triggeredSubscription, PENDING).forEach(execution -> execution.setStatus(STOPPED));
 	}
 }

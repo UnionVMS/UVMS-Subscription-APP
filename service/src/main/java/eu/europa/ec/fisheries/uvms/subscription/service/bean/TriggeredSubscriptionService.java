@@ -10,9 +10,11 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
 import java.util.Set;
+import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
 
 /**
  * Service for triggered subscriptions.
@@ -35,4 +37,12 @@ public interface TriggeredSubscriptionService {
 	 * @return Whether the given entity is duplicate
 	 */
 	boolean isDuplicate(TriggeredSubscriptionEntity entity, Set<TriggeredSubscriptionDataEntity> dataForDuplicates);
+
+	/**
+	 * Find triggered subscriptions that fulfill the given criteria.
+	 *
+	 * @param criteria The criteria
+	 * @return A stream of triggered subscriptions that should be deactivated
+	 */
+	Stream<TriggeredSubscriptionEntity> findByStopConditionCriteria(StopConditionCriteria criteria);
 }

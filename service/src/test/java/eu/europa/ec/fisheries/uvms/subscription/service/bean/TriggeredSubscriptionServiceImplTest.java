@@ -1,5 +1,5 @@
 /*
- Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2016.
+ Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2020.
 
  This file is part of the Integrated Fisheries Data Management (IFDM) Suite. The IFDM Suite is free software: you can redistribute it
  and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of
@@ -9,24 +9,39 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.TriggeredSubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.TriggeredSubscriptionSearchCriteria;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
+import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -36,6 +51,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @EnableAutoWeld
 @ExtendWith(MockitoExtension.class)
 public class TriggeredSubscriptionServiceImplTest {
+
+	private static final String CONNECT_ID1 = UUID.randomUUID().toString();
+	private static final Long AREA_GID1 = 111L;
 
 	@Produces @Mock
 	private TriggeredSubscriptionDao triggeredSubscriptionDao;
@@ -64,5 +82,25 @@ public class TriggeredSubscriptionServiceImplTest {
 		Set<TriggeredSubscriptionDataEntity > dataForDuplicates = new HashSet<>();
 		assertFalse(sut.isDuplicate(entity, dataForDuplicates));
 		verify(triggeredSubscriptionDao).activeExists(subscription, dataForDuplicates);
+	}
+
+	@Test
+	void testFindByStopConditionCriteria() {
+		StopConditionCriteria criteria = new StopConditionCriteria();
+		criteria.setConnectId(CONNECT_ID1);
+		criteria.setActivities(Collections.singleton("ACTIVITY1"));
+		criteria.setAreas(Collections.singleton(new AreaCriterion(AreaType.USERAREA, AREA_GID1)));
+		TriggeredSubscriptionEntity result = new TriggeredSubscriptionEntity();
+		when(triggeredSubscriptionDao.find(any())).thenReturn(Stream.of(result));
+		List<TriggeredSubscriptionEntity> results = sut.findByStopConditionCriteria(criteria).collect(Collectors.toList());
+		assertEquals(1, results.size());
+		assertSame(result, results.get(0));
+		ArgumentCaptor<TriggeredSubscriptionSearchCriteria> areaCriteriaCaptor = ArgumentCaptor.forClass(TriggeredSubscriptionSearchCriteria.class);
+		verify(triggeredSubscriptionDao).find(areaCriteriaCaptor.capture());
+		TriggeredSubscriptionSearchCriteria areaCriteria = areaCriteriaCaptor.getValue();
+		assertEquals(CONNECT_ID1, areaCriteria.getTriggeredSubscriptionData().get("connectId"));
+		assertEquals(criteria.getAreas(), areaCriteria.getNotInAreas());
+		assertTrue(areaCriteria.getActive());
+		assertTrue(areaCriteria.getSubscriptionQuitArea());
 	}
 }
