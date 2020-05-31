@@ -13,11 +13,15 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.TriggeredSubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.TriggeredSubscriptionSearchCriteria;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
 
 /**
  * Implementation of the {@link TriggeredSubscriptionService}.
@@ -54,5 +58,15 @@ class TriggeredSubscriptionServiceImpl implements TriggeredSubscriptionService {
 	@Override
 	public boolean isDuplicate(TriggeredSubscriptionEntity entity, Set<TriggeredSubscriptionDataEntity> dataForDuplicates) {
 		return triggeredSubscriptionDao.activeExists(entity.getSubscription(), dataForDuplicates);
+	}
+
+	@Override
+	public Stream<TriggeredSubscriptionEntity> findByStopConditionCriteria(StopConditionCriteria criteria) {
+		TriggeredSubscriptionSearchCriteria searchCriteriaForAreas = new TriggeredSubscriptionSearchCriteria();
+		searchCriteriaForAreas.setActive(Boolean.TRUE);
+		searchCriteriaForAreas.setTriggeredSubscriptionData(Collections.singletonMap("connectId", criteria.getConnectId()));
+		searchCriteriaForAreas.setNotInAreas(criteria.getAreas());
+		searchCriteriaForAreas.setSubscriptionQuitArea(true);
+		return triggeredSubscriptionDao.find(searchCriteriaForAreas);
 	}
 }

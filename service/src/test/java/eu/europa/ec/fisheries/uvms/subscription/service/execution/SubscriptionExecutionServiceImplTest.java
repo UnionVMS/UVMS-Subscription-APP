@@ -1,5 +1,5 @@
 /*
- Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2016.
+ Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2020.
 
  This file is part of the Integrated Fisheries Data Management (IFDM) Suite. The IFDM Suite is free software: you can redistribute it
  and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of
@@ -9,6 +9,8 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.execution;
 
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.PENDING;
+import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.STOPPED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -19,7 +21,6 @@ import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -188,5 +189,15 @@ public class SubscriptionExecutionServiceImplTest {
 
 		assertEquals(SubscriptionExecutionStatusType.QUEUED, execution.getStatus());
 		assertNull(execution.getExecutionTime());
+	}
+
+	@Test
+	void testStopPendingExecutions() {
+		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
+		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
+		execution.setStatus(PENDING);
+		when(dao.findByTriggeredSubscriptionAndStatus(triggeredSubscription,PENDING)).thenReturn(Stream.of(execution));
+		sut.stopPendingExecutions(triggeredSubscription);
+		assertEquals(STOPPED, execution.getStatus());
 	}
 }

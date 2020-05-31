@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 
 /**
  * Service to execute a subscription.
@@ -47,4 +48,11 @@ public interface SubscriptionExecutionService {
 	 * @param id The execution id
 	 */
 	void execute(Long id);
+
+	/**
+	 * Stop any pending executions of this triggered subscription.
+	 *
+	 * @param triggeredSubscription The triggered subscription
+	 */
+	void stopPendingExecutions(TriggeredSubscriptionEntity triggeredSubscription);
 }
