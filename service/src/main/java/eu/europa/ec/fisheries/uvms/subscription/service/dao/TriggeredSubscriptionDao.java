@@ -10,10 +10,12 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import java.util.Set;
+import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.TriggeredSubscriptionSearchCriteria;
 
 /**
  * DAO for {@link TriggeredSubscriptionEntity}.
@@ -44,4 +46,12 @@ public interface TriggeredSubscriptionDao {
 	 * @return Whether a duplicate exists
 	 */
 	boolean activeExists(SubscriptionEntity subscription, Set<TriggeredSubscriptionDataEntity> dataCriteria);
+
+	/**
+	 * Search for triggered subscriptions with the given criteria.
+	 *
+	 * @param criteria The criteria
+	 * @return The found entities
+	 */
+	Stream<TriggeredSubscriptionEntity> find(TriggeredSubscriptionSearchCriteria criteria);
 }
