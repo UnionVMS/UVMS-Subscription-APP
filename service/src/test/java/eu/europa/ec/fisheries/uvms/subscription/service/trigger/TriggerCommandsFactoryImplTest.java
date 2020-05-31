@@ -64,4 +64,12 @@ public class TriggerCommandsFactoryImplTest {
 		assertTrue(result instanceof TriggerSubscriptionCommand);
 		result.execute();
 	}
+
+	@Test
+	void testCreateStopSubscriptionCommand() {
+		StopConditionCriteria stopConditionCriteria = new StopConditionCriteria();
+		Command result = sut.createStopSubscriptionCommand(stopConditionCriteria);
+		assertTrue(result instanceof StopSubscriptionCommand);
+		result.execute();
+	}
 }
