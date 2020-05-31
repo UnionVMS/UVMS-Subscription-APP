@@ -9,15 +9,28 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
+import java.util.stream.Stream;
+
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
+
 /**
- * Service that handles incoming messages.
+ * Translates a textual message representation from a specific source to a
+ * stream of commands.
+ * <p>
+ * The purpose of this class is to allow a message to be handled as a stream and to
+ * abstract the handling of messages from a specific source.
  */
-public interface IncomingDataMessageService {
+public interface SubscriptionCommandFromMessageExtractor {
 	/**
-	 * Handle an incoming message.
-	 *
-	 * @param subscriptionSource The source of this message (movement, activity etc)
-	 * @param representation The representation of this message, to be passed to an appropriate {@link SubscriptionCommandFromMessageExtractor}
+	 * Get the name of the subscription source that this facility can handle.
 	 */
-	void handle(String subscriptionSource, String representation);
+	String getEligibleSubscriptionSource();
+
+	/**
+	 * Extract the commands from this kind of message.
+	 *
+	 * @param representation The representation of the message as string, as it arrived in the messaging facilities
+	 * @return A possibly empty but never null stream of commands to execute in order to process this message
+	 */
+	Stream<Command> extractCommands(String representation);
 }
