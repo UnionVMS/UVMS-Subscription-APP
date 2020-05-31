@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType;
 
 /**
@@ -67,6 +68,18 @@ class SubscriptionExecutionDaoImpl implements SubscriptionExecutionDao {
 		query.select(execution.get(SubscriptionExecutionEntity_.id)).where(
 				cb.equal(execution.get(SubscriptionExecutionEntity_.status), SubscriptionExecutionStatusType.PENDING),
 				cb.lessThanOrEqualTo(execution.get(SubscriptionExecutionEntity_.requestedTime), requestTimeCutoff)
+		);
+		return em.createQuery(query).getResultList().stream(); // TODO Just stream, when we finally sort out the mess with dependencies that is bringing JPA 1.x
+	}
+
+	@Override
+	public Stream<SubscriptionExecutionEntity> findByTriggeredSubscriptionAndStatus(TriggeredSubscriptionEntity triggeredSubscription, SubscriptionExecutionStatusType status) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<SubscriptionExecutionEntity> query = cb.createQuery(SubscriptionExecutionEntity.class);
+		Root<SubscriptionExecutionEntity> execution = query.from(SubscriptionExecutionEntity.class);
+		query.where(
+				cb.equal(execution.get(SubscriptionExecutionEntity_.triggeredSubscription), triggeredSubscription),
+				cb.equal(execution.get(SubscriptionExecutionEntity_.status), status)
 		);
 		return em.createQuery(query).getResultList().stream(); // TODO Just stream, when we finally sort out the mess with dependencies that is bringing JPA 1.x
 	}
