@@ -28,5 +28,6 @@ public class SubscriptionSearchCriteriaImpl implements SubscriptionSearchCriteri
     private OutgoingMessageType messageType;
     private AccessibilityType accessibilityType;
     private Collection<AreaCriterion> inAnyArea;
+    private Collection<AssetCriterion> withAnyAsset;
     private Collection<TriggerType> withAnyTriggerType;
 }

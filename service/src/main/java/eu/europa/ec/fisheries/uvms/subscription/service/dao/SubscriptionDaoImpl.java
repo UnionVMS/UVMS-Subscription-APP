@@ -20,17 +20,25 @@ import javax.persistence.criteria.CriteriaUpdate;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.SetJoin;
 import javax.persistence.criteria.Subquery;
+import javax.persistence.metamodel.SetAttribute;
+import javax.persistence.metamodel.SingularAttribute;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetEntity_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetGroupEntity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEmailConfiguration_;
@@ -43,6 +51,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.OrderByDat
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AreaCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
+import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
@@ -183,6 +193,9 @@ class SubscriptionDaoImpl implements SubscriptionDao {
         if(criteria.getInAnyArea() != null && !criteria.getInAnyArea().isEmpty()) {
             predicates.add(makeAreasSubquery(query, subscription, cb, criteria.getInAnyArea()));
         }
+        if(criteria.getWithAnyAsset() != null && !criteria.getWithAnyAsset().isEmpty()) {
+            makeAssetCriteriaPredicate(query, subscription, cb, criteria.getWithAnyAsset()).ifPresent(predicates::add);
+        }
         if(criteria.getWithAnyTriggerType() != null && !criteria.getWithAnyTriggerType().isEmpty()) {
             predicates.add(subscription.get(SubscriptionEntity_.execution).get(SubscriptionExecution_.triggerType).in(criteria.getWithAnyTriggerType()));
         }
@@ -198,6 +211,37 @@ class SubscriptionDaoImpl implements SubscriptionDao {
                 .toArray(Predicate[]::new);
         subquery.where(cb.and(cb.equal(area.get(AreaEntity_.subscription), subscription), cb.or(predicates)));
         return cb.exists(subquery);
+    }
+
+    private Optional<Predicate> makeAssetCriteriaPredicate(CriteriaQuery<?> query, Root<SubscriptionEntity> subscription, CriteriaBuilder cb, Collection<AssetCriterion> assetsCriteria) {
+        Map<AssetType, List<AssetCriterion>> assetTypeMap = assetsCriteria.stream().collect(Collectors.groupingBy(AssetCriterion::getType));
+        Predicate assetsSubquery = Optional.ofNullable(assetTypeMap.get(AssetType.ASSET))
+                .map(assetCriteria -> makeGenericAssetsSubquery(query, subscription, cb, assetCriteria, SubscriptionEntity_.assets, AssetEntity_.guid))
+                .orElse(null);
+        Predicate assetGroupsSubquery = Optional.ofNullable(assetTypeMap.get(AssetType.VGROUP))
+                .map(assetCriteria -> makeGenericAssetsSubquery(query, subscription, cb, assetCriteria, SubscriptionEntity_.assetGroups, AssetGroupEntity_.guid))
+                .orElse(null);
+        return Optional.ofNullable(orNullables(cb, assetsSubquery, assetGroupsSubquery));
+    }
+
+    private <E> Predicate makeGenericAssetsSubquery(CriteriaQuery<?> query, Root<SubscriptionEntity> subscription, CriteriaBuilder cb, Collection<AssetCriterion> assetsCriteria, SetAttribute<SubscriptionEntity, E> join, SingularAttribute<E, String> guid) {
+        Subquery<Long> subquery = query.subquery(Long.class);
+        Root<SubscriptionEntity> correlatedRoot = subquery.correlate(subscription);
+        SetJoin<SubscriptionEntity, E> assetRoot = correlatedRoot.join(join);
+        subquery.select(cb.literal(1L));
+        List<String> ids = assetsCriteria.stream()
+                .map(AssetCriterion::getGuid)
+                .collect(Collectors.toList());
+        subquery.where(assetRoot.get(guid).in(ids));
+        return cb.exists(subquery);
+    }
+
+    private Predicate orNullables(CriteriaBuilder cb, Predicate p1, Predicate p2) {
+        if (p1 != null) {
+            return p2 == null ? p1 : cb.or(p1,p2);
+        } else {
+            return p2;
+        }
     }
 
     @Override
