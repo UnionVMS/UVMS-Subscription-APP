@@ -44,4 +44,14 @@ public interface AssetSender {
 	 * @return The asset history UUID
 	 */
 	String findAssetHistoryGuid(String assetGuid, Date occurrenceDate);
+
+	/**
+	 *
+	 * Find the asset groups that the given asset belongs to.
+	 *
+	 * @param assetGuid The asset UUID
+	 * @param occurrenceDate The date
+	 * @return Guids of found asset groups
+	 */
+	List<String> findAssetGroupsForAsset(String assetGuid, Date occurrenceDate);
 }

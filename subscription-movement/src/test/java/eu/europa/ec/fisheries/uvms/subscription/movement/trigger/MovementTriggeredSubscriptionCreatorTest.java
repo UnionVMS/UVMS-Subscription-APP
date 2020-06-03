@@ -39,6 +39,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AreaCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.MessageFormatException;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
@@ -57,6 +59,9 @@ public class MovementTriggeredSubscriptionCreatorTest {
 
 	@Produces @Mock
 	private SubscriptionFinder subscriptionFinder;
+
+	@Produces @Mock
+	private AssetSender assetSender;
 
 	@Inject
 	private MovementTriggeredSubscriptionCreator sut;
@@ -90,7 +95,7 @@ public class MovementTriggeredSubscriptionCreatorTest {
 	@Test
 	void testOK() {
 		SubscriptionEntity subscription = new SubscriptionEntity();
-		when(subscriptionFinder.findSubscriptionsTriggeredByAreas(any(), any(), any())).thenReturn(Collections.singletonList(subscription));
+		when(subscriptionFinder.findTriggeredSubscriptions(any(), any(), any(), any())).thenReturn(Collections.singletonList(subscription));
 		String representation = readResource("CreateMovementBatchResponse-OK.xml");
 		List<TriggeredSubscriptionEntity> result = sut.createTriggeredSubscriptions(representation).collect(Collectors.toList());
 		assertEquals(1, result.size());
@@ -98,12 +103,16 @@ public class MovementTriggeredSubscriptionCreatorTest {
 		assertNotNull(result.get(0).getCreationDate());
 		assertTrue(result.get(0).getActive());
 		@SuppressWarnings("unchecked")
-		ArgumentCaptor<Collection<AreaCriterion>> captor = ArgumentCaptor.forClass(Collection.class);
+		ArgumentCaptor<Collection<AreaCriterion>> areasCaptor = ArgumentCaptor.forClass(Collection.class);
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<Collection<AssetCriterion>> assetsCaptor = ArgumentCaptor.forClass(Collection.class);
 		@SuppressWarnings("unchecked")
 		ArgumentCaptor<Collection<TriggerType>> triggerTypeCaptor = ArgumentCaptor.forClass(Collection.class);
-		verify(subscriptionFinder).findSubscriptionsTriggeredByAreas(captor.capture(), any(), triggerTypeCaptor.capture());
-		String areaCriteria = captor.getValue().stream().map(ac -> ac.getType().toString() + '-' + ac.getGid()).sorted().collect(Collectors.joining(","));
+		verify(subscriptionFinder).findTriggeredSubscriptions(areasCaptor.capture(), assetsCaptor.capture(), any(), triggerTypeCaptor.capture());
+		String areaCriteria = areasCaptor.getValue().stream().map(ac -> ac.getType().toString() + '-' + ac.getGid()).sorted().collect(Collectors.joining(","));
+		String assetsCriteria = assetsCaptor.getValue().stream().map(ac -> ac.getType().toString() + '-' + ac.getGuid()).collect(Collectors.joining(","));
 		assertEquals("FMZ-270,STATRECT-73", areaCriteria);
+		assertEquals("ASSET-93b63a1c-45ea-11e7-bec7-4c32759615eb", assetsCriteria);
 		assertEquals(1, triggerTypeCaptor.getValue().size());
 		assertEquals(TriggerType.INC_POSITION, triggerTypeCaptor.getValue().iterator().next());
 	}

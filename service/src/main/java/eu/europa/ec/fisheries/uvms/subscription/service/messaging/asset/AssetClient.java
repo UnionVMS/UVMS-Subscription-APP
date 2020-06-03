@@ -9,6 +9,8 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset;
 
+import eu.europa.ec.fisheries.wsdl.asset.module.AssetGroupsForAssetRequest;
+import eu.europa.ec.fisheries.wsdl.asset.module.AssetGroupsForAssetResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidRequest;
@@ -43,4 +45,13 @@ public interface AssetClient {
 	 * @return The asset module response
 	 */
 	FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse findAssetHistGuidByAssetGuidAndOccurrenceDate(FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest request);
+
+
+	/**
+	 * Call {@code ASSET_GROUPS_FOR_ASSET}.
+	 *
+	 * @param request The asset module request
+	 * @return The asset module response
+	 */
+	AssetGroupsForAssetResponse findAssetGroupsForAsset(AssetGroupsForAssetRequest request);
 }
