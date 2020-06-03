@@ -21,6 +21,7 @@ import java.util.List;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AreaCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionSearchCriteriaImpl;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 
@@ -51,9 +52,10 @@ class SubscriptionFinderImpl implements SubscriptionFinder {
 		// NOOP
 	}
 
+
 	@Override
-	public List<SubscriptionEntity> findSubscriptionsTriggeredByAreas(Collection<AreaCriterion> areas, @Valid @NotNull ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
-		if (areas == null || areas.isEmpty()) {
+	public List<SubscriptionEntity> findTriggeredSubscriptions(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, @Valid @NotNull ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
+		if ((areas == null || areas.isEmpty()) && (assets == null || assets.isEmpty())) {
 			return Collections.emptyList();
 		}
 		SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
@@ -61,6 +63,7 @@ class SubscriptionFinderImpl implements SubscriptionFinder {
 		criteria.setValidAt(validAt);
 		criteria.setInAnyArea(areas);
 		criteria.setWithAnyTriggerType(triggerTypes);
+		criteria.setWithAnyAsset(assets);
 		return dao.listSubscriptions(criteria);
 	}
 }

@@ -11,9 +11,12 @@ package eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
+import eu.europa.ec.fisheries.wsdl.asset.module.AssetGroupsForAssetRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.AssetModuleMethod;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse;
@@ -21,6 +24,8 @@ import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidRequ
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHistGuidsRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHistGuidsResponse;
+import eu.europa.ec.fisheries.wsdl.asset.types.AssetGroupsForAssetQueryElement;
+import eu.europa.ec.fisheries.wsdl.asset.types.AssetGroupsForAssetResponseElement;
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
 
@@ -76,5 +81,22 @@ public class AssetSenderImpl implements AssetSender {
         request.setOccurrenceDate(occurrenceDate);
         FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse response = assetClient.findAssetHistGuidByAssetGuidAndOccurrenceDate(request);
         return response.getAssetHistGuid();
+    }
+
+
+
+    @Override
+    public List<String> findAssetGroupsForAsset(String assetGuid, Date occurrenceDate) {
+        AssetGroupsForAssetRequest request = new AssetGroupsForAssetRequest();
+        request.setMethod(AssetModuleMethod.ASSET_GROUPS_FOR_ASSET);
+        AssetGroupsForAssetQueryElement query = new AssetGroupsForAssetQueryElement();
+        String refUuid = UUID.randomUUID().toString();
+        query.setRefUuid(refUuid);
+        query.setConnectId(assetGuid);
+        query.setOccurrenceDate(occurrenceDate);
+        request.getAssetGroupsForAssetQueryElement().add(query);
+        List<AssetGroupsForAssetResponseElement> response = assetClient.findAssetGroupsForAsset(request).getAssetGroupsForAssetResponseElementList();
+        AssetGroupsForAssetResponseElement assetGroupsForAssetResponseElement = response.stream().filter(a -> refUuid.equals(a.getRefUuid())).findAny().orElse(null);
+        return assetGroupsForAssetResponseElement != null ? assetGroupsForAssetResponseElement.getGroupUuid() : Collections.emptyList();
     }
 }

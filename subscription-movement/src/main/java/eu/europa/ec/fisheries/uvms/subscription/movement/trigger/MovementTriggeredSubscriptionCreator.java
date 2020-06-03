@@ -16,6 +16,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -37,8 +38,11 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AreaCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionCreator;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
+import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.MessageFormatException;
 import lombok.AllArgsConstructor;
@@ -57,6 +61,7 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 
 	private SubscriptionFinder subscriptionFinder;
 	private DatatypeFactory datatypeFactory;
+	private AssetSender assetSender;
 
 	/**
 	 * Constructor for injection.
@@ -64,9 +69,10 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 	 * @param subscriptionFinder The finder
 	 */
 	@Inject
-	public MovementTriggeredSubscriptionCreator(SubscriptionFinder subscriptionFinder, DatatypeFactory datatypeFactory) {
+	public MovementTriggeredSubscriptionCreator(SubscriptionFinder subscriptionFinder, DatatypeFactory datatypeFactory, AssetSender assetSender) {
 		this.subscriptionFinder = subscriptionFinder;
 		this.datatypeFactory = datatypeFactory;
+		this.assetSender = assetSender;
 	}
 
 	/**
@@ -109,7 +115,11 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 		List<AreaCriterion> areas = movement.getMetaData().getAreas().stream()
 				.map(this::toAreaCriterion)
 				.collect(Collectors.toList());
-		return subscriptionFinder.findSubscriptionsTriggeredByAreas(areas, validAt, Collections.singleton(TriggerType.INC_POSITION)).stream()
+		List<AssetCriterion> assets = new ArrayList<>();
+		assets.add(new AssetCriterion(AssetType.ASSET, movement.getConnectId()));
+		List<String> assetGroupsForAsset = assetSender.findAssetGroupsForAsset(movement.getConnectId(), movement.getPositionTime());
+		assets.addAll(assetGroupsForAsset.stream().map(a -> new AssetCriterion(AssetType.VGROUP, a)).collect(Collectors.toList()));
+		return subscriptionFinder.findTriggeredSubscriptions(areas, assets, validAt, Collections.singleton(TriggerType.INC_POSITION)).stream()
 				.map(subscription -> new MovementAndSubscription(movement, subscription));
 	}
 
