@@ -10,6 +10,8 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.execution;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
@@ -64,6 +66,12 @@ public class SubscriptionExecutionServiceImplTest {
 
 	@Inject
 	private SubscriptionExecutionServiceImpl sut;
+
+	@Test
+	void testEmptyConstructor() {
+		SubscriptionExecutionService sut = new SubscriptionExecutionServiceImpl();
+		assertNotNull(sut);
+	}
 
 	@Test
 	void testSave() {
@@ -126,5 +134,59 @@ public class SubscriptionExecutionServiceImplTest {
 		assertEquals(SubscriptionExecutionStatusType.EXECUTED, execution.getStatus());
 		assertEquals(Date.from(now.toInstant(ZoneOffset.UTC)), execution.getExecutionTime());
 		verify(dao).create(nextExecution);
+	}
+
+	@Test
+	void testExecuteNotQueued() {
+		SubscriptionEntity subscription = new SubscriptionEntity();
+		subscription.setActive(true);
+		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
+		triggeredSubscription.setActive(true);
+		triggeredSubscription.setSubscription(subscription);
+		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
+		execution.setStatus(SubscriptionExecutionStatusType.PENDING);
+		execution.setTriggeredSubscription(triggeredSubscription);
+		when(dao.findById(EXECUTION_ID)).thenReturn(execution);
+
+		sut.execute(EXECUTION_ID);
+
+		assertEquals(SubscriptionExecutionStatusType.PENDING, execution.getStatus());
+		assertNull(execution.getExecutionTime());
+	}
+
+	@Test
+	void testExecuteNotActiveTriggeredSubscription() {
+		SubscriptionEntity subscription = new SubscriptionEntity();
+		subscription.setActive(true);
+		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
+		triggeredSubscription.setActive(false);
+		triggeredSubscription.setSubscription(subscription);
+		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
+		execution.setStatus(SubscriptionExecutionStatusType.QUEUED);
+		execution.setTriggeredSubscription(triggeredSubscription);
+		when(dao.findById(EXECUTION_ID)).thenReturn(execution);
+
+		sut.execute(EXECUTION_ID);
+
+		assertEquals(SubscriptionExecutionStatusType.QUEUED, execution.getStatus());
+		assertNull(execution.getExecutionTime());
+	}
+
+	@Test
+	void testExecuteNotActiveSubscription() {
+		SubscriptionEntity subscription = new SubscriptionEntity();
+		subscription.setActive(false);
+		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
+		triggeredSubscription.setActive(true);
+		triggeredSubscription.setSubscription(subscription);
+		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
+		execution.setStatus(SubscriptionExecutionStatusType.QUEUED);
+		execution.setTriggeredSubscription(triggeredSubscription);
+		when(dao.findById(EXECUTION_ID)).thenReturn(execution);
+
+		sut.execute(EXECUTION_ID);
+
+		assertEquals(SubscriptionExecutionStatusType.QUEUED, execution.getStatus());
+		assertNull(execution.getExecutionTime());
 	}
 }

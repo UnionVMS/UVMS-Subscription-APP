@@ -216,7 +216,7 @@ class SubscriptionServiceBean implements SubscriptionService {
                         asset.setIccat(assetEntity.getIccat());
                         asset.setIrcs(assetEntity.getIrcs());
                         asset.setUvi(assetEntity.getUvi());
-                        asset.setExt_mark(assetEntity.getExt_mark());
+                        asset.setExtMark(assetEntity.getExtMark());
                     }
                 })
                 .filter(asset -> !subscriptionAssets.containsKey(asset.getId()))
@@ -235,7 +235,7 @@ class SubscriptionServiceBean implements SubscriptionService {
                 asset.setIrcs(identifiers.getIrcs());
                 asset.setIccat(identifiers.getIccat());
                 asset.setUvi(identifiers.getUvi());
-                asset.setExt_mark(identifiers.getExtMark());
+                asset.setExtMark(identifiers.getExtMark());
             }
         });
     }

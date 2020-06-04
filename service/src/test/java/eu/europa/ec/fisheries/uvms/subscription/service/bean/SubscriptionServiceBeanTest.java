@@ -17,6 +17,7 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -611,6 +612,28 @@ public class SubscriptionServiceBeanTest {
 		verify(subscriptionDAO).update(subscription);
 		verify(auditProducer).sendModuleMessage(any(), any());
 		assertTrue(result.getAreas().stream().map(AreaDto::getGid).anyMatch(Long.valueOf(111L)::equals));
+	}
+
+	@Test
+	void testCreateSubscriptionWithNullAssetsAndNullAreas() {
+		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+
+		SubscriptionDto dto = new SubscriptionDto();
+		dto.setId(SUBSCR_ID);
+		dto.setName(SUBSCR_NAME);
+		dto.setActive(Boolean.TRUE);
+		dto.setExecution(new SubscriptionExecutionDto());
+		dto.setOutput(SubscriptionOutputDto.builder()
+				.messageType(OutgoingMessageType.NONE)
+				.hasEmail(false)
+				.build()
+		);
+		dto.setAreas(null);
+		dto.setAssets(null);
+
+		SubscriptionDto createdSubscription = sut.create(dto);
+		assertEquals(Collections.emptySet(), createdSubscription.getAreas());
+		assertEquals(Collections.emptySet(), createdSubscription.getAssets());
 	}
 
 	private SubscriptionDto makeSubscriptionDtoForUpdate() {

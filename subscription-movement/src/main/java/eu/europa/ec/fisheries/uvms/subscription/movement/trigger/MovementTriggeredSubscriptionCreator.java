@@ -139,9 +139,7 @@ public class MovementTriggeredSubscriptionCreator implements TriggeredSubscripti
 
 	private Set<TriggeredSubscriptionDataEntity> makeTriggeredSubscriptionData(TriggeredSubscriptionEntity triggeredSubscription, MovementAndSubscription input) {
 		Set<TriggeredSubscriptionDataEntity> result = new HashSet<>();
-		Optional.ofNullable(input.getMovement().getConnectId()).ifPresent(connectId -> {
-			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_CONNECT_ID, connectId));
-		});
+		Optional.ofNullable(input.getMovement().getConnectId()).ifPresent(connectId -> result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_CONNECT_ID, connectId)));
 		Optional.ofNullable(input.getMovement().getPositionTime()).ifPresent(positionTime -> {
 			GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
 			calendar.setTime(positionTime);

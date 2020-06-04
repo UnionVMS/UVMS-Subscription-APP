@@ -58,7 +58,7 @@ public class AssetEntity implements Serializable {
     private String iccat;
 
     @Column(name = "ext_mark")
-    private String ext_mark;
+    private String extMark;
 
     @Column(name = "uvi")
     private String uvi;

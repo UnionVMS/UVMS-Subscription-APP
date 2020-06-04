@@ -46,6 +46,17 @@ public abstract class BaseSubscriptionInMemoryTest extends BaseDAOTest {
                     .values(300L, 103L, 2L, "USERAREA")
             .build());
 
+    static final Operation INSERT_ASSET = sequenceOf(
+            insertInto("subscription.asset").columns("id", "guid", "name", "cfr", "ircs", "iccat", "ext_mark", "uvi", "subscription_id")
+                    .values(100L, "asset_guid_1", "asset1", "cfr1", "ircs1", "iccat1", "ext_mark1", "uvi1", 1L)
+                    .values(200L, "asset_guid_2", "asset2", "cfr2", "ircs2", "iccat2", "ext_mark2", "uvi2", 1L)
+            .build());
+
+    static final Operation INSERT_ASSET_GROUP = sequenceOf(
+            insertInto("subscription.asset_group").columns("id", "guid", "name", "subscription_id")
+                    .values(100L, "asset_group_guid_1", "asset_group_1", 2L)
+            .build());
+
     @Override protected String getSchema() {
         return "subscription";
     }

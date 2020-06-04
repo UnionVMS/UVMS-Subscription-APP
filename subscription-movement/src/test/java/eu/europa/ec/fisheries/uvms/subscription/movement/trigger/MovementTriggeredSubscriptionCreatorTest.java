@@ -72,6 +72,12 @@ public class MovementTriggeredSubscriptionCreatorTest {
 	}
 
 	@Test
+	void testEmptyConstructor() {
+		MovementTriggeredSubscriptionCreator sut = new MovementTriggeredSubscriptionCreator();
+		assertNotNull(sut);
+	}
+
+	@Test
 	void testJAXBExceptionResultsInApplicationException() {
 		assertThrows(MessageFormatException.class, () -> sut.createTriggeredSubscriptions("bad"));
 	}
@@ -87,6 +93,22 @@ public class MovementTriggeredSubscriptionCreatorTest {
 	@Test
 	void testDoNotTriggerOnDuplicateMovements() {
 		String representation = readResource("CreateMovementBatchResponse-OK-duplicate.xml");
+		long size = sut.createTriggeredSubscriptions(representation).count();
+		assertEquals(0, size);
+		verifyNoInteractions(subscriptionFinder);
+	}
+
+	@Test
+	void testDoNotTriggerOnOKResponseAndNullMovements() {
+		String representation = readResource("CreateMovementBatchResponse-OK-no-movements.xml");
+		long size = sut.createTriggeredSubscriptions(representation).count();
+		assertEquals(0, size);
+		verifyNoInteractions(subscriptionFinder);
+	}
+
+	@Test
+	void testDoNotTriggerOnOKResponseAndNullMovementPositionTime() {
+		String representation = readResource("CreateMovementBatchResponse-OK-null-position-time.xml");
 		long size = sut.createTriggeredSubscriptions(representation).count();
 		assertEquals(0, size);
 		verifyNoInteractions(subscriptionFinder);

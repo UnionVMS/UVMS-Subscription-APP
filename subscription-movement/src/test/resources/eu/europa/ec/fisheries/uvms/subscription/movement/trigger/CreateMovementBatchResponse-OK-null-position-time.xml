@@ -1,0 +1,51 @@
+<w:createMovementBatchResponse
+		xmlns:w="urn:module.movement.schema.fisheries.ec.europa.eu:v1"
+		xmlns:m="urn:movement.schema.fisheries.ec.europa.eu:v1"
+		xmlns:c="urn:common.movement.schema.fisheries.ec.europa.eu:v1"
+>
+	<response>OK</response>
+	<movements>
+		<guid>1127dbb4-e97b-4ff4-8be4-d7d8e7e56f19</guid>
+		<connectId>93b63a1c-45ea-11e7-bec7-4c32759615eb</connectId>
+		<position>
+			<longitude>15.524</longitude>
+			<latitude>55.688</latitude>
+			<altitude xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
+		</position>
+		<reportedSpeed>7.8</reportedSpeed>
+		<reportedCourse>282.0</reportedCourse>
+		<movementType>POS</movementType>
+		<source>OTHER</source>
+		<activity/>
+		<tripNumber xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
+		<processed>true</processed>
+		<duplicate>false</duplicate>
+		<calculatedCourse xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
+		<calculatedSpeed xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
+		<metaData>
+			<closestPort>
+				<remoteId>5657</remoteId>
+				<code>SEUTN</code>
+				<distance>17.20495600278683</distance>
+			</closestPort>
+			<closestCountry>
+				<distance xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
+			</closestCountry>
+			<areas>
+				<remoteId>270</remoteId>
+				<code>27.(3-4).XEU</code>
+				<name>Union waters of ICES III and IV</name>
+				<areaType>FMZ</areaType>
+				<transitionType>POS</transitionType>
+			</areas>
+			<areas>
+				<remoteId>73</remoteId>
+				<code>40G5</code>
+				<name>ICES</name>
+				<areaType>STATRECT</areaType>
+				<transitionType>POS</transitionType>
+			</areas>
+		</metaData>
+		<wkt>POINT ( 15.524 55.688 )</wkt>
+	</movements>
+</w:createMovementBatchResponse>
