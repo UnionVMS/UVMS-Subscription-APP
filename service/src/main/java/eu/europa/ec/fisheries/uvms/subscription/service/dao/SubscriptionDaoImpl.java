@@ -332,38 +332,26 @@ class SubscriptionDaoImpl implements SubscriptionDao {
     }
 
     private void setAreasSubscription(SubscriptionEntity subscription) {
-        if(subscription.getAreas() != null){
-            subscription.getAreas().forEach(area -> area.setSubscription(subscription));
-        }
+        subscription.getAreas().forEach(area -> area.setSubscription(subscription));
     }
 
     private void setAssetsSubscription(SubscriptionEntity subscription) {
-        if(subscription.getAssets() != null){
-            subscription.getAssets().forEach(asset -> asset.setSubscription(subscription));
-        }
+        subscription.getAssets().forEach(asset -> asset.setSubscription(subscription));
     }
 
     private void setAssetGroupsSubscription(SubscriptionEntity subscription) {
-        if(subscription.getAssetGroups() != null){
-            subscription.getAssetGroups().forEach(assetGroup -> assetGroup.setSubscription(subscription));
-        }
+        subscription.getAssetGroups().forEach(assetGroup -> assetGroup.setSubscription(subscription));
     }
 
     private void updateAreas(SubscriptionEntity subscription) {
-        if(subscription.getAreas() != null){
-            subscription.getAreas().stream().filter(area -> area.getId()!=null).forEach(em::merge);
-        }
+        subscription.getAreas().stream().filter(area -> area.getId()!=null).forEach(em::merge);
     }
 
     private void updateAssets(SubscriptionEntity subscription) {
-        if(subscription.getAssets() != null){
-            subscription.getAssets().stream().filter(asset -> asset.getId()!=null).forEach(em::merge);
-        }
+        subscription.getAssets().stream().filter(asset -> asset.getId()!=null).forEach(em::merge);
     }
 
     private void updateAssetGroups(SubscriptionEntity subscription) {
-        if(subscription.getAssetGroups() != null){
-            subscription.getAssetGroups().stream().filter(assetGroup -> assetGroup.getId()!=null).forEach(em::merge);
-        }
+        subscription.getAssetGroups().stream().filter(assetGroup -> assetGroup.getId()!=null).forEach(em::merge);
     }
 }

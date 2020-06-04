@@ -10,6 +10,7 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
@@ -41,6 +42,12 @@ public class TriggeredSubscriptionServiceImplTest {
 
 	@Inject
 	private TriggeredSubscriptionServiceImpl sut;
+
+	@Test
+	void testEmptyConstructor() {
+		TriggeredSubscriptionService sut = new TriggeredSubscriptionServiceImpl();
+		assertNotNull(sut);
+	}
 
 	@Test
 	void testSave() {

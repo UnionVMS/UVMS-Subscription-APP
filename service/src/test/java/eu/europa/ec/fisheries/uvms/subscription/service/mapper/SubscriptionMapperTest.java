@@ -17,13 +17,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
-import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDTO;
+import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

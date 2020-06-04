@@ -35,6 +35,7 @@ import javax.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.LongStream;
@@ -63,6 +64,7 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.ec.fisheries.wsdl.user.types.Channel;
 import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
+import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
@@ -97,7 +99,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     @BeforeEach
     public void prepare(){
         Operation operation = sequenceOf(
-                DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_AREA
+                DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_AREA, INSERT_ASSET, INSERT_ASSET_GROUP
         );
 
         DbSetup dbSetup = new DbSetup(new DataSourceDestination(ds), operation);
@@ -200,6 +202,39 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         List<SubscriptionEntity> results = sut.listSubscriptions(criteria);
         assertEquals(1, results.size());
         assertEquals(1L, results.get(0).getId());
+    }
+
+    @Test
+    void testFindByAssets() {
+        SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
+        List<SubscriptionSearchCriteria.AssetCriterion> assets = Arrays.asList(new SubscriptionSearchCriteria.AssetCriterion(AssetType.ASSET, "asset_guid_1"), new SubscriptionSearchCriteria.AssetCriterion(AssetType.ASSET, "asset_guid_2"));
+        criteria.setActive(true);
+        criteria.setWithAnyAsset(assets);
+        List<SubscriptionEntity> results = sut.listSubscriptions(criteria);
+        assertEquals(1, results.size());
+        assertEquals(1L, results.get(0).getId());
+    }
+
+    @Test
+    void testFindByAssetGroups() {
+        SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
+        List<SubscriptionSearchCriteria.AssetCriterion> assets = java.util.Collections.singletonList(new SubscriptionSearchCriteria.AssetCriterion(AssetType.VGROUP, "asset_group_guid_1"));
+        criteria.setActive(true);
+        criteria.setWithAnyAsset(assets);
+        List<SubscriptionEntity> results = sut.listSubscriptions(criteria);
+        assertEquals(1, results.size());
+        assertEquals(2L, results.get(0).getId());
+    }
+
+    @Test
+    void testFindByAssetsAndAssetGroups() {
+        SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
+        List<SubscriptionSearchCriteria.AssetCriterion> assets = Arrays.asList(new SubscriptionSearchCriteria.AssetCriterion(AssetType.ASSET, "asset_guid_1"), new SubscriptionSearchCriteria.AssetCriterion(AssetType.VGROUP, "asset_group_guid_1"));
+        criteria.setActive(true);
+        criteria.setWithAnyAsset(assets);
+        List<SubscriptionEntity> results = sut.listSubscriptions(criteria);
+        assertEquals(2, results.size());
+        assertEquals(new HashSet<>(Arrays.asList(1L, 2L)), results.stream().map(SubscriptionEntity::getId).collect(toSet()));
     }
 
     @Test
@@ -528,6 +563,43 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         assertTrue(updatedSubscription.getAssets().contains(newAsset1));
         assertTrue(updatedSubscription.getAssets().contains(asset1));
         assertFalse(updatedSubscription.getAssets().contains(asset2));
+    }
+
+
+    @Test
+    public void updateSubscriptionAssetGroups() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        //create entity
+        AssetGroupEntity assetGroup1 = new AssetGroupEntity();
+        assetGroup1.setGuid("uu1");
+        assetGroup1.setName("name1");
+        AssetGroupEntity assetGroup2 = new AssetGroupEntity();
+        assetGroup2.setGuid("uu2");
+        assetGroup2.setName("name2");
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setAssetGroups(Collections.asSet(assetGroup1, assetGroup2));
+        Long id = sut.createEntity(subscription).getId();
+        SubscriptionEntity createdSubscription = sut.findById(id);
+
+
+        //update entity assets
+        AssetGroupEntity newAssetGroup1 = new AssetGroupEntity();
+        newAssetGroup1.setGuid("new_uu1");
+        newAssetGroup1.setName("new_name1");
+
+        createdSubscription.setAssetGroups(Collections.asSet(assetGroup1, newAssetGroup1));
+        Long updatedId = sut.update(createdSubscription).getId();
+
+        em.flush();
+
+        SubscriptionEntity updatedSubscription = sut.findById(updatedId);
+        assertNotNull(updatedSubscription.getAssets());
+        assertEquals(2, updatedSubscription.getAssetGroups().size());
+        assertTrue(updatedSubscription.getAssetGroups().contains(newAssetGroup1));
+        assertTrue(updatedSubscription.getAssetGroups().contains(assetGroup1));
+        assertFalse(updatedSubscription.getAssetGroups().contains(assetGroup2));
     }
 
     @Test
