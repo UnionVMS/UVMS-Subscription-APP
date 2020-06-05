@@ -11,22 +11,17 @@ package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
 import static javax.persistence.EnumType.STRING;
 
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.ElementCollection;
-import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
-import javax.persistence.Enumerated;
-import javax.persistence.JoinColumn;
-import javax.persistence.OrderColumn;
+import javax.persistence.*;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 
+import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
@@ -86,4 +81,13 @@ public class SubscriptionOutput implements Serializable {
 	@Column(name = "history_unit")
 	@Enumerated(STRING)
 	private SubscriptionTimeUnit historyUnit;
+
+	@Embedded
+	@AttributeOverrides({
+			@AttributeOverride(name = "startDate", column = @Column(name = "query_start_date")),
+			@AttributeOverride(name = "endDate", column = @Column(name = "query_end_date"))
+	})
+	@Valid
+	private DateRange queryPeriod = new DateRange(new Date(), new Date(Long.MAX_VALUE));
+
 }

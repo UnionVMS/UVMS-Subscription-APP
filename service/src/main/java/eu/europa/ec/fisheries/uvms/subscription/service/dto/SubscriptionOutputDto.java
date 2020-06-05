@@ -13,9 +13,11 @@ import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.HasValidSubscriberDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidSubscriptionOutputDto;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
@@ -25,6 +27,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
+import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.DATE_TIME_UI_FORMAT;
 
 /**
  * Configuration of the output of a subscription.
@@ -65,4 +70,10 @@ public class SubscriptionOutputDto {
 	private Integer history;
 
 	private SubscriptionTimeUnit historyUnit;
+
+	@JsonFormat(shape = STRING, pattern = DATE_TIME_UI_FORMAT)
+	private Date queryStartDate;
+
+	@JsonFormat(shape = STRING, pattern = DATE_TIME_UI_FORMAT)
+	private Date queryEndDate;
 }
