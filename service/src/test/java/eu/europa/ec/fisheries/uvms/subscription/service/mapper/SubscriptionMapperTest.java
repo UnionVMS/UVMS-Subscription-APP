@@ -22,10 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.stream.Collectors;
 
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
@@ -60,6 +60,15 @@ public class SubscriptionMapperTest {
     private static final long ORG_ID_2 = 2002L;
     private static final long ENDPOINT_ID_2 = 2012L;
     private static final long CHANNEL_ID_2 = 2112L;
+    private static final Date QUERY_START_DATE;
+    private static final Date QUERY_END_DATE;
+    static {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(2018, 3,15);
+        QUERY_START_DATE = calendar.getTime();
+        calendar.set(2019, 3,15);
+        QUERY_END_DATE = calendar.getTime();
+    }
 
     private SubscriptionMapper mapper = new SubscriptionMapperImpl();
 
@@ -87,6 +96,8 @@ public class SubscriptionMapperTest {
         SubscriptionOutputDto output = new SubscriptionOutputDto();
         output.setMessageType(OutgoingMessageType.FA_REPORT);
         output.setSubscriber(subscriber);
+        output.setQueryStartDate(QUERY_START_DATE);
+        output.setQueryEndDate(QUERY_END_DATE);
 
         SubscriptionExecutionDto execution = new SubscriptionExecutionDto();
         execution.setTriggerType(TriggerType.SCHEDULER);
@@ -132,6 +143,8 @@ public class SubscriptionMapperTest {
         assertEquals(1L, entity.getOutput().getSubscriber().getOrganisationId());
         assertEquals(1L, entity.getOutput().getSubscriber().getChannelId());
         assertEquals(OutgoingMessageType.FA_REPORT, entity.getOutput().getMessageType());
+        assertEquals(QUERY_START_DATE, entity.getOutput().getQueryPeriod().getStartDate());
+        assertEquals(QUERY_END_DATE, entity.getOutput().getQueryPeriod().getEndDate());
         assertEquals(TriggerType.SCHEDULER, entity.getExecution().getTriggerType());
         assertEquals(DEADLINE, entity.getDeadline());
         assertEquals(SubscriptionTimeUnit.DAYS, entity.getDeadlineUnit());
@@ -171,6 +184,8 @@ public class SubscriptionMapperTest {
         assertEquals(dto.getDescription(), entity.getDescription());
         assertEquals(dto.getOutput().getSubscriber().getEndpointId(), entity.getOutput().getSubscriber().getEndpointId());
         assertEquals(dto.getOutput().getSubscriber().getOrganisationId(), entity.getOutput().getSubscriber().getOrganisationId());
+        assertEquals(QUERY_START_DATE, entity.getOutput().getQueryPeriod().getStartDate());
+        assertEquals(QUERY_END_DATE, entity.getOutput().getQueryPeriod().getEndDate());
         assertEquals(dto.getActive(), entity.isActive());
         assertEquals(DEADLINE, entity.getDeadline());
         assertEquals(SubscriptionTimeUnit.DAYS, entity.getDeadlineUnit());

@@ -270,6 +270,14 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="UNIONVMS-4606-subscription-entity" author="lsotiriadis">
+        <addColumn tableName="subscription">
+            <column name="query_start_date" type="TIMESTAMP WITHOUT TIME ZONE"> </column>
+            <column name="query_end_date" type="TIMESTAMP WITHOUT TIME ZONE"> </column>
+        </addColumn>
+    </changeSet>
+
+
     <changeSet id="UNIONVMS-4579-stop-conditions" author="nikospara">
         <addColumn tableName="subscription">
             <column name="has_areas" type="BOOLEAN" valueComputed="((SELECT count(*) FROM area WHERE subscription_id=subscription.id)>0)" />

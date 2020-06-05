@@ -49,6 +49,8 @@ public interface SubscriptionMapper {
     @Mapping(expression = "java(collectEntityAssetsToSet(subscription.getAssets(), subscription.getAssetGroups()))", target = "assets")
     SubscriptionDto mapEntityToDto(SubscriptionEntity subscription, EmailBodyEntity emailBody);
 
+    @Mapping(source = "output.queryPeriod.startDate", target = "queryStartDate")
+    @Mapping(source = "output.queryPeriod.endDate", target = "queryEndDate")
     @Mapping(expression = "java(subscriptionEmailConfigurationToSubscriptionEmailConfigurationDto(output.getEmailConfiguration(), emailBody))", target = "emailConfiguration")
     SubscriptionOutputDto subscriptionOutputToSubscriptionOutputDto(SubscriptionOutput output, EmailBodyEntity emailBody);
 
@@ -57,8 +59,11 @@ public interface SubscriptionMapper {
     @Mapping(source = "emailBody.body", target="body")
     SubscriptionEmailConfigurationDto subscriptionEmailConfigurationToSubscriptionEmailConfigurationDto(SubscriptionEmailConfiguration emailConfiguration, EmailBodyEntity emailBody);
 
+
     @Mapping(source = "subscription.startDate", target = "validityPeriod.startDate")
     @Mapping(source = "subscription.endDate", target = "validityPeriod.endDate")
+    @Mapping(source = "subscription.output.queryStartDate", target = "output.queryPeriod.startDate")
+    @Mapping(source = "subscription.output.queryEndDate", target = "output.queryPeriod.endDate")
     @Mapping(source = "subscription.output.emailConfiguration.password", target = "output.emailConfiguration.password", qualifiedByName = "encodePasswordAsBase64")
     @Mapping(expression = "java(getAreaEntitiesFromAreaDtos(subscription.getAreas()))", target = "areas")
     @Mapping(expression = "java(extractAssetEntitiesFromDto(subscription.getAssets()))", target = "assets")
@@ -68,8 +73,11 @@ public interface SubscriptionMapper {
     @Mapping(expression = "java(extractSendersFromDto(subscription.getSenders()))", target = "senders")
     SubscriptionEntity mapDtoToEntity(SubscriptionDto subscription);
 
+
     @Mapping(source = "startDate", target = "validityPeriod.startDate")
     @Mapping(source = "endDate", target = "validityPeriod.endDate")
+    @Mapping(source = "dto.output.queryStartDate", target = "output.queryPeriod.startDate")
+    @Mapping(source = "dto.output.queryEndDate", target = "output.queryPeriod.endDate")
     @Mapping(source = "dto.output.emailConfiguration.password", target = "output.emailConfiguration.password", qualifiedByName = "encodePasswordAsBase64")
     @Mapping(expression = "java(getAreaEntitiesFromAreaDtos(dto.getAreas()))", target = "areas")
     @Mapping(expression = "java(extractAssetEntitiesFromDto(dto.getAssets()))", target = "assets")
