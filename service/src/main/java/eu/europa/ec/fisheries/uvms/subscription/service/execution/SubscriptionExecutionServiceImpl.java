@@ -13,6 +13,7 @@ import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExec
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.PENDING;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.QUEUED;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.STOPPED;
+import static java.lang.Boolean.TRUE;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -91,7 +92,7 @@ class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 	@Override
 	public void execute(Long id) {
 		Optional.ofNullable(dao.findById(id))
-				.filter(execution -> execution.getStatus() == QUEUED && execution.getTriggeredSubscription().getActive() && execution.getTriggeredSubscription().getSubscription().isActive())
+				.filter(execution -> execution.getStatus() == QUEUED && TRUE.equals(execution.getTriggeredSubscription().getActive()) && execution.getTriggeredSubscription().getSubscription().isActive())
 				.flatMap(execution -> {
 					subscriptionExecutorInstance.stream().forEach(executor -> executor.execute(execution));
 					execution.setStatus(EXECUTED);
