@@ -10,6 +10,8 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
+import static java.lang.Boolean.TRUE;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -188,10 +190,19 @@ class SubscriptionDaoImpl implements SubscriptionDao {
             predicates.add(cb.equal(subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.messageType), criteria.getMessageType()));
         }
         if(criteria.getInAnyArea() != null && !criteria.getInAnyArea().isEmpty()) {
-            predicates.add(makeAreasSubquery(query, subscription, cb, criteria.getInAnyArea()));
+            Predicate predicate = makeAreasSubquery(query, subscription, cb, criteria.getInAnyArea());
+            if (TRUE.equals(criteria.getAllowWithNoArea())) {
+                predicate = cb.or(cb.equal(cb.coalesce().value(subscription.get(SubscriptionEntity_.hasAreas)).value(false), false), predicate);
+            }
+            predicates.add(predicate);
         }
         if(criteria.getWithAnyAsset() != null && !criteria.getWithAnyAsset().isEmpty()) {
-            makeAssetCriteriaPredicate(query, subscription, cb, criteria.getWithAnyAsset()).ifPresent(predicates::add);
+            makeAssetCriteriaPredicate(query, subscription, cb, criteria.getWithAnyAsset()).ifPresent(predicate -> {
+                if (TRUE.equals(criteria.getAllowWithNoAsset())) {
+                    predicate = cb.or(cb.equal(cb.coalesce().value(subscription.get(SubscriptionEntity_.hasAssets)).value(false), false), predicate);
+                }
+                predicates.add(predicate);
+            });
         }
         if(criteria.getWithAnyTriggerType() != null && !criteria.getWithAnyTriggerType().isEmpty()) {
             predicates.add(subscription.get(SubscriptionEntity_.execution).get(SubscriptionExecution_.triggerType).in(criteria.getWithAnyTriggerType()));
