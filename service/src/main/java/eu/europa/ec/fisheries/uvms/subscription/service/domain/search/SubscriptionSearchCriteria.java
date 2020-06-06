@@ -27,8 +27,12 @@ public interface SubscriptionSearchCriteria {
 	OutgoingMessageType getMessageType();
 	/** Demand that the subscription fulfills any of the given area criteria. */
 	Collection<AreaCriterion> getInAnyArea();
+	/** Return subscriptions that have no area (i.e. {@code hasAreas = false}), even if there are areas in the {@link #getInAnyArea()} criterion. */
+	Boolean getAllowWithNoArea();
 	/** Demand that the subscription fulfills any of the given asset criteria. */
 	Collection<AssetCriterion> getWithAnyAsset();
+	/** Return subscriptions that have no asset (i.e. {@code hasAssets = false}), even if there are assets in the {@link #getWithAnyAsset()} criterion. */
+	Boolean getAllowWithNoAsset();
 	/** Demand that the subscription trigger is any of these. */
 	Collection<TriggerType> getWithAnyTriggerType();
 
