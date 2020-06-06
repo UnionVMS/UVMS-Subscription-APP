@@ -26,6 +26,8 @@ public class SubscriptionSearchCriteriaImpl implements SubscriptionSearchCriteri
     private ZonedDateTime validAt;
     private OutgoingMessageType messageType;
     private Collection<AreaCriterion> inAnyArea;
+    private Boolean allowWithNoArea;
     private Collection<AssetCriterion> withAnyAsset;
+    private Boolean allowWithNoAsset;
     private Collection<TriggerType> withAnyTriggerType;
 }

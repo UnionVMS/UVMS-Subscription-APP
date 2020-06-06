@@ -215,6 +215,20 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     }
 
     @Test
+    void testFindByAreasAllowNoAssets() {
+        SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
+        List<SubscriptionSearchCriteria.AreaCriterion> areas = java.util.Collections.singletonList(new SubscriptionSearchCriteria.AreaCriterion(AreaType.USERAREA, 103L));
+        criteria.setActive(true);
+        criteria.setInAnyArea(areas);
+        List<SubscriptionSearchCriteria.AssetCriterion> assets = Arrays.asList(new SubscriptionSearchCriteria.AssetCriterion(AssetType.ASSET, "asset_guid_1"), new SubscriptionSearchCriteria.AssetCriterion(AssetType.ASSET, "asset_guid_2"));
+        criteria.setWithAnyAsset(assets);
+        criteria.setAllowWithNoAsset(true);
+        List<SubscriptionEntity> results = sut.listSubscriptions(criteria);
+        assertEquals(1, results.size());
+        assertEquals(2L, results.get(0).getId());
+    }
+
+    @Test
     void testFindByAssets() {
         SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
         List<SubscriptionSearchCriteria.AssetCriterion> assets = Arrays.asList(new SubscriptionSearchCriteria.AssetCriterion(AssetType.ASSET, "asset_guid_1"), new SubscriptionSearchCriteria.AssetCriterion(AssetType.ASSET, "asset_guid_2"));
@@ -245,6 +259,19 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         List<SubscriptionEntity> results = sut.listSubscriptions(criteria);
         assertEquals(2, results.size());
         assertEquals(new HashSet<>(Arrays.asList(1L, 2L)), results.stream().map(SubscriptionEntity::getId).collect(toSet()));
+    }
+
+    @Test
+    void testFindByAssetsAndAssetGroupsAllowNoAreas() {
+        SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
+        List<SubscriptionSearchCriteria.AssetCriterion> assets = Arrays.asList(new SubscriptionSearchCriteria.AssetCriterion(AssetType.ASSET, "asset_guid_3"), new SubscriptionSearchCriteria.AssetCriterion(AssetType.VGROUP, "asset_group_guid_1"));
+        List<SubscriptionSearchCriteria.AreaCriterion> areas = java.util.Collections.singletonList(new SubscriptionSearchCriteria.AreaCriterion(AreaType.USERAREA, 999L));
+        criteria.setActive(true);
+        criteria.setWithAnyAsset(assets);
+        criteria.setInAnyArea(areas);
+        criteria.setAllowWithNoArea(true);
+        List<SubscriptionEntity> results = sut.listSubscriptions(criteria);
+        assertEquals(java.util.Collections.singleton(3L), results.stream().map(SubscriptionEntity::getId).collect(toSet()));
     }
 
     @Test
