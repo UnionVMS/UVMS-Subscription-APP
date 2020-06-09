@@ -51,7 +51,7 @@ public class SubscriptionOutputDto {
 	private OutgoingMessageType messageType;
 
 	@Valid
-	private SubscriptionSubscriberDTO subscriber;
+	private SubscriptionSubscriberDto subscriber;
 
 	private Boolean logbook;
 

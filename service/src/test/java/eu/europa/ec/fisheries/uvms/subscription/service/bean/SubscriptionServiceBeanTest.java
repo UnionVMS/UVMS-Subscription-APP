@@ -15,7 +15,6 @@ import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import javax.persistence.Column;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
 import java.util.Collections;
@@ -40,7 +39,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionFishingActivityDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDTO;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
@@ -192,7 +191,7 @@ public class SubscriptionServiceBeanTest {
 		SubscriptionOutputDto output = new SubscriptionOutputDto();
 		output.setMessageType(OutgoingMessageType.NONE);
 		output.setHasEmail(false);
-		SubscriptionSubscriberDTO subscriber = new SubscriptionSubscriberDTO();
+		SubscriptionSubscriberDto subscriber = new SubscriptionSubscriberDto();
 		subscriber.setOrganisationId(1L);
 		subscriber.setEndpointId(1L);
 		subscriber.setChannelId(1L);
