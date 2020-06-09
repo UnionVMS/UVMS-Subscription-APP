@@ -36,7 +36,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionFishingActivityDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDTO;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDto;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
@@ -71,7 +71,7 @@ public class SubscriptionMapperTest {
         dto.setDescription("description");
         dto.setActive(true);
 
-        SubscriptionSubscriberDTO subscriber = new SubscriptionSubscriberDTO();
+        SubscriptionSubscriberDto subscriber = new SubscriptionSubscriberDto();
         subscriber.setEndpointId(2L);
         subscriber.setOrganisationId(1L);
         subscriber.setChannelId(1L);

@@ -33,7 +33,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfigurationDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDTO;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDto;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
@@ -141,7 +141,7 @@ public class SubscriptionTestHelper {
         output.setHasEmail(hasEmail);
 
         if(messageType!=OutgoingMessageType.NONE){
-            SubscriptionSubscriberDTO subscriber = new SubscriptionSubscriberDTO();
+            SubscriptionSubscriberDto subscriber = new SubscriptionSubscriberDto();
             subscriber.setOrganisationId(organisationId);
             subscriber.setEndpointId(endpointId);
             subscriber.setChannelId(channelId);
