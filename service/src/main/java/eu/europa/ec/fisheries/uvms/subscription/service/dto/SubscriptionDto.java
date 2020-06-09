@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.SubscriptionHasUniqueName;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import lombok.Data;
@@ -71,4 +72,7 @@ public class SubscriptionDto {
 
     @Valid
     private Set<SubscriptionFishingActivityDto> stopActivities;
+
+    @Valid
+    private Set<SubscriptionSubscriberDto> senders;
 }
