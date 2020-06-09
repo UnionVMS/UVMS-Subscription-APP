@@ -15,6 +15,7 @@ import static eu.europa.ec.fisheries.wsdl.subscription.module.AreaType.PORT;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.AreaType.USERAREA;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionFaReportDocumentType.DECLARATION;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionFaReportDocumentType.NOTIFICATION;
+import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -30,6 +31,7 @@ import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionFishingActivity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.AreaDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.AssetDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
@@ -52,6 +54,12 @@ public class SubscriptionMapperTest {
     private static final String ASSET_NAME_1 = "name1";
     private static final String ASSET_GUID_2 = "00000000-0000-0000-0000-000000000002";
     private static final String ASSET_NAME_2 = "name2";
+    private static final long ORG_ID_1 = 2001L;
+    private static final long ENDPOINT_ID_1 = 2011L;
+    private static final long CHANNEL_ID_1 = 2111L;
+    private static final long ORG_ID_2 = 2002L;
+    private static final long ENDPOINT_ID_2 = 2012L;
+    private static final long CHANNEL_ID_2 = 2112L;
 
     private SubscriptionMapper mapper = new SubscriptionMapperImpl();
 
@@ -105,6 +113,10 @@ public class SubscriptionMapperTest {
         dto.setAssets(new HashSet<>());
         dto.getAssets().add(new AssetDto(null, ASSET_GUID_1, ASSET_NAME_1, AssetType.ASSET));
         dto.getAssets().add(new AssetDto(44L, ASSET_GUID_2, ASSET_NAME_2, AssetType.VGROUP));
+
+        dto.setSenders(new HashSet<>());
+        dto.getSenders().add(new SubscriptionSubscriberDto(ORG_ID_1, ENDPOINT_ID_1, CHANNEL_ID_1));
+        dto.getSenders().add(new SubscriptionSubscriberDto(ORG_ID_2, ENDPOINT_ID_2, CHANNEL_ID_2));
     }
 
     @Test
@@ -134,12 +146,14 @@ public class SubscriptionMapperTest {
         dto.setAssets(null);
         dto.setStartActivities(null);
         dto.setStopActivities(null);
+        dto.setSenders(null);
         SubscriptionEntity entity = mapper.mapDtoToEntity(dto);
         assertNotNull(entity.getAreas());
         assertNotNull(entity.getAssets());
         assertNotNull(entity.getAssetGroups());
         assertNotNull(entity.getStartActivities());
         assertNotNull(entity.getStopActivities());
+        assertNotNull(entity.getSenders());
     }
 
     @Test
@@ -169,9 +183,9 @@ public class SubscriptionMapperTest {
         assertEquals(new HashSet<>(Arrays.asList(new SubscriptionFishingActivity(DECLARATION, "a"), new SubscriptionFishingActivity(NOTIFICATION, "b"))), entity.getStartActivities());
         assertEquals(new HashSet<>(Arrays.asList(new SubscriptionFishingActivity(DECLARATION, "c"), new SubscriptionFishingActivity(NOTIFICATION, "d"))), entity.getStopActivities());
 
-        assertEquals(Arrays.asList(AREA_GID_1, AREA_GID_2), entity.getAreas().stream().map(AreaEntity::getGid).sorted().collect(Collectors.toList()));
-        assertEquals(Arrays.asList(PORT, USERAREA), entity.getAreas().stream().sorted(Comparator.comparing(AreaEntity::getGid)).map(AreaEntity::getAreaType).collect(Collectors.toList()));
-        assertEquals(Arrays.asList(null, 33L), entity.getAreas().stream().sorted(Comparator.comparing(AreaEntity::getGid)).map(AreaEntity::getId).collect(Collectors.toList()));
+        assertEquals(Arrays.asList(AREA_GID_1, AREA_GID_2), entity.getAreas().stream().map(AreaEntity::getGid).sorted().collect(toList()));
+        assertEquals(Arrays.asList(PORT, USERAREA), entity.getAreas().stream().sorted(Comparator.comparing(AreaEntity::getGid)).map(AreaEntity::getAreaType).collect(toList()));
+        assertEquals(Arrays.asList(null, 33L), entity.getAreas().stream().sorted(Comparator.comparing(AreaEntity::getGid)).map(AreaEntity::getId).collect(toList()));
 
         assertEquals(1, entity.getAssets().size());
         assertNull(entity.getAssets().iterator().next().getId());
@@ -181,5 +195,9 @@ public class SubscriptionMapperTest {
         assertEquals(44L, entity.getAssetGroups().iterator().next().getId());
         assertEquals(ASSET_GUID_2, entity.getAssetGroups().iterator().next().getGuid());
         assertEquals(ASSET_NAME_2, entity.getAssetGroups().iterator().next().getName());
+
+        assertEquals(Arrays.asList(ORG_ID_1, ORG_ID_2), entity.getSenders().stream().map(SubscriptionSubscriber::getOrganisationId).sorted().collect(toList()));
+        assertEquals(Arrays.asList(ENDPOINT_ID_1, ENDPOINT_ID_2), entity.getSenders().stream().map(SubscriptionSubscriber::getEndpointId).sorted().collect(toList()));
+        assertEquals(Arrays.asList(CHANNEL_ID_1, CHANNEL_ID_2), entity.getSenders().stream().map(SubscriptionSubscriber::getChannelId).sorted().collect(toList()));
     }
 }

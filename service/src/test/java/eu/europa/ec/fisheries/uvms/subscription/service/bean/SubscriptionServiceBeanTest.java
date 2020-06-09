@@ -441,7 +441,6 @@ public class SubscriptionServiceBeanTest {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
 				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
 				EMAIL_BODY, true, true, PASSWORD, false, false);
-
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 		when(subscriptionDAO.createEmailBodyEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 
@@ -471,6 +470,7 @@ public class SubscriptionServiceBeanTest {
 		SubscriptionEntity subscription = captor.getValue();
 		assertFalse(subscription.getHasAreas());
 		assertFalse(subscription.getHasAssets());
+		assertFalse(subscription.getHasSenders());
 		assertFalse(subscription.getHasStartActivities());
 	}
 
@@ -482,17 +482,18 @@ public class SubscriptionServiceBeanTest {
 		dto.setAssets(Collections.singleton(new AssetDto(null, "guid", "name", AssetType.ASSET)));
 		dto.setAreas(Collections.singleton(new AreaDto(null, 1L, AreaType.USERAREA)));
 		dto.setStartActivities(Collections.singleton(new SubscriptionFishingActivityDto(SubscriptionFaReportDocumentType.DECLARATION, "val")));
-
+		dto.setSenders(Collections.singleton(new SubscriptionSubscriberDto(1L,2L,3L)));
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 		when(subscriptionDAO.createEmailBodyEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 
-		SubscriptionDto result = sut.create(dto);
+		sut.create(dto);
 
 		ArgumentCaptor<SubscriptionEntity> captor = ArgumentCaptor.forClass(SubscriptionEntity.class);
 		verify(subscriptionDAO).createEntity(captor.capture());
 		SubscriptionEntity subscription = captor.getValue();
 		assertTrue(subscription.getHasAreas());
 		assertTrue(subscription.getHasAssets());
+		assertTrue(subscription.getHasSenders());
 		assertTrue(subscription.getHasStartActivities());
 	}
 
@@ -689,6 +690,7 @@ public class SubscriptionServiceBeanTest {
 		verify(subscriptionDAO).update(subscription);
 		assertTrue(subscription.getHasAreas());
 		assertTrue(subscription.getHasAssets());
+		assertTrue(subscription.getHasSenders());
 		assertFalse(subscription.getHasStartActivities());
 		verify(auditProducer).sendModuleMessage(any(), any());
 		assertTrue(result.getAreas().stream().map(AreaDto::getGid).anyMatch(Long.valueOf(111L)::equals));
@@ -762,6 +764,8 @@ public class SubscriptionServiceBeanTest {
 		dto.getAssets().add(new AssetDto(ASSET_ID, ASSET_GUID, ASSET_NAME, AssetType.ASSET));
 		dto.getAssets().add(new AssetDto(null, ASSET_NEW_GUID, ASSET_NEW_NAME, AssetType.ASSET));
 		dto.getAssets().add(new AssetDto(ASSET_GROUP_ID, ASSET_GROUP_GUID, ASSET_GROUP_NAME, AssetType.VGROUP));
+		dto.setSenders(new HashSet<>());
+		dto.getSenders().add(new SubscriptionSubscriberDto(1L,2L,3L));
 		return dto;
 	}
 

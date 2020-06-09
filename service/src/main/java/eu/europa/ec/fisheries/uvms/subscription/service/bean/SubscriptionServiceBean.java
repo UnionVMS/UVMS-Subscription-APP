@@ -166,6 +166,7 @@ class SubscriptionServiceBean implements SubscriptionService {
         enrichNewAssets(entity.getAssets());
         entity.setHasAreas(subscription.getAreas() != null && !subscription.getAreas().isEmpty());
         entity.setHasAssets(subscription.getAssets() != null && !subscription.getAssets().isEmpty());
+        entity.setHasSenders(subscription.getSenders() != null && !subscription.getSenders().isEmpty());
         entity.setHasStartActivities(subscription.getStartActivities() != null && !subscription.getStartActivities().isEmpty());
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
         EmailBodyEntity emailBodyEntity = null;
@@ -191,6 +192,7 @@ class SubscriptionServiceBean implements SubscriptionService {
         enrichAssets(entityById, subscriptionAssets);
         entityById.setHasAreas(subscription.getAreas() != null && !subscription.getAreas().isEmpty());
         entityById.setHasAssets(subscription.getAssets() != null && !subscription.getAssets().isEmpty());
+        entityById.setHasSenders(subscription.getSenders() != null && !subscription.getSenders().isEmpty());
         entityById.setHasStartActivities(subscription.getStartActivities() != null && !subscription.getStartActivities().isEmpty());
         SubscriptionEntity subscriptionEntity = subscriptionDAO.update(entityById);
         EmailBodyEntity emailBodyEntity = null;

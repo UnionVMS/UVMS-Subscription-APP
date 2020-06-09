@@ -14,13 +14,17 @@ import javax.persistence.Embeddable;
 
 import java.io.Serializable;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * A subscriber of a subscription.
  */
 @Embeddable
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class SubscriptionSubscriber implements Serializable {
 	@Column(name = "organisation_id")
 	private Long organisationId;

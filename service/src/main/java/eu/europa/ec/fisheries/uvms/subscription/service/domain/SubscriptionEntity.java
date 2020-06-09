@@ -101,6 +101,9 @@ public class SubscriptionEntity implements Serializable {
     @Column(name = "has_start_activities")
     private Boolean hasStartActivities;
 
+    @Column(name = "has_senders")
+    private Boolean hasSenders;
+
     @OneToMany(mappedBy = "subscription", cascade = ALL, orphanRemoval = true)
     @Valid
     private Set<AreaEntity> areas = new HashSet<>();
@@ -128,16 +131,23 @@ public class SubscriptionEntity implements Serializable {
     @ElementCollection
     @CollectionTable(
             name = "start_activities",
-            joinColumns=@JoinColumn(name="subscription_id")
+            joinColumns = @JoinColumn(name="subscription_id")
     )
     private Set<SubscriptionFishingActivity> startActivities = new HashSet<>();
 
     @ElementCollection
     @CollectionTable(
             name = "stop_activities",
-            joinColumns=@JoinColumn(name="subscription_id")
+            joinColumns = @JoinColumn(name="subscription_id")
     )
     private Set<SubscriptionFishingActivity> stopActivities = new HashSet<>();
+
+    @ElementCollection
+    @CollectionTable(
+            name = "senders",
+            joinColumns = @JoinColumn(name = "subscription_id")
+    )
+    private Set<SubscriptionSubscriber> senders = new HashSet<>();
 
     public void setAreas(Set<AreaEntity> areas) {
         this.areas.clear();
