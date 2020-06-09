@@ -25,12 +25,14 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEmail
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionFishingActivity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.AreaDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.AssetDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfigurationDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionFishingActivityDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import org.mapstruct.Mapper;
@@ -63,6 +65,7 @@ public interface SubscriptionMapper {
     @Mapping(expression = "java(extractAssetGroupEntitiesFromDto(subscription.getAssets()))", target = "assetGroups")
     @Mapping(expression = "java(extractSubscriptionActivityFromDto(subscription.getStartActivities()))", target = "startActivities")
     @Mapping(expression = "java(extractSubscriptionActivityFromDto(subscription.getStopActivities()))", target = "stopActivities")
+    @Mapping(expression = "java(extractSendersFromDto(subscription.getSenders()))", target = "senders")
     SubscriptionEntity mapDtoToEntity(SubscriptionDto subscription);
 
     @Mapping(source = "startDate", target = "validityPeriod.startDate")
@@ -73,6 +76,7 @@ public interface SubscriptionMapper {
     @Mapping(expression = "java(extractAssetGroupEntitiesFromDto(dto.getAssets()))", target = "assetGroups")
     @Mapping(expression = "java(extractSubscriptionActivityFromDto(dto.getStartActivities()))", target = "startActivities")
     @Mapping(expression = "java(extractSubscriptionActivityFromDto(dto.getStopActivities()))", target = "stopActivities")
+    @Mapping(expression = "java(extractSendersFromDto(dto.getSenders()))", target = "senders")
     void updateEntity(SubscriptionDto dto, @MappingTarget SubscriptionEntity entity);
 
     SubscriptionListDto asListDto(SubscriptionEntity entity);
@@ -133,11 +137,20 @@ public interface SubscriptionMapper {
                 .map(this::assetGroupEntityFromDto)
                 .collect(Collectors.toSet());
     }
+
     default Set<SubscriptionFishingActivity> extractSubscriptionActivityFromDto(Set<SubscriptionFishingActivityDto> startActivitiesDto) {
         return Optional.ofNullable(startActivitiesDto).orElse(Collections.emptySet()).stream()
                 .map(this::subscriptionActivityFromDto)
                 .collect(Collectors.toSet());
     }
+
+    default Set<SubscriptionSubscriber> extractSendersFromDto(Set<SubscriptionSubscriberDto> subscriptionSubscriberDTO) {
+        return Optional.ofNullable(subscriptionSubscriberDTO).orElse(Collections.emptySet()).stream()
+                .map(this::subscriptionSubscriberFromDto)
+                .collect(Collectors.toSet());
+    }
+
+    SubscriptionSubscriber subscriptionSubscriberFromDto(SubscriptionSubscriberDto dto);
 
     SubscriptionFishingActivity subscriptionActivityFromDto(SubscriptionFishingActivityDto dto);
 

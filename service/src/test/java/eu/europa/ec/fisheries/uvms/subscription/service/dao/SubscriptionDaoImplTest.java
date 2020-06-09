@@ -56,6 +56,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionFishingActivity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
@@ -980,6 +981,35 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         assertEquals(2, retrievedSubscription.getStopActivities().size());
         assertEquals(Arrays.asList(NOTIFICATION, DECLARATION), retrievedSubscription.getStopActivities().stream().sorted(Comparator.comparing(SubscriptionFishingActivity::getValue)).map(SubscriptionFishingActivity::getType).collect(Collectors.toList()));
         assertEquals(Arrays.asList("22", "23"), retrievedSubscription.getStopActivities().stream().sorted(Comparator.comparing(SubscriptionFishingActivity::getValue)).map(SubscriptionFishingActivity::getValue).collect(Collectors.toList()));
+    }
+
+    @Test
+    public void createAndUpdateSubscriptionWithSubscribers(){
+        em.getTransaction().begin();
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        Set<SubscriptionSubscriber> senders = new HashSet<>();
+        SubscriptionSubscriber subscriptionSubscriber = new SubscriptionSubscriber();
+        subscriptionSubscriber.setEndpointId(1L);
+        subscriptionSubscriber.setChannelId(2L);
+        subscriptionSubscriber.setOrganisationId(3L);
+        senders.add(subscriptionSubscriber);
+        subscription.setSenders(senders);
+        Long id = sut.createEntity(subscription).getId();
+        em.getTransaction().commit();
+        em.clear();
+
+        em.getTransaction().begin();
+        SubscriptionEntity retrievedSubscription = sut.findById(id);
+        SubscriptionSubscriber retrievedSubscriptionSubscriber = retrievedSubscription.getSenders().iterator().next();
+
+        assertEquals(retrievedSubscriptionSubscriber, subscriptionSubscriber);
+
+        retrievedSubscription.setSenders(java.util.Collections.singleton(new SubscriptionSubscriber(4L,5L,6L)));
+        em.getTransaction().commit();
+        em.clear();
+
+        retrievedSubscription = sut.findById(id);
+        assertEquals(java.util.Collections.singleton(new SubscriptionSubscriber(4L,5L,6L)), retrievedSubscription.getSenders());
     }
 
     private List<SubscriptionEntity> findAllSubscriptions() {
