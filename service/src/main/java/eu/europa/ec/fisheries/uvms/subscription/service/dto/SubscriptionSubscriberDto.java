@@ -7,7 +7,7 @@ import lombok.Data;
  * A subscriber of a subscription.
  */
 @Data
-public class SubscriptionSubscriberDTO implements Serializable {
+public class SubscriptionSubscriberDto implements Serializable {
 
 	private Long organisationId;
 
