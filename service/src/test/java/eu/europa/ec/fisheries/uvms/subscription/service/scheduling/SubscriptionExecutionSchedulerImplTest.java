@@ -131,6 +131,9 @@ public class SubscriptionExecutionSchedulerImplTest {
 		TriggeredSubscriptionEntity triggeredSubscription = setup(executionInput, "2020-05-05T12:00:00");
 		SubscriptionExecutionEntity prevExecution = new SubscriptionExecutionEntity();
 		prevExecution.setRequestedTime(Date.from(LocalDateTime.parse("2020-05-05T11:00:00").toInstant(ZoneOffset.UTC)));
+		triggeredSubscription.getSubscription().setDeadline(1);
+		triggeredSubscription.getSubscription().setDeadlineUnit(SubscriptionTimeUnit.DAYS);
+		triggeredSubscription.setEffectiveFrom(Date.from(LocalDateTime.parse("2020-06-05T11:00:00").toInstant(ZoneOffset.UTC)));
 
 		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, prevExecution);
 
