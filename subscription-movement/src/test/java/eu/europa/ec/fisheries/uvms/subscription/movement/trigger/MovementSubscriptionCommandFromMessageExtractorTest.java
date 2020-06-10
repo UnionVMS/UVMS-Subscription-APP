@@ -135,7 +135,7 @@ public class MovementSubscriptionCommandFromMessageExtractorTest {
 	}
 
 	@Test
-	void testDoNotTriggerOnOKResponseAndNullMovements() {
+	void testDoNotTriggerOnOKResponseAndNoMovements() {
 		verifyEmptyStreamForResource("CreateMovementBatchResponse-OK-no-movements.xml");
 	}
 
