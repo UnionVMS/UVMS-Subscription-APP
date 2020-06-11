@@ -13,11 +13,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import javax.jms.Destination;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
 import java.time.LocalDate;
@@ -25,11 +27,14 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
+import java.time.Instant;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -61,6 +66,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscrib
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionManualProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.UsmClient;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
@@ -130,6 +136,9 @@ public class SubscriptionServiceBeanTest {
 	private final Date today = Date.from(todayLD.atStartOfDay(ZoneId.systemDefault()).toInstant());
 	private final Date tomorrow = Date.from(todayLD.plus(1, ChronoUnit.DAYS).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
+	private static final String SUBSCRIPTION_SOURCE_KEY = "subscriptionSource";
+	private static final String SUBSCRIPTION_SOURCE_VALUE = "manual";
+
 	@Produces @Mock
 	private SubscriptionDao subscriptionDAO;
 
@@ -147,6 +156,9 @@ public class SubscriptionServiceBeanTest {
 
 	@Produces @Mock
 	private SubscriptionProducerBean subscriptionProducer;
+
+	@Produces @Mock
+	private SubscriptionManualProducerBean subscriptionManualProducerBean;
 
 	@Produces @Mock
 	private AuthenticationContext mockAuthenticationContext;
@@ -657,6 +669,92 @@ public class SubscriptionServiceBeanTest {
 
 		assertNull(result.getOutput().getEmailConfiguration().getPassword());
 		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
+	}
+
+	@Test
+	void testPrepareManualSubscriptionRequest() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, null, null, OutgoingMessageType.FA_QUERY, null,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null,null, null, null, null, null, new Date(), new Date());
+		SubscriptionDto manualSubscriptionDto = sut.prepareManualRequest(subscription);
+		assertEquals(Boolean.TRUE, manualSubscriptionDto.getActive());
+		assertEquals(Boolean.FALSE, manualSubscriptionDto.getOutput().getHasEmail());
+		assertEquals(Boolean.FALSE, manualSubscriptionDto.getOutput().getLogbook());
+		assert(manualSubscriptionDto.getName() != null && !manualSubscriptionDto.getName().isEmpty());
+	}
+
+	@ParameterizedTest
+	@MethodSource("testCreateManualSubscriptionParams")
+	void testCreateManualSubscription(Boolean includeAssets) throws MessageException {
+		SubscriptionDto dto = SubscriptionTestHelper.createManualSubscriptionDto(SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, new Date(), new Date(),
+				includeAssets, true);
+
+		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+
+		List<String> guids = dto.getAssets().stream().filter(a -> "ASSET".equals(a.getType().toString())).map(AssetDto::getGuid).sorted(Comparator.naturalOrder()).collect(Collectors.toList());
+		if (includeAssets) {
+			AssetHistGuidIdWithVesselIdentifiers mockIds = mock(AssetHistGuidIdWithVesselIdentifiers.class);
+			when(assetSender.findMultipleVesselIdentifiers(guids)).thenReturn(Collections.singletonList(mockIds));
+		}
+
+		SubscriptionDto result = sut.createManual(dto);
+
+		assertNotNull(result);
+		assertEquals(SUBSCR_ID, result.getId());
+		assertEquals(SUBSCR_NAME, result.getName());
+		assertEquals(Boolean.TRUE, result.getActive());
+		assertEquals(ORGANISATION_ID, result.getOutput().getSubscriber().getOrganisationId());
+		assertEquals(ENDPOINT_ID, result.getOutput().getSubscriber().getEndpointId());
+		assertEquals(CHANNEL_ID, result.getOutput().getSubscriber().getChannelId());
+		assertEquals(TriggerType.MANUAL, result.getExecution().getTriggerType());
+		assertEquals(0, result.getExecution().getFrequency());
+		assertEquals(true, result.getExecution().getImmediate());
+		assertEquals(SubscriptionTimeUnit.DAYS, result.getExecution().getFrequencyUnit());
+		assertEquals(OutgoingMessageType.FA_QUERY, result.getOutput().getMessageType());
+		assertEquals(0, Instant.now().truncatedTo(ChronoUnit.DAYS).compareTo(result.getStartDate().toInstant().truncatedTo(ChronoUnit.DAYS)));
+		assertEquals(0, Instant.now().plus(365, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS).compareTo(result.getEndDate().toInstant().truncatedTo(ChronoUnit.DAYS)));
+
+		if (includeAssets) {
+			@SuppressWarnings("unchecked")
+			ArgumentCaptor<List<String>> captorForVesselGuids = ArgumentCaptor.forClass(List.class);
+			verify(assetSender).findMultipleVesselIdentifiers(captorForVesselGuids.capture());
+			List<String> sentGuids = captorForVesselGuids.getValue();
+			assert (sentGuids.containsAll(guids));
+			assert (sentGuids.size() == 2);
+		}
+		ArgumentCaptor<SubscriptionEntity> captor = ArgumentCaptor.forClass(SubscriptionEntity.class);
+		verify(subscriptionDAO).createEntity(captor.capture());
+		SubscriptionEntity subscription = captor.getValue();
+		assertEquals(subscription.getId(), SUBSCR_ID);
+
+		ArgumentCaptor<String> captor1 = ArgumentCaptor.forClass(String.class);
+		ArgumentCaptor<Destination> captor2 = ArgumentCaptor.forClass(Destination.class);
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<Map<String, String>> captor3 = ArgumentCaptor.forClass(Map.class);
+		int numberOfInvocations = includeAssets ? 3 : 2;
+		verify(subscriptionManualProducerBean, times(numberOfInvocations)).sendModuleMessageWithProps(captor1.capture(), captor2.capture(), captor3.capture());
+		List<String> messageBody = captor1.getAllValues();
+		List<Destination> replyToDestination = captor2.getAllValues();
+		List<Map<String, String>> messageProps = captor3.getAllValues();
+
+		verifyQueueMessageContents(messageBody, replyToDestination, messageProps, "greece-small-ships", 0);
+		verifyQueueMessageContents(messageBody, replyToDestination, messageProps, "greece-big-ships", 1);
+		if (includeAssets) {
+			verifyQueueMessageContents(messageBody, replyToDestination, messageProps, "mainAssets", 2);
+		}
+	}
+
+	protected static Stream<Arguments> testCreateManualSubscriptionParams() {
+		return Stream.of(
+				Arguments.of(false),
+				Arguments.of(true)
+		);
+	}
+
+	private void verifyQueueMessageContents(List<String> messageBody, List<Destination> replyToDestination, List<Map<String, String>> messageProps, String assetGroupName, int i) {
+		assertEquals(String.join(";", String.valueOf(SUBSCR_ID), assetGroupName, "0", "1"), messageBody.get(i));
+		assertNull(replyToDestination.get(i));
+		assertEquals(SUBSCRIPTION_SOURCE_VALUE, messageProps.get(i).get(SUBSCRIPTION_SOURCE_KEY));
 	}
 
 	@Test
