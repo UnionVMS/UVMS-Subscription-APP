@@ -126,4 +126,19 @@ public class SubscriptionResource extends UnionVMSResource {
         service.delete(id);
         return createSuccessResponse();
     }
+
+    /**
+     * Create a new subscription of manual trigger type.
+     *
+     * @param subscription subscription to create
+     * @return subscription
+     */
+    @POST
+    @Consumes(value = {APPLICATION_JSON})
+    @Produces(value = {APPLICATION_JSON})
+    @Path("/create-manual")
+    public Response createManual(SubscriptionDto subscription) {
+        SubscriptionDto manualSubscriptionDto = service.prepareManualRequest(subscription);
+        return createSuccessResponse(service.createManual(manualSubscriptionDto));
+    }
 }

@@ -18,8 +18,10 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Random;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
@@ -29,16 +31,19 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.OrderByDat
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.PaginationData;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.AssetDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfigurationDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDto;
+import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
+import org.mapstruct.ap.internal.util.Collections;
 
 
 public class SubscriptionTestHelper {
@@ -199,5 +204,28 @@ public class SubscriptionTestHelper {
         dto.setEndDate(endDate);
 
         return dto;
+    }
+
+    public static SubscriptionDto createManualSubscriptionDto(Long id, String name, Boolean active, OutgoingMessageType messageType, Long organisationId,
+                                                              Long endpointId, Long channelId, Boolean consolidated, Integer history, SubscriptionTimeUnit historyUnit,
+                                                              Boolean logbook, Date startDate, Date endDate, Boolean includeAssets, Boolean includeAssetGroups) {
+        SubscriptionDto subscriptionDto = createSubscriptionDto(id, name, active, messageType,
+                false, organisationId, endpointId, channelId, consolidated, history, historyUnit,
+                logbook, TriggerType.MANUAL, 0, SubscriptionTimeUnit.DAYS, null,
+                startDate, endDate);
+        subscriptionDto.getExecution().setImmediate(true);
+        subscriptionDto.setAssets(new HashSet<>());
+        if (includeAssets) {
+            subscriptionDto.getAssets().addAll(Collections.asSet(
+                    new AssetDto(null, "88ac3628-9a2e-4a21-a9eb-3931e5a1ce53", "titanic", AssetType.ASSET),
+                    new AssetDto(null, "77ac3628-9a2e-4a21-a9eb-3931e5a1ce54", "pearl", AssetType.ASSET)));
+        }
+        if (includeAssetGroups) {
+            subscriptionDto.getAssets().addAll(Collections.asSet(
+                    new AssetDto(null, "11ac3628-9a2e-4a21-a9eb-3931e5a1ce53", "greece-small-ships", AssetType.VGROUP),
+                    new AssetDto(null, "22ac3628-9a2e-4a21-a9eb-3931e5a1ce54", "greece-big-ships", AssetType.VGROUP)));
+        }
+
+        return subscriptionDto;
     }
 }
