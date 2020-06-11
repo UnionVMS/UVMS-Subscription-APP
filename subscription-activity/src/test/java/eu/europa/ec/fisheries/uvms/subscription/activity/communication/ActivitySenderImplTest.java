@@ -14,7 +14,8 @@ import javax.xml.datatype.DatatypeFactory;
 import java.util.Collections;
 
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityModuleMethod;
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryRequest;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForTripRequest;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForVesselRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.PluginType;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierSchemeIdEnum;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
@@ -50,8 +51,8 @@ class ActivitySenderImplTest {
 
     @Test
     @SneakyThrows
-    void testSend() {
-        CreateAndSendFAQueryRequest request = new CreateAndSendFAQueryRequest(ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY, PluginType.FLUX, Collections.singletonList(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.CFR, "CFR123456789")), true,
+    void testSendVesselQuery() {
+        CreateAndSendFAQueryForVesselRequest request = new CreateAndSendFAQueryForVesselRequest(ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY_FOR_VESSEL, PluginType.FLUX, Collections.singletonList(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.CFR, "CFR123456789")), true,
                 DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-01-01T10:00:00"), DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-02-01T10:00:00"),
                 "receiver", "dataflow");
         when(subscriptionProducer.getDestination()).thenReturn(destination);
@@ -61,8 +62,26 @@ class ActivitySenderImplTest {
 
     @Test
     @SneakyThrows
-    void testSendWithException() {
-        CreateAndSendFAQueryRequest request = new CreateAndSendFAQueryRequest();
+    void testSendTripQuery() {
+        CreateAndSendFAQueryForTripRequest request = new CreateAndSendFAQueryForTripRequest(ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY_FOR_TRIP, PluginType.FLUX, "SRC-TRP-00000000001", true, "receiver", "dataflow");
+        when(subscriptionProducer.getDestination()).thenReturn(destination);
+        Assertions.assertDoesNotThrow(() -> sut.send(request));
+        verify(subscriptionProducer).sendMessageToSpecificQueueSameTx(any(), eq(activityQueue), eq(destination));
+    }
+
+    @Test
+    @SneakyThrows
+    void testSendVesselQueryWithException() {
+        CreateAndSendFAQueryForVesselRequest request = new CreateAndSendFAQueryForVesselRequest();
+        when(subscriptionProducer.getDestination()).thenReturn(destination);
+        when(subscriptionProducer.sendMessageToSpecificQueueSameTx(any(), eq(activityQueue), eq(destination))).thenThrow(MessageException.class);
+        assertThrows(ExecutionException.class, () -> sut.send(request));
+    }
+
+    @Test
+    @SneakyThrows
+    void testSendTripQueryWithException() {
+        CreateAndSendFAQueryForTripRequest request = new CreateAndSendFAQueryForTripRequest();
         when(subscriptionProducer.getDestination()).thenReturn(destination);
         when(subscriptionProducer.sendMessageToSpecificQueueSameTx(any(), eq(activityQueue), eq(destination))).thenThrow(MessageException.class);
         assertThrows(ExecutionException.class, () -> sut.send(request));
