@@ -38,4 +38,8 @@ public interface SubscriptionService {
 	EmailBodyEntity updateEmailBody(SubscriptionEntity subscription, String body);
 
 	Boolean checkNameAvailability(@NotNull String name, Long id);
+
+    SubscriptionDto prepareManualRequest(@NotNull SubscriptionDto subscriptionDto);
+
+    SubscriptionDto createManual(@Valid @NotNull SubscriptionDto subscription);
 }

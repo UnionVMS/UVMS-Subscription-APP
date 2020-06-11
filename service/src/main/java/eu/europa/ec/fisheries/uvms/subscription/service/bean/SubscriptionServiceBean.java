@@ -20,16 +20,23 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
 import eu.europa.ec.fisheries.uvms.subscription.service.authentication.AuthenticationContext;
@@ -45,11 +52,13 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.AreaDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.AssetDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfigurationDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListResponseDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionListQueryImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionManualProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmClient;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
@@ -60,6 +69,7 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAns
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import lombok.SneakyThrows;
@@ -72,6 +82,9 @@ import org.apache.commons.beanutils.BeanUtils;
 class SubscriptionServiceBean implements SubscriptionService {
 
     private static final String SUBSCRIPTION = "SUBSCRIPTION";
+    private static final String SUBSCRIPTION_SOURCE_KEY = "subscriptionSource";
+    private static final String SUBSCRIPTION_SOURCE_VALUE = "manual";
+    private static final String MAIN_ASSETS = "mainAssets";
 
     @Inject
     private SubscriptionDao subscriptionDAO;
@@ -89,6 +102,9 @@ class SubscriptionServiceBean implements SubscriptionService {
     private SubscriptionAuditProducer auditProducer;
 
     @Inject
+    private SubscriptionManualProducerBean subscriptionManualProducerBean;
+
+    @Inject
     private SubscriptionProducerBean subscriptionProducer;
 
     @Inject
@@ -102,7 +118,7 @@ class SubscriptionServiceBean implements SubscriptionService {
     @AllowedRoles(VIEW_SUBSCRIPTION)
     public SubscriptionDto findById(@NotNull Long id) {
         SubscriptionEntity entity = subscriptionDAO.findById(id);
-        if (entity == null){
+        if (entity == null) {
             throw new EntityDoesNotExistException("Subscription with id " + id);
         }
         EmailBodyEntity emailBodyEntity = subscriptionDAO.findEmailBodyEntity(entity.getId());
@@ -111,6 +127,7 @@ class SubscriptionServiceBean implements SubscriptionService {
 
     /**
      * Check if the incoming message has a valid subscription
+     *
      * @param query filter criteria to retrieve subscriptions to be triggered
      * @return SubscriptionPermissionResponse
      */
@@ -151,8 +168,8 @@ class SubscriptionServiceBean implements SubscriptionService {
         List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(updatedQueryParams);
 
         List<Organisation> organisations = usmClient.getAllOrganisations(scopeName, roleName, authenticationContext.getUserPrincipal().getName());
-        if (organisations != null){
-            responseDto.setList(customMapper.enrichSubscriptionList(subscriptionEntities,organisations));
+        if (organisations != null) {
+            responseDto.setList(customMapper.enrichSubscriptionList(subscriptionEntities, organisations));
         } else {
             responseDto.setList(subscriptionEntities.stream().map(mapper::asListDto).collect(Collectors.toList()));
         }
@@ -163,6 +180,38 @@ class SubscriptionServiceBean implements SubscriptionService {
         responseDto.setTotalCount(totalCount);
 
         return responseDto;
+    }
+
+    @Override
+    @AllowedRoles(MANAGE_SUBSCRIPTION)
+    public SubscriptionDto prepareManualRequest(@NotNull SubscriptionDto subscriptionDto) {
+        subscriptionDto.setName(UUID.randomUUID().toString());
+        subscriptionDto.setActive(true);
+        Optional.ofNullable(subscriptionDto.getOutput()).ifPresent(output -> output.setHasEmail(false));
+        Optional.ofNullable(subscriptionDto.getOutput()).ifPresent(output -> output.setLogbook(false));
+        SubscriptionExecutionDto execution = new SubscriptionExecutionDto();
+        execution.setTriggerType(TriggerType.MANUAL);
+        execution.setImmediate(true);
+        execution.setFrequency(0);
+        execution.setFrequencyUnit(SubscriptionTimeUnit.DAYS);
+        subscriptionDto.setExecution(execution);
+        return subscriptionDto;
+    }
+
+    @Override
+    @SneakyThrows
+    @AllowedRoles(MANAGE_SUBSCRIPTION)
+    public SubscriptionDto createManual(@Valid @NotNull SubscriptionDto subscription) {
+        SubscriptionEntity entity = mapper.mapDtoToEntity(subscription);
+        setValidityPeriodForManualTrigger(entity);
+        entity.setHasAssets((entity.getAssets() != null && !entity.getAssets().isEmpty()) || (entity.getAssetGroups() != null && !entity.getAssetGroups().isEmpty()));
+        if (!entity.getAssets().isEmpty()) {
+            enrichNewAssets(entity.getAssets());
+        }
+        SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
+        enqueueOneMessagePerAssetGroup(saved);
+        sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.CREATE.name(), saved.getId().toString(), authenticationContext.getUserPrincipal().getName()));
+        return mapper.mapEntityToDto(saved, null);
     }
 
     @Override
@@ -189,7 +238,7 @@ class SubscriptionServiceBean implements SubscriptionService {
     @AllowedRoles(MANAGE_SUBSCRIPTION)
     public SubscriptionDto update(@Valid @NotNull SubscriptionDto subscription) {
         SubscriptionEntity entityById = subscriptionDAO.findById(subscription.getId());
-        if (entityById == null){
+        if (entityById == null) {
             throw new EntityDoesNotExistException("Subscription with id " + subscription.getId());
         }
         updateExistingAreasWithId(subscription.getAreas(), entityById.getAreas());
@@ -207,11 +256,11 @@ class SubscriptionServiceBean implements SubscriptionService {
             SubscriptionEmailConfigurationDto emailConfig = subscription.getOutput().getEmailConfiguration();
             emailBodyEntity = updateEmailBody(subscriptionEntity, emailConfig.getBody());
 
-            if(emailConfig.getPasswordIsPlaceholder() != null && !emailConfig.getPasswordIsPlaceholder()) { //update password
+            if (emailConfig.getPasswordIsPlaceholder() != null && !emailConfig.getPasswordIsPlaceholder()) { //update password
                 subscriptionDAO.updateEmailConfigurationPassword(subscriptionEntity.getId(), subscriptionEntity.getOutput().getEmailConfiguration().getPassword());
             } else { //password in unchanged, set placeholder according to stored password if existent
                 String existingPassword = subscriptionDAO.getEmailConfigurationPassword(subscriptionEntity.getId());
-                if(existingPassword != null){
+                if (existingPassword != null) {
                     subscriptionEntity.getOutput().getEmailConfiguration().setPassword("********");
                 } else {
                     subscriptionEntity.getOutput().getEmailConfiguration().setPassword(null);
@@ -250,7 +299,7 @@ class SubscriptionServiceBean implements SubscriptionService {
         Map<String, AssetHistGuidIdWithVesselIdentifiers> newIdentifiers = assetSender.findMultipleVesselIdentifiers(newAssetsIds).stream().collect(Collectors.toMap(AssetHistGuidIdWithVesselIdentifiers::getAssetHistGuid, Function.identity()));
         assets.forEach(asset -> {
             AssetHistGuidIdWithVesselIdentifiers guidWithIdentifiers = newIdentifiers.get(asset.getGuid());
-            if(guidWithIdentifiers != null) {
+            if (guidWithIdentifiers != null) {
                 VesselIdentifiersHolder identifiers = guidWithIdentifiers.getIdentifiers();
                 asset.setCfr(identifiers.getCfr());
                 asset.setIrcs(identifiers.getIrcs());
@@ -269,12 +318,12 @@ class SubscriptionServiceBean implements SubscriptionService {
         sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.MODIFY.name(), String.valueOf(id), authenticationContext.getUserPrincipal().getName()));
     }
 
-    public EmailBodyEntity createEmailBody(SubscriptionEntity subscription, String body){
+    public EmailBodyEntity createEmailBody(SubscriptionEntity subscription, String body) {
         EmailBodyEntity entity = new EmailBodyEntity(subscription, body);
         return subscriptionDAO.createEmailBodyEntity(entity);
     }
 
-    public EmailBodyEntity updateEmailBody(SubscriptionEntity subscription, String body){
+    public EmailBodyEntity updateEmailBody(SubscriptionEntity subscription, String body) {
         EmailBodyEntity entity = new EmailBodyEntity(subscription, body);
         return subscriptionDAO.updateEmailBodyEntity(entity);
     }
@@ -309,10 +358,10 @@ class SubscriptionServiceBean implements SubscriptionService {
     }
 
     private void updateExistingAreasWithId(Set<AreaDto> newAreas, Set<AreaEntity> oldAreas) {
-        if(newAreas != null && oldAreas !=null){
-            for(AreaDto areaDto : newAreas) {
-                for(AreaEntity areaEntity : oldAreas) {
-                    if(areaDto.getGid().equals(areaEntity.getGid()) && areaDto.getAreaType().equals(areaEntity.getAreaType())){
+        if (newAreas != null && oldAreas != null) {
+            for (AreaDto areaDto : newAreas) {
+                for (AreaEntity areaEntity : oldAreas) {
+                    if (areaDto.getGid().equals(areaEntity.getGid()) && areaDto.getAreaType().equals(areaEntity.getAreaType())) {
                         areaDto.setId(areaEntity.getId());
                         break;
                     }
@@ -322,14 +371,50 @@ class SubscriptionServiceBean implements SubscriptionService {
     }
 
     private void updateExistingAssetsWithId(Set<AssetDto> newAssets, Set<AssetEntity> oldAssets, Set<AssetGroupEntity> oldAssetGroups) {
-        if(newAssets != null) {
-            for(AssetDto assetDto: newAssets) {
-                if(assetDto.getType().equals(AssetType.ASSET) && oldAssets != null) {
+        if (newAssets != null) {
+            for (AssetDto assetDto : newAssets) {
+                if (assetDto.getType().equals(AssetType.ASSET) && oldAssets != null) {
                     oldAssets.stream().filter(asset -> asset.getGuid().equals(assetDto.getGuid())).findFirst().ifPresent(asset -> assetDto.setId(asset.getId()));
-                } else if(assetDto.getType().equals(AssetType.VGROUP) && oldAssetGroups != null) {
+                } else if (assetDto.getType().equals(AssetType.VGROUP) && oldAssetGroups != null) {
                     oldAssetGroups.stream().filter(assetGroup -> assetGroup.getGuid().equals(assetDto.getGuid())).findFirst().ifPresent(assetGroup -> assetDto.setId(assetGroup.getId()));
                 }
             }
         }
+    }
+
+    private void setValidityPeriodForManualTrigger(SubscriptionEntity entity) {
+        DateRange validityPeriod = new DateRange();
+        Instant now = Instant.now();
+        validityPeriod.setStartDate(new Date(now.toEpochMilli()));
+        validityPeriod.setEndDate(new Date(now.plus(365, ChronoUnit.DAYS).toEpochMilli()));
+        entity.setValidityPeriod(validityPeriod);
+    }
+
+    /**
+     * Encodes the subscriptionId, an assetGroupName, the firstPage and the pageSize
+     * into the following string format: "subscriptionId;assetGroupName;page_number;page_size"
+     *
+     * @param subscriptionId the subscription id
+     * @param assetGroupName the assetGroup name
+     * @return the encoded/formatted string
+     */
+    private String encodeManualSubscriptionMessage(Long subscriptionId, String assetGroupName) {
+        // todo change page_size to i.e. 100 & update respective unit test case accordingly
+        return String.join(";", subscriptionId.toString(), assetGroupName, "0", "1");
+    }
+
+    private void enqueueOneMessagePerAssetGroup(SubscriptionEntity subscriptionEntity) throws MessageException {
+        for (AssetGroupEntity assetGroup : subscriptionEntity.getAssetGroups()) {
+            sendToQueue(SUBSCRIPTION_SOURCE_VALUE, encodeManualSubscriptionMessage(subscriptionEntity.getId(), assetGroup.getName()));
+        }
+        if (!subscriptionEntity.getAssets().isEmpty()) {
+            sendToQueue(SUBSCRIPTION_SOURCE_VALUE, encodeManualSubscriptionMessage(subscriptionEntity.getId(), MAIN_ASSETS));
+        }
+    }
+
+    private void sendToQueue(String messageSource, String messageBody) throws MessageException {
+        Map<String, String> props = new HashMap<>();
+        props.put(SUBSCRIPTION_SOURCE_KEY, messageSource);
+        subscriptionManualProducerBean.sendModuleMessageWithProps(messageBody, null, props);
     }
 }
