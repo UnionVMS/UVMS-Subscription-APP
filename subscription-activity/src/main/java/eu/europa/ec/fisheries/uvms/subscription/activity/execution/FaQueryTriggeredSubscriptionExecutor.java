@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityModuleMethod;
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryRequest;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForVesselRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.PluginType;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierSchemeIdEnum;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
@@ -92,8 +92,8 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 			Objects.requireNonNull(occurrence, "occurrence not found in data of " + triggeredSubscription.getId());
 			ZonedDateTime occurrenceZdt = datatypeFactory.newXMLGregorianCalendar(occurrence).toGregorianCalendar().toZonedDateTime();
 			ZonedDateTime startDate = occurrenceZdt.minus(subscription.getOutput().getHistory(), subscription.getOutput().getHistoryUnit().getTemporalUnit());
-			CreateAndSendFAQueryRequest message = new CreateAndSendFAQueryRequest(
-					ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY,
+			CreateAndSendFAQueryForVesselRequest message = new CreateAndSendFAQueryForVesselRequest(
+					ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY_FOR_VESSEL,
 					PluginType.FLUX,
 					vesselIdentifiers,
 					TRUE.equals(subscription.getOutput().getConsolidated()),
