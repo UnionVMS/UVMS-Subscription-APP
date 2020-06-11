@@ -9,16 +9,24 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
 
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryRequest;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForTripRequest;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForVesselRequest;
 
 /**
  * Service for sending messages to Activity.
  */
 public interface ActivitySender {
 	/**
-	 * Ask Activity to generate a FA Query.
+	 * Ask Activity to generate a FA Query with a vessel id.
 	 *
 	 * @param message The message with query data
 	 */
-	void send(CreateAndSendFAQueryRequest message);
+	void send(CreateAndSendFAQueryForVesselRequest message);
+
+	/**
+	 * Ask Activity to generate a FA Query with a trip id.
+	 *
+	 * @param message The message with query data
+	 */
+	void send(CreateAndSendFAQueryForTripRequest message);
 }

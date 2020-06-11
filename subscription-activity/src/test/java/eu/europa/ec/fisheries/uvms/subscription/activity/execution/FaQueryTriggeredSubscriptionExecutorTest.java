@@ -24,7 +24,7 @@ import javax.xml.datatype.DatatypeFactory;
 
 import java.util.EnumSet;
 
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryRequest;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForVesselRequest;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ActivitySender;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ReceiverAndDataflow;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.UsmSender;
@@ -107,9 +107,9 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 
 		sut.execute(execution);
 
-		ArgumentCaptor<CreateAndSendFAQueryRequest> captor = ArgumentCaptor.forClass(CreateAndSendFAQueryRequest.class);
+		ArgumentCaptor<CreateAndSendFAQueryForVesselRequest> captor = ArgumentCaptor.forClass(CreateAndSendFAQueryForVesselRequest.class);
 		verify(activitySender).send(captor.capture());
-		CreateAndSendFAQueryRequest request = captor.getValue();
+		CreateAndSendFAQueryForVesselRequest request = captor.getValue();
 		DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
 		assertEquals(datatypeFactory.newXMLGregorianCalendar("2017-03-01T17:39:00Z"), request.getStartDate());
 		assertEquals(1, request.getVesselIdentifiers().size());
