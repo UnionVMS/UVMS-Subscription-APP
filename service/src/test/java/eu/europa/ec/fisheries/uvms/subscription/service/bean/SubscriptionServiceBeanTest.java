@@ -20,6 +20,10 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -108,6 +112,10 @@ public class SubscriptionServiceBeanTest {
 	private static final String ASSET_GROUP_GUID = "GROUP GUID";
 	private static final String ASSET_GROUP_NAME = "GROUP NAME";
 
+	private final LocalDate todayLD = LocalDate.now();
+	private final Date today = Date.from(todayLD.atStartOfDay(ZoneId.systemDefault()).toInstant());
+	private final Date tomorrow = Date.from(todayLD.plus(1, ChronoUnit.DAYS).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
 	@Produces @Mock
 	private SubscriptionDao subscriptionDAO;
 
@@ -189,6 +197,22 @@ public class SubscriptionServiceBeanTest {
 	}
 
 	@Test
+	void createManualSubscriptionWithoutQueryPeriodOrHistory() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto( SUBSCR_ID, null, Boolean.TRUE, OutgoingMessageType.NONE, false,
+				null, null, null, null, null, null, null, null, null, null,
+				null, null, null, null);
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
+
+	@Test
+	void createManualSubscriptionWithoutWithInvalidHistory() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto( SUBSCR_ID, null, Boolean.TRUE, OutgoingMessageType.NONE, false,
+				null, null, null, null, -1, null, null, null, null, null,
+				null, null, null, null);
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
+
+	@Test
 	void createSubscriptionWithMessageTypeNoneAndSubscriber() {
 		SubscriptionDto subscription = new SubscriptionDto();
 		subscription.setName(SUBSCR_NAME);
@@ -201,6 +225,7 @@ public class SubscriptionServiceBeanTest {
 		subscriber.setEndpointId(1L);
 		subscriber.setChannelId(1L);
 		output.setSubscriber(subscriber);
+		subscription.setOutput(output);
 		SubscriptionExecutionDto execution = new SubscriptionExecutionDto();
 		execution.setTriggerType(TriggerType.MANUAL);
 		subscription.setExecution(execution);
@@ -225,28 +250,30 @@ public class SubscriptionServiceBeanTest {
 
 	@Test
 	void createSubscriptionWithNullName() {
-		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, null, Boolean.TRUE, OutgoingMessageType.NONE, false,
-				null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null, null);
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto( SUBSCR_ID, null, Boolean.TRUE, OutgoingMessageType.NONE, false,
+				null, null, null, null, 1, null, today, tomorrow, null, null,
+				null, null, null, null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
+
 	@Test
 	void createSubscriptionWithEmptyName() {
-		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, "", Boolean.TRUE, OutgoingMessageType.NONE, false,
-				null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null, null);
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto( SUBSCR_ID, "", Boolean.TRUE, OutgoingMessageType.NONE, false,
+				null, null, null, null, null, null, today, tomorrow, null, null, null, null,null,null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithNullActive() {
-		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, null, OutgoingMessageType.NONE, false,
-				null, null, null, null, null, null,null, TriggerType.MANUAL, null, null, null, null, null);
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, null, OutgoingMessageType.NONE, false,
+				null, null, null, null, null, null,today, tomorrow, null, null, null, null , null, null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithNullMessageType() {
-		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, null, false,
-				null, null, null, null, null, null,null, TriggerType.MANUAL, null, null, null, null, null);
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, null, false,
+				null, null, null, null, null, null,today, tomorrow, null, null, null, null, null, null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
@@ -325,9 +352,9 @@ public class SubscriptionServiceBeanTest {
 
 	@Test
     void createSubscriptionWithValidEmailConfig() {
-        SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
-                null, null, null, null, null, null, null, TriggerType.MANUAL, null, SubscriptionTimeUnit.DAYS, null, null, null,
-                EMAIL_BODY, false, true, PASSWORD, true, false );
+        SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
+                null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null, null,
+				null, null, null, null, EMAIL_BODY, false, true, PASSWORD, true, false);
 
         when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 
@@ -336,32 +363,32 @@ public class SubscriptionServiceBeanTest {
 
 	@Test
     void createSubscriptionWithHasEmailNull() {
-        SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, null,
-                null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null, null,
-                null, null, null, null, null , null);
+        SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, null,
+                null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null, null,
+                null, null, null, null, null , null , null, null , null, null);
         assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
     }
 
 	@Test
     void createSubscriptionWithHasEmailTrueAndNullEmailConfiguration() {
-        SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
-                null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null, null,
-                null, null, null, null, null , null);
+        SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
+                null, null, null, null, 12, SubscriptionTimeUnit.HOURS,null,  null, null, null, null,
+                null, null, null, null, null , null , null , null, null);
         assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
     }
 
 	@Test
     void createSubscriptionWithHasEmailTrueAndNullEmailBody() {
-        SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
-                null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null, null,
+        SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
+                null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null,null, null, null, null, null, null, null,
                 null, null, null, null, null , null);
         assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
     }
 
     @Test
     void createSubscriptionWithHasEmailFalseAndNullEmailConfiguration() {
-		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, false,
-				null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null, null,
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, false,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null,null, null, null, null, null, null, null,
 				null, null, null, null, null , null);
 
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
@@ -390,16 +417,16 @@ public class SubscriptionServiceBeanTest {
 
     @Test
     void createSubscriptionWithHasEmailFalseAndNullEmailBody() {
-		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
-				null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null, null,
-				null, null, null, null, null , null);
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
+				null, null, null, null, 15, SubscriptionTimeUnit.HOURS,  null, null, null, null,
+				null, null, null, null, null , null , null ,null, null , null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
     }
 
     @Test
     void createSubscriptionWithHasEmailTrueAndNullPassword() {
-		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
-				null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null, null,
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS,null,null, null, null, null, null, null, null,
 				EMAIL_BODY, false, true, null, true, false );
 
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
@@ -409,8 +436,8 @@ public class SubscriptionServiceBeanTest {
 
     @Test
     void createSubscriptionWithHasEmailTrueAndEmptyPassword() {
-		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
-				null, null, null, null, null, null, null, TriggerType.MANUAL, null, null, null, null, null,
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null,
 				EMAIL_BODY, false, true, "", true, false );
 
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
