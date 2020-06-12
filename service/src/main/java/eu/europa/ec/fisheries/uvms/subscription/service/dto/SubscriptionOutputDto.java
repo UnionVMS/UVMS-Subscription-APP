@@ -19,7 +19,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.HasValidSubscriberDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidSubscriptionOutputDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidSubscriptionDtoOutput;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
@@ -38,7 +38,6 @@ import static eu.europa.ec.fisheries.uvms.commons.date.DateUtils.DATE_TIME_UI_FO
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ValidSubscriptionOutputDto
 @HasValidSubscriberDto
 public class SubscriptionOutputDto {
 
