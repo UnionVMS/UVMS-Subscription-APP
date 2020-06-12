@@ -127,6 +127,40 @@ public class SubscriptionTestHelper {
         return dto;
     }
 
+    public static SubscriptionDto createManualSubscriptionDtoWithEmailConfig(Long id, String name, Boolean active, OutgoingMessageType messageType, Boolean hasEmail,
+                                                                       Long organisationId, Long endpointId, Long channelId, Boolean consolidated,
+                                                                       Integer history, SubscriptionTimeUnit historyUnit, Date queryStartDate, Date queryEndDate,
+                                                                       Boolean logbook, Integer frequency, SubscriptionTimeUnit frequencyUnit, String timeExpression, Date startDate, Date endDate,
+                                                                       String body, Boolean isPdf, Boolean hasAttachments, String password, Boolean passwordIsPlaceholder, Boolean isXml ) {
+
+        SubscriptionDto dto = createManualSubscriptionDto(id, name,active, messageType, hasEmail, organisationId, endpointId, channelId, consolidated, history, historyUnit, queryStartDate, queryEndDate, logbook, frequency, frequencyUnit, timeExpression,startDate, endDate);
+
+        if(hasEmail != null && hasEmail) {
+            SubscriptionEmailConfigurationDto emailConfiguration = new SubscriptionEmailConfigurationDto();
+            emailConfiguration.setBody(body);
+            emailConfiguration.setIsPdf(isPdf);
+            emailConfiguration.setHasAttachments(hasAttachments);
+            emailConfiguration.setPassword(password);
+            emailConfiguration.setIsXml(isXml);
+            emailConfiguration.setPasswordIsPlaceholder(passwordIsPlaceholder);
+            dto.getOutput().setEmailConfiguration(emailConfiguration);
+        } else {
+            dto.getOutput().setEmailConfiguration(null);
+        }
+        return dto;
+    }
+
+    public static SubscriptionDto createManualSubscriptionDto(Long id, String name, Boolean active, OutgoingMessageType messageType, Boolean hasEmail,
+                                                                             Long organisationId, Long endpointId, Long channelId, Boolean consolidated,
+                                                                             Integer history, SubscriptionTimeUnit historyUnit,Date queryStartDate, Date queryEndDate,
+                                                                             Boolean logbook, Integer frequency, SubscriptionTimeUnit frequencyUnit, String timeExpression, Date startDate, Date endDate) {
+
+        SubscriptionDto dto = createSubscriptionDto(id, name,active, messageType, hasEmail, organisationId, endpointId, channelId, consolidated, history, historyUnit, logbook, TriggerType.MANUAL, frequency, frequencyUnit, timeExpression,startDate, endDate);
+        dto.getOutput().setQueryStartDate(queryStartDate);
+        dto.getOutput().setQueryEndDate(queryEndDate);
+        return dto;
+    }
+
     public static SubscriptionDto createSubscriptionDto(Long id, String name, Boolean active, OutgoingMessageType messageType, Boolean hasEmail,
                                                        Long organisationId, Long endpointId, Long channelId, Boolean consolidated, Integer history, SubscriptionTimeUnit historyUnit,
                                                        Boolean logbook, TriggerType triggerType, Integer frequency, SubscriptionTimeUnit frequencyUnit, String timeExpression,

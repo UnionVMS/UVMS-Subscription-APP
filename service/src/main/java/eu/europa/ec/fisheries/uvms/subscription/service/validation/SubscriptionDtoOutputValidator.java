@@ -10,31 +10,37 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.validation;
 
 import static eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidationUtil.requirePropertyNotNullWithMessage;
-import static eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidationUtil.requirePropertyNullWithMessage;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 
 /**
  * Implementation of custom validator for SubscriptionOutputDto.
  */
-public class SubscriptionOutputDtoValidator implements ConstraintValidator<ValidSubscriptionOutputDto, SubscriptionOutputDto> {
+public class SubscriptionDtoOutputValidator implements ConstraintValidator<ValidSubscriptionDtoOutput, SubscriptionDto> {
 
     @Override
-    public boolean isValid(SubscriptionOutputDto output, ConstraintValidatorContext context) {
+    public boolean isValid(SubscriptionDto subscriptionDto, ConstraintValidatorContext context) {
         boolean valid = true;
-        if (output != null) {
+        if (subscriptionDto != null && subscriptionDto.getOutput() != null) {
+            SubscriptionOutputDto output = subscriptionDto.getOutput();
+
             if(output.getMessageType() == OutgoingMessageType.FA_QUERY || output.getMessageType() == OutgoingMessageType.FA_REPORT) {
-                valid = requirePropertyNotNullWithMessage(context, output.getLogbook(), "logbook", "Logbook is required");
-                valid &= requirePropertyNotNullWithMessage(context, output.getConsolidated(), "consolidated", "Consolidated is required");
-                valid &= requirePropertyNotNullWithMessage(context, output.getHistory(), "history", "History is required");
-                valid &= requirePropertyNotNullWithMessage(context, output.getHistoryUnit(), "historyUnit", "History unit is required");
+                valid = requirePropertyNotNullWithMessage(context, output.getLogbook(), "output.logbook", "Logbook is required");
+                valid &= requirePropertyNotNullWithMessage(context, output.getConsolidated(), "output.consolidated", "Consolidated is required");
+
+                if(TriggerType.MANUAL != subscriptionDto.getExecution().getTriggerType()) {
+                    valid &= requirePropertyNotNullWithMessage(context, output.getHistory(), "output.history", "History is required");
+                    valid &= requirePropertyNotNullWithMessage(context, output.getHistoryUnit(), "output.historyUnit", "History unit is required");
+                }
             }
-            if (output.getHasEmail() != null && output.getHasEmail()) {
-                valid &= requirePropertyNotNullWithMessage(context, output.getEmailConfiguration(), "emailConfiguration", "EmailConfiguration is required");
+            if (Boolean.TRUE.equals(output.getHasEmail())) {
+                valid &= requirePropertyNotNullWithMessage(context, output.getEmailConfiguration(), "output.emailConfiguration", "EmailConfiguration is required");
             }
         }
         return valid;
