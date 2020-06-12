@@ -7,27 +7,28 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.fisheries.uvms.subscription.model.enums;
 
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
+package eu.europa.ec.fisheries.uvms.subscription.service.validation;
+
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * The history unit of a subscription.
+ * Validation annotation for manual (execution TriggerType.MANUAL) SubscriptionDto .
  */
-public enum SubscriptionTimeUnit {
-    HOURS(ChronoUnit.HOURS),
-    DAYS(ChronoUnit.DAYS),
-    WEEKS(ChronoUnit.WEEKS),
-    MONTHS(ChronoUnit.MONTHS);
+@Target(TYPE)
+@Retention(RUNTIME)
+@Constraint(validatedBy = ManualSubscriptionDtoValidator.class)
+public @interface ValidManualSubscriptionDto {
 
-    private TemporalUnit temporalUnit;
+    String message() default "Manual Subscription is not valid";
 
-    SubscriptionTimeUnit(TemporalUnit temporalUnit) {
-        this.temporalUnit = temporalUnit;
-    }
+    Class<?>[] groups() default { };
 
-    public TemporalUnit getTemporalUnit() {
-        return temporalUnit;
-    }
+    Class<? extends Payload>[] payload() default { };
 }

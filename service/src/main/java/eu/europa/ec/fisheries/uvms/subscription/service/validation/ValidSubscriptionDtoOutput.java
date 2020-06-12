@@ -12,8 +12,8 @@ import java.lang.annotation.Target;
  */
 @Target(TYPE)
 @Retention(RUNTIME)
-@Constraint(validatedBy = SubscriptionOutputDtoValidator.class)
-public @interface ValidSubscriptionOutputDto {
+@Constraint(validatedBy = SubscriptionDtoOutputValidator.class)
+public @interface ValidSubscriptionDtoOutput {
 
     String message() default "Subscription output is not valid";
 
