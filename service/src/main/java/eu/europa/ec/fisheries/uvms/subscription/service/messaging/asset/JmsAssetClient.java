@@ -18,7 +18,7 @@ import javax.xml.bind.JAXBException;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAssetProducerBean;
-import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionUserConsumerBean;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionConsumerBean;
 import eu.europa.ec.fisheries.uvms.user.model.exception.ModelMarshallException;
 import eu.europa.ec.fisheries.uvms.user.model.mapper.JAXBMarshaller;
 import eu.europa.ec.fisheries.wsdl.asset.module.AssetGroupsForAssetRequest;
@@ -38,18 +38,18 @@ import eu.europa.fisheries.uvms.subscription.model.exceptions.ApplicationExcepti
 public class JmsAssetClient implements AssetClient {
 
 	private SubscriptionAssetProducerBean subscriptionAssetProducerBean;
-	private SubscriptionUserConsumerBean subscriptionUserConsumer;
+	private SubscriptionConsumerBean subscriptionConsumer;
 
 	/**
 	 * Injection constructor.
 	 *
 	 * @param subscriptionAssetProducerBean The (JMS) producer bean for this module
-	 * @param subscriptionUserConsumer The user queue
+	 * @param subscriptionConsumer The user queue
 	 */
 	@Inject
-	public JmsAssetClient(SubscriptionAssetProducerBean subscriptionAssetProducerBean, SubscriptionUserConsumerBean subscriptionUserConsumer) {
+	public JmsAssetClient(SubscriptionAssetProducerBean subscriptionAssetProducerBean, SubscriptionConsumerBean subscriptionConsumer) {
 		this.subscriptionAssetProducerBean = subscriptionAssetProducerBean;
-		this.subscriptionUserConsumer = subscriptionUserConsumer;
+		this.subscriptionConsumer = subscriptionConsumer;
 	}
 
 	/**
@@ -65,11 +65,11 @@ public class JmsAssetClient implements AssetClient {
 		try {
 			String correlationID = subscriptionAssetProducerBean.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request),
 					subscriptionAssetProducerBean.getDestination(),
-					subscriptionUserConsumer.getDestination());
+					subscriptionConsumer.getDestination());
 
 			FindVesselIdsByAssetHistGuidResponse response = null;
 			if(correlationID != null) {
-				TextMessage message = subscriptionUserConsumer.getMessage(correlationID, TextMessage.class );
+				TextMessage message = subscriptionConsumer.getMessage(correlationID, TextMessage.class );
 				response = JAXBUtils.unMarshallMessage( message.getText() , FindVesselIdsByAssetHistGuidResponse.class);
 			}
 			return response;
@@ -83,11 +83,11 @@ public class JmsAssetClient implements AssetClient {
 		try {
 			String correlationID = subscriptionAssetProducerBean.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request),
 					subscriptionAssetProducerBean.getDestination(),
-					subscriptionUserConsumer.getDestination());
+					subscriptionConsumer.getDestination());
 
 			FindVesselIdsByMultipleAssetHistGuidsResponse response = null;
 			if(correlationID != null) {
-				TextMessage message = subscriptionUserConsumer.getMessage(correlationID, TextMessage.class );
+				TextMessage message = subscriptionConsumer.getMessage(correlationID, TextMessage.class );
 				response = JAXBUtils.unMarshallMessage( message.getText() , FindVesselIdsByMultipleAssetHistGuidsResponse.class);
 			}
 			return response;
@@ -101,11 +101,11 @@ public class JmsAssetClient implements AssetClient {
 		try {
 			String correlationID = subscriptionAssetProducerBean.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request),
 					subscriptionAssetProducerBean.getDestination(),
-					subscriptionUserConsumer.getDestination());
+					subscriptionConsumer.getDestination());
 
 			FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse response = null;
 			if(correlationID != null) {
-				TextMessage message = subscriptionUserConsumer.getMessage(correlationID, TextMessage.class );
+				TextMessage message = subscriptionConsumer.getMessage(correlationID, TextMessage.class );
 				response = JAXBMarshaller.unmarshallTextMessage(message, FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse.class);
 			}
 			return response;
@@ -119,11 +119,11 @@ public class JmsAssetClient implements AssetClient {
 		try {
 			String correlationID = subscriptionAssetProducerBean.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request),
 					subscriptionAssetProducerBean.getDestination(),
-					subscriptionUserConsumer.getDestination());
+					subscriptionConsumer.getDestination());
 
 			AssetGroupsForAssetResponse response = null;
 			if(correlationID != null) {
-				TextMessage message = subscriptionUserConsumer.getMessage(correlationID, TextMessage.class );
+				TextMessage message = subscriptionConsumer.getMessage(correlationID, TextMessage.class );
 				response = JAXBMarshaller.unmarshallTextMessage(message, AssetGroupsForAssetResponse.class);
 			}
 			return response;
