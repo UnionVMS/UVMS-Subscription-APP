@@ -20,6 +20,9 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,6 +46,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.AssetDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfigurationDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListResponseDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionListQueryImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
@@ -56,9 +60,11 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAns
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.beanutils.BeanUtils;
 
 @ApplicationScoped
 @Slf4j
@@ -134,14 +140,15 @@ class SubscriptionServiceBean implements SubscriptionService {
     @SneakyThrows
     @AllowedRoles(VIEW_SUBSCRIPTION)
     public SubscriptionListResponseDto listSubscriptions(@Valid @NotNull SubscriptionListQuery queryParams, String scopeName, String roleName) {
+        SubscriptionListQuery updatedQueryParams = excludeManualFromQueryParams(queryParams);
 
         SubscriptionListResponseDto responseDto = new SubscriptionListResponseDto();
-        Integer pageSize = queryParams.getPagination().getPageSize();
-        Integer page = queryParams.getPagination().getOffset();
+        Integer pageSize = updatedQueryParams.getPagination().getPageSize();
+        Integer page = updatedQueryParams.getPagination().getOffset();
 
-        Long totalCount = subscriptionDAO.count(queryParams.getCriteria());
+        Long totalCount = subscriptionDAO.count(updatedQueryParams.getCriteria());
 
-        List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(queryParams);
+        List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(updatedQueryParams);
 
         List<Organisation> organisations = usmClient.getAllOrganisations(scopeName, roleName, authenticationContext.getUserPrincipal().getName());
         if (organisations != null){
@@ -279,6 +286,24 @@ class SubscriptionServiceBean implements SubscriptionService {
     public Boolean checkNameAvailability(@NotNull final String name, Long id) {
         SubscriptionEntity subscriptionByName = subscriptionDAO.findSubscriptionByName(name);
         return subscriptionByName == null || subscriptionByName.getId().equals(id);
+    }
+
+    @SneakyThrows
+    private SubscriptionListQuery excludeManualFromQueryParams(SubscriptionListQuery queryParams) {
+        SubscriptionListQueryImpl updatedQueryParams = (SubscriptionListQueryImpl) BeanUtils.cloneBean(queryParams);
+        updatedQueryParams.getCriteria().setWithAnyTriggerType(excludeManualFromTriggerTypes(updatedQueryParams));
+        return updatedQueryParams;
+    }
+
+    private Set<TriggerType> excludeManualFromTriggerTypes(SubscriptionListQuery queryParams) {
+        Collection<TriggerType> triggerTypes = queryParams.getCriteria().getWithAnyTriggerType();
+        if (triggerTypes == null || triggerTypes.isEmpty() || Collections.singletonList(TriggerType.MANUAL).containsAll(triggerTypes)) {
+            triggerTypes = Arrays.asList(TriggerType.values());
+        }
+        return triggerTypes
+                .stream()
+                .filter(t -> !TriggerType.MANUAL.equals(t))
+                .collect(Collectors.toSet());
     }
 
     private void updateExistingAreasWithId(Set<AreaDto> newAreas, Set<AreaEntity> oldAreas) {
