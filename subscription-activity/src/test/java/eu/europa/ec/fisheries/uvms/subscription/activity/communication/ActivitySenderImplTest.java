@@ -1,5 +1,7 @@
 package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -13,10 +15,9 @@ import javax.jms.Queue;
 import javax.xml.datatype.DatatypeFactory;
 import java.util.Collections;
 
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityModuleMethod;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForTripRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForVesselRequest;
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.PluginType;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryResponse;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierSchemeIdEnum;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
@@ -38,10 +39,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ActivitySenderImplTest {
 
     @Produces @Mock
-    private SubscriptionProducerBean subscriptionProducer;
-
-    @Produces @Mock @ActivityQueue
-    private Queue activityQueue;
+    private ActivityClient activityClient;
 
     @Inject
     ActivitySenderImpl sut;
@@ -52,38 +50,50 @@ class ActivitySenderImplTest {
     @Test
     @SneakyThrows
     void testSendVesselQuery() {
-        CreateAndSendFAQueryForVesselRequest request = new CreateAndSendFAQueryForVesselRequest(ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY_FOR_VESSEL, PluginType.FLUX, Collections.singletonList(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.CFR, "CFR123456789")), true,
-                DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-01-01T10:00:00"), DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-02-01T10:00:00"),
-                "receiver", "dataflow");
-        when(subscriptionProducer.getDestination()).thenReturn(destination);
-        Assertions.assertDoesNotThrow(() -> sut.send(request));
-        verify(subscriptionProducer).sendMessageToSpecificQueueSameTx(any(), eq(activityQueue), eq(destination));
+        CreateAndSendFAQueryResponse response = new CreateAndSendFAQueryResponse();
+        response.setMessageId("uuid1");
+        when(activityClient.sendRequest(any(CreateAndSendFAQueryForVesselRequest.class))).thenReturn(response);
+        String messageId = sut.createAndSendQueryForVessel(Collections.singletonList(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.CFR, "CFR123456789")), true,
+                DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-01-01T10:00:00"), DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-02-01T10:00:00"), "receiver", "dataflow");
+        assertEquals("uuid1", messageId);
     }
 
     @Test
     @SneakyThrows
     void testSendTripQuery() {
-        CreateAndSendFAQueryForTripRequest request = new CreateAndSendFAQueryForTripRequest(ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY_FOR_TRIP, PluginType.FLUX, "SRC-TRP-00000000001", true, "receiver", "dataflow");
-        when(subscriptionProducer.getDestination()).thenReturn(destination);
-        Assertions.assertDoesNotThrow(() -> sut.send(request));
-        verify(subscriptionProducer).sendMessageToSpecificQueueSameTx(any(), eq(activityQueue), eq(destination));
+        CreateAndSendFAQueryResponse response = new CreateAndSendFAQueryResponse();
+        response.setMessageId("uuid1");
+        when(activityClient.sendRequest(any(CreateAndSendFAQueryForTripRequest.class))).thenReturn(response);
+        String messageId = sut.createAndSendQueryForTrip("SRC-TRP-00000000001", true, "receiver", "dataflow");
+        assertEquals("uuid1", messageId);
     }
 
     @Test
     @SneakyThrows
-    void testSendVesselQueryWithException() {
-        CreateAndSendFAQueryForVesselRequest request = new CreateAndSendFAQueryForVesselRequest();
-        when(subscriptionProducer.getDestination()).thenReturn(destination);
-        when(subscriptionProducer.sendMessageToSpecificQueueSameTx(any(), eq(activityQueue), eq(destination))).thenThrow(MessageException.class);
-        assertThrows(ExecutionException.class, () -> sut.send(request));
+    void testSendVesselQueryWithNullResponse() {
+        when(activityClient.sendRequest(any(CreateAndSendFAQueryForVesselRequest.class))).thenReturn(null);
+        String messageId = sut.createAndSendQueryForVessel(Collections.singletonList(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.CFR, "CFR123456789")), true,
+                DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-01-01T10:00:00"), DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-02-01T10:00:00"), "receiver", "dataflow");
+        assertEquals(null, messageId);
+    }
+
+    @Test
+    @SneakyThrows
+    void testSendTripQueryWithNullResponse() {
+        when(activityClient.sendRequest(any(CreateAndSendFAQueryForTripRequest.class))).thenReturn(null);
+        String messageId = sut.createAndSendQueryForTrip("SRC-TRP-00000000001", true, "receiver", "dataflow");
+        assertEquals(null, messageId);
+    }
+
+    @Test
+    @SneakyThrows
+    void testSendVesselQueryWithEmptyRequest() {
+        assertDoesNotThrow(() -> sut.createAndSendQueryForVessel(null, false, null, null, null, null));
     }
 
     @Test
     @SneakyThrows
     void testSendTripQueryWithException() {
-        CreateAndSendFAQueryForTripRequest request = new CreateAndSendFAQueryForTripRequest();
-        when(subscriptionProducer.getDestination()).thenReturn(destination);
-        when(subscriptionProducer.sendMessageToSpecificQueueSameTx(any(), eq(activityQueue), eq(destination))).thenThrow(MessageException.class);
-        assertThrows(ExecutionException.class, () -> sut.send(request));
+        assertDoesNotThrow(()  -> sut.createAndSendQueryForTrip(null, false, null, null));
     }
 }

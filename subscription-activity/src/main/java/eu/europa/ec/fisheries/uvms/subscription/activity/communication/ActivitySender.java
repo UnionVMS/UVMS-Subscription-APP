@@ -9,8 +9,10 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
 
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForTripRequest;
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForVesselRequest;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.List;
+
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
 
 /**
  * Service for sending messages to Activity.
@@ -19,14 +21,34 @@ public interface ActivitySender {
 	/**
 	 * Ask Activity to generate a FA Query with a vessel id.
 	 *
-	 * @param message The message with query data
+	 * @param vesselIdentifiers
+	 * @param consolidated
+	 * @param startDate
+	 * @param endDate
+	 * @param receiver
+	 * @param dataflow
+	 * @return generated query id
 	 */
-	void send(CreateAndSendFAQueryForVesselRequest message);
+	String createAndSendQueryForVessel(
+			  List<VesselIdentifierType> vesselIdentifiers,
+			  boolean consolidated,
+			  XMLGregorianCalendar startDate,
+			  XMLGregorianCalendar endDate,
+			  String receiver,
+			  String dataflow);
 
 	/**
 	 * Ask Activity to generate a FA Query with a trip id.
 	 *
-	 * @param message The message with query data
+	 * @param tripId
+	 * @param consolidated
+	 * @param receiver
+	 * @param dataflow
+	 * @return generated query id
 	 */
-	void send(CreateAndSendFAQueryForTripRequest message);
+	String createAndSendQueryForTrip(
+				String tripId,
+				boolean consolidated,
+				String receiver,
+				String dataflow);
 }

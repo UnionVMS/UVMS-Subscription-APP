@@ -1,3 +1,12 @@
+/*
+ Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2016.
+
+ This file is part of the Integrated Fisheries Data Management (IFDM) Suite. The IFDM Suite is free software: you can redistribute it
+ and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of
+ the License, or any later version. The IFDM Suite is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
+ */
 package eu.europa.ec.fisheries.uvms.subscription.service.messaging;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -27,18 +36,18 @@ import eu.europa.fisheries.uvms.subscription.model.exceptions.ApplicationExcepti
 public class UsmClientImpl implements UsmClient{
 
     private SubscriptionUserProducerBean subscriptionUserProducer;
-    private SubscriptionUserConsumerBean subscriptionUserConsumer;
+    private SubscriptionConsumerBean subscriptionConsumer;
 
     /**
      * Injection constructor.
      *
      * @param subscriptionUserProducer The (JMS) producer bean for this module
-     * @param subscriptionUserConsumer The user queue
+     * @param subscriptionConsumer The user queue
      */
     @Inject
-    public UsmClientImpl(SubscriptionUserProducerBean subscriptionUserProducer, SubscriptionUserConsumerBean subscriptionUserConsumer) {
+    public UsmClientImpl(SubscriptionUserProducerBean subscriptionUserProducer, SubscriptionConsumerBean subscriptionConsumer) {
         this.subscriptionUserProducer = subscriptionUserProducer;
-        this.subscriptionUserConsumer = subscriptionUserConsumer;
+        this.subscriptionConsumer = subscriptionConsumer;
     }
 
     /**
@@ -54,9 +63,9 @@ public class UsmClientImpl implements UsmClient{
         List<Organisation> organisations = null;
         try {
             String getAllOrganisationRequest = UserModuleRequestMapper.mapToGetAllOrganisationRequest(scopeName, roleName, requester);
-            String correlationID = subscriptionUserProducer.sendModuleMessage(getAllOrganisationRequest, subscriptionUserConsumer.getDestination());
+            String correlationID = subscriptionUserProducer.sendModuleMessage(getAllOrganisationRequest, subscriptionConsumer.getDestination());
             if (correlationID != null){
-                TextMessage message = subscriptionUserConsumer.getMessage(correlationID, TextMessage.class );
+                TextMessage message = subscriptionConsumer.getMessage(correlationID, TextMessage.class );
                 FindOrganisationsResponse responseMessage = JAXBUtils.unMarshallMessage(message.getText() , FindOrganisationsResponse.class);
                 organisations = responseMessage.getOrganisation();
             }
@@ -75,9 +84,9 @@ public class UsmClientImpl implements UsmClient{
         try {
             String correlationID = subscriptionUserProducer.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request),
                                                                                                 subscriptionUserProducer.getDestination(),
-                                                                                                subscriptionUserConsumer.getDestination());
+                                                                                                subscriptionConsumer.getDestination());
             if(correlationID != null) {
-                TextMessage message = subscriptionUserConsumer.getMessage(correlationID, TextMessage.class );
+                TextMessage message = subscriptionConsumer.getMessage(correlationID, TextMessage.class );
                 FindEndpointResponse response = JAXBUtils.unMarshallMessage( message.getText() , FindEndpointResponse.class);
                 endpoint = response.getEndpoint();
             }

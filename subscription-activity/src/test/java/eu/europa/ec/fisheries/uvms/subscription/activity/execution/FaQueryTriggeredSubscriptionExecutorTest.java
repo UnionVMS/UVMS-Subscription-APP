@@ -13,6 +13,7 @@ import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExec
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -21,10 +22,11 @@ import static org.mockito.Mockito.when;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.xml.datatype.DatatypeFactory;
-
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.EnumSet;
+import java.util.List;
 
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForVesselRequest;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ActivitySender;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ReceiverAndDataflow;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.UsmSender;
@@ -107,15 +109,17 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 
 		sut.execute(execution);
 
-		ArgumentCaptor<CreateAndSendFAQueryForVesselRequest> captor = ArgumentCaptor.forClass(CreateAndSendFAQueryForVesselRequest.class);
-		verify(activitySender).send(captor.capture());
-		CreateAndSendFAQueryForVesselRequest request = captor.getValue();
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<List<VesselIdentifierType>> idsCaptor = ArgumentCaptor.forClass(List.class);
+		ArgumentCaptor<XMLGregorianCalendar> dateCaptor1 = ArgumentCaptor.forClass(XMLGregorianCalendar.class);
+		ArgumentCaptor<XMLGregorianCalendar> dateCaptor2 = ArgumentCaptor.forClass(XMLGregorianCalendar.class);
 		DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
-		assertEquals(datatypeFactory.newXMLGregorianCalendar("2017-03-01T17:39:00Z"), request.getStartDate());
-		assertEquals(1, request.getVesselIdentifiers().size());
-		assertEquals("DUMMY IRCS", request.getVesselIdentifiers().get(0).getValue());
+		verify(activitySender).createAndSendQueryForVessel(idsCaptor.capture(), eq(true), dateCaptor1.capture(), dateCaptor2.capture(), eq(RECEIVER), eq(DATAFLOW));
 		assertNull(execution.getExecutionTime());
 		assertEquals(QUEUED, execution.getStatus());
+		assertEquals(datatypeFactory.newXMLGregorianCalendar("2017-03-01T17:39:00Z"), dateCaptor1.getValue());
+		assertEquals(1, idsCaptor.getValue().size());
+		assertEquals("DUMMY IRCS", idsCaptor.getValue().get(0).getValue());
 	}
 
 	private SubscriptionExecutionEntity setup(OutgoingMessageType outgoingMessageType) {
