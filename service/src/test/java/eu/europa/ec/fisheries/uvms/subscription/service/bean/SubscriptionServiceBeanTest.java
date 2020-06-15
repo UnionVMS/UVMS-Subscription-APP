@@ -22,12 +22,16 @@ import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
@@ -40,12 +44,19 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetGroupEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.AreaDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.AssetDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionFishingActivityDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListResponseDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.OrderByDataImpl;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.PaginationDataImpl;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionListQueryImpl;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionSearchCriteriaImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
@@ -69,6 +80,9 @@ import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -176,6 +190,46 @@ public class SubscriptionServiceBeanTest {
 		SubscriptionDto result = sut.findById(SUBSCR_ID);
 		assertNotNull(result);
 		assertEquals(EMAIL_BODY, result.getOutput().getEmailConfiguration().getBody());
+	}
+
+	@ParameterizedTest
+	@MethodSource("triggerTypeCriteria")
+	void testListSubscriptions(Collection<TriggerType> triggerTypes, Collection<TriggerType> exceptedTriggerTypes) {
+		PaginationDataImpl paginationData = mock(PaginationDataImpl.class);
+		when(paginationData.getPageSize()).thenReturn(10);
+		when(paginationData.getOffset()).thenReturn(0);
+		OrderByDataImpl orderByData = mock(OrderByDataImpl.class);
+		SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
+		criteria.setWithAnyTriggerType(triggerTypes);
+		SubscriptionListQuery queryParams = new SubscriptionListQueryImpl(paginationData, orderByData, criteria);
+
+		SubscriptionEntity subscription = new SubscriptionEntity();
+		subscription.setId(SUBSCR_ID);
+		subscription.setName(SUBSCR_NAME);
+		subscription.setOutput(new SubscriptionOutput());
+
+		when(subscriptionDAO.count(queryParams.getCriteria())).thenReturn(1L);
+		when(subscriptionDAO.listSubscriptions(queryParams)).thenReturn(Collections.singletonList(subscription));
+		when(usmClient.getAllOrganisations("DG_MARE", "rep_power_role", "curuser")).thenReturn(null);
+
+		SubscriptionListResponseDto result = sut.listSubscriptions(queryParams, "DG_MARE", "rep_power_role");
+
+		ArgumentCaptor<SubscriptionSearchCriteria> criteriaCaptor = ArgumentCaptor.forClass(SubscriptionSearchCriteria.class);
+		verify(subscriptionDAO).count(criteriaCaptor.capture());
+		assertEquals(exceptedTriggerTypes.size(), criteriaCaptor.getValue().getWithAnyTriggerType().size());
+		assertTrue(criteriaCaptor.getValue().getWithAnyTriggerType().containsAll(exceptedTriggerTypes));
+		assertNotNull(result);
+	}
+
+	protected static Stream<Arguments> triggerTypeCriteria() {
+		List<TriggerType> triggerTypesExcludingManual = Arrays.stream(TriggerType.values()).filter(t -> t != TriggerType.MANUAL).collect(Collectors.toList());
+		return Stream.of(
+				Arguments.of(null, triggerTypesExcludingManual),
+				Arguments.of(Collections.emptyList(), triggerTypesExcludingManual),
+				Arguments.of(Collections.singletonList(TriggerType.INC_FA_REPORT), Collections.singletonList(TriggerType.INC_FA_REPORT)),
+				Arguments.of(Arrays.asList(TriggerType.MANUAL, TriggerType.INC_POSITION), Collections.singletonList(TriggerType.INC_POSITION)),
+				Arguments.of(Collections.singletonList(TriggerType.MANUAL), triggerTypesExcludingManual)
+		);
 	}
 
 	@Test
