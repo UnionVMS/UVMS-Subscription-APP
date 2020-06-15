@@ -92,17 +92,14 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 			Objects.requireNonNull(occurrence, "occurrence not found in data of " + triggeredSubscription.getId());
 			ZonedDateTime occurrenceZdt = datatypeFactory.newXMLGregorianCalendar(occurrence).toGregorianCalendar().toZonedDateTime();
 			ZonedDateTime startDate = occurrenceZdt.minus(subscription.getOutput().getHistory(), subscription.getOutput().getHistoryUnit().getTemporalUnit());
-			CreateAndSendFAQueryForVesselRequest message = new CreateAndSendFAQueryForVesselRequest(
-					ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY_FOR_VESSEL,
-					PluginType.FLUX,
-					vesselIdentifiers,
+			String generatedQueryId = activitySender.createAndSendQueryForVessel(vesselIdentifiers,
 					TRUE.equals(subscription.getOutput().getConsolidated()),
 					datatypeFactory.newXMLGregorianCalendar(GregorianCalendar.from(startDate)),
 					datatypeFactory.newXMLGregorianCalendar(GregorianCalendar.from(occurrenceZdt)),
 					receiverAndDataflow.getReceiver(),
 					receiverAndDataflow.getDataflow()
 			);
-			activitySender.send(message);
+			execution.getMessageIds().add(generatedQueryId);
 		}
 	}
 

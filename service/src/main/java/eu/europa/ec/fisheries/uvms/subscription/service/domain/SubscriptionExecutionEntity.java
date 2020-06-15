@@ -9,7 +9,9 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.domain;
 
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -23,6 +25,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType;
 import lombok.Getter;
@@ -65,6 +69,11 @@ public class SubscriptionExecutionEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private SubscriptionExecutionStatusType status;
+
+    @ElementCollection
+    @CollectionTable(name = "execution_message", joinColumns = @JoinColumn(name = "subscription_execution_id"))
+    @Column(name = "message_id")
+    Set<String> messageIds = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "triggered_subscription_id")

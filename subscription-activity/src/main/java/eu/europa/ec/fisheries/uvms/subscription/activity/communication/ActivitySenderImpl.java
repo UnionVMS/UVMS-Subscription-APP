@@ -11,15 +11,16 @@ package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.jms.Queue;
+import javax.xml.datatype.XMLGregorianCalendar;
 
-import eu.europa.ec.fisheries.uvms.activity.model.exception.ActivityModelMarshallException;
-import eu.europa.ec.fisheries.uvms.activity.model.mapper.JAXBMarshaller;
+import java.util.List;
+
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityModuleMethod;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForTripRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForVesselRequest;
-import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
-import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
-import eu.europa.fisheries.uvms.subscription.model.exceptions.ExecutionException;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryResponse;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.PluginType;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
 
 /**
  * Implementation of {@link ActivitySender}.
@@ -27,36 +28,37 @@ import eu.europa.fisheries.uvms.subscription.model.exceptions.ExecutionException
 @ApplicationScoped
 class ActivitySenderImpl implements ActivitySender {
 
-	private SubscriptionProducerBean subscriptionProducer;
-	private Queue activityQueue;
+	private ActivityClient activityClient;
 
 	/**
-	 * Injection constructor.
+	 * Injection constructor
 	 *
-	 * @param subscriptionProducer The (JMS) producer bean for this module
-	 * @param activityQueue The activity queue
+	 * @param activityClient The low-level client to the services of the activity module
 	 */
 	@Inject
-	public ActivitySenderImpl(SubscriptionProducerBean subscriptionProducer, @ActivityQueue Queue activityQueue) {
-		this.subscriptionProducer = subscriptionProducer;
-		this.activityQueue = activityQueue;
+	public ActivitySenderImpl(ActivityClient activityClient) {
+		this.activityClient = activityClient;
 	}
 
 	@Override
-	public void send(CreateAndSendFAQueryForVesselRequest message) {
-		try {
-			subscriptionProducer.sendMessageToSpecificQueueSameTx(JAXBMarshaller.marshallJaxBObjectToString(message), activityQueue, subscriptionProducer.getDestination());
-		} catch (MessageException | ActivityModelMarshallException e) {
-			throw new ExecutionException(e);
+	public String createAndSendQueryForVessel(List<VesselIdentifierType> vesselIdentifiers, boolean consolidated, XMLGregorianCalendar startDate, XMLGregorianCalendar endDate, String receiver, String dataflow) {
+		CreateAndSendFAQueryForVesselRequest request = new CreateAndSendFAQueryForVesselRequest(ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY_FOR_VESSEL, PluginType.FLUX, vesselIdentifiers, consolidated, startDate, endDate, receiver, dataflow);
+		CreateAndSendFAQueryResponse response = activityClient.sendRequest(request);
+		String messageId = null;
+		if(response != null) {
+			messageId = response.getMessageId();
 		}
+		return messageId;
 	}
 
 	@Override
-	public void send(CreateAndSendFAQueryForTripRequest message) {
-		try {
-			subscriptionProducer.sendMessageToSpecificQueueSameTx(JAXBMarshaller.marshallJaxBObjectToString(message), activityQueue, subscriptionProducer.getDestination());
-		} catch (MessageException | ActivityModelMarshallException e) {
-			throw new ExecutionException(e);
+	public String createAndSendQueryForTrip(String tripId, boolean consolidated, String receiver, String dataflow) {
+		CreateAndSendFAQueryForTripRequest request = new CreateAndSendFAQueryForTripRequest(ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY_FOR_TRIP, PluginType.FLUX, tripId, consolidated, receiver, dataflow);
+		CreateAndSendFAQueryResponse response = activityClient.sendRequest(request);
+		String messageId = null;
+		if(response != null) {
+			messageId = response.getMessageId();
 		}
+		return messageId;
 	}
 }
