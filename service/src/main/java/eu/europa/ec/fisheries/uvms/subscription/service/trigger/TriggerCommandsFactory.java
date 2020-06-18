@@ -15,6 +15,7 @@ import java.util.function.Function;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.AssetPageRetrievalMessage;
 
 /**
  * Factory for creating trigger and stop condition commands.
@@ -37,4 +38,12 @@ public interface TriggerCommandsFactory {
 	 * @return The command
 	 */
 	Command createStopSubscriptionCommand(StopConditionCriteria stopConditionCriteria);
+
+	/**
+	 * Make a command to trigger paged retrieval of a group of assets
+	 *
+	 * @param message The message object containing the info for the retrieval
+	 * @return The command
+	 */
+	Command createAssetPageRetrievalCommand(AssetPageRetrievalMessage message);
 }

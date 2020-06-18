@@ -3,6 +3,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -44,6 +45,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @EnableAutoWeld
 @ExtendWith(MockitoExtension.class)
 public class SubscriptionFinderImplTest {
+
+	private static final Long ID = 1234L;
+
 	@Produces @Mock
 	private SubscriptionDao dao;
 
@@ -168,11 +172,11 @@ public class SubscriptionFinderImplTest {
 
 	@Test
 	void testFindSubscriptionsTriggeredBySenders() {
-		SenderCriterion senders = new SenderCriterion(1L,2L,3L);
+		SenderCriterion senders = new SenderCriterion(1L, 2L, 3L);
 		ZonedDateTime validAt = ZonedDateTime.now();
 		List<SubscriptionEntity> mockResult = Collections.emptyList();
 		when(dao.listSubscriptions(any(SubscriptionSearchCriteria.class))).thenReturn(mockResult);
-		List<SubscriptionEntity> result = sut.findTriggeredSubscriptions(Collections.emptyList(), Collections.emptyList(),senders, validAt, Collections.singleton(TriggerType.SCHEDULER));
+		List<SubscriptionEntity> result = sut.findTriggeredSubscriptions(Collections.emptyList(), Collections.emptyList(), senders, validAt, Collections.singleton(TriggerType.SCHEDULER));
 		assertTrue(result.isEmpty());
 		ArgumentCaptor<SubscriptionSearchCriteria> criteriaCaptor = ArgumentCaptor.forClass(SubscriptionSearchCriteria.class);
 		verify(dao).listSubscriptions(criteriaCaptor.capture());
@@ -182,5 +186,14 @@ public class SubscriptionFinderImplTest {
 		assertEquals(1, criteriaCaptor.getValue().getWithAnyTriggerType().size());
 		assertEquals(TriggerType.SCHEDULER, criteriaCaptor.getValue().getWithAnyTriggerType().iterator().next());
 		assertTrue(criteriaCaptor.getValue().getAllowWithNoArea());
+	}
+
+	@Test
+	void testFindSubscriptionByIdDelegatesToDao() {
+		SubscriptionEntity subscription = new SubscriptionEntity();
+		when(dao.findById(ID)).thenReturn(subscription);
+		SubscriptionEntity result = sut.findSubscriptionById(ID);
+		verify(dao).findById(ID);
+		assertSame(subscription, result);
 	}
 }

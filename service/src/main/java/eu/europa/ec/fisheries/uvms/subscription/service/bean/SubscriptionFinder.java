@@ -31,9 +31,18 @@ public interface SubscriptionFinder {
 	 *
 	 * @param areas   The areas
 	 * @param assets  The assets
-	 * @param validAt The assets must be valid at this time
+	 * @param senders The senders
+	 * @param validAt The subscription must be valid at this time
 	 * @param triggerTypes The subscription trigger is any of these, {@code null} to ignore the criterion
 	 * @return A non-null list of subscriptions
 	 */
 	List<SubscriptionEntity> findTriggeredSubscriptions(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, SenderCriterion senders, @Valid @NotNull ZonedDateTime validAt, Collection<TriggerType> triggerTypes);
+
+	/**
+	 * Find subscription by Id.
+	 *
+	 * @param id The subscription id
+	 * @return the found entity instance or null if the entity does not exist
+	 */
+	SubscriptionEntity findSubscriptionById(Long id);
 }

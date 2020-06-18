@@ -19,21 +19,19 @@ import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import javax.jms.Destination;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
-import java.time.Instant;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -57,18 +55,19 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionFishingActivityDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListResponseDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.OrderByDataImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.PaginationDataImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionListQueryImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionSearchCriteriaImpl;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapperImpl;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.AssetPageRetrievalMessage;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
-import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionManualProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmClient;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
@@ -136,9 +135,6 @@ public class SubscriptionServiceBeanTest {
 	private final Date today = Date.from(todayLD.atStartOfDay(ZoneId.systemDefault()).toInstant());
 	private final Date tomorrow = Date.from(todayLD.plus(1, ChronoUnit.DAYS).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-	private static final String SUBSCRIPTION_SOURCE_KEY = "subscriptionSource";
-	private static final String SUBSCRIPTION_SOURCE_VALUE = "manual";
-
 	@Produces @Mock
 	private SubscriptionDao subscriptionDAO;
 
@@ -158,7 +154,7 @@ public class SubscriptionServiceBeanTest {
 	private SubscriptionProducerBean subscriptionProducer;
 
 	@Produces @Mock
-	private SubscriptionManualProducerBean subscriptionManualProducerBean;
+	private SubscriptionSender subscriptionSender;
 
 	@Produces @Mock
 	private AuthenticationContext mockAuthenticationContext;
@@ -685,7 +681,7 @@ public class SubscriptionServiceBeanTest {
 
 	@ParameterizedTest
 	@MethodSource("testCreateManualSubscriptionParams")
-	void testCreateManualSubscription(Boolean includeAssets) throws MessageException {
+	void testCreateManualSubscription(Boolean includeAssets) {
 		SubscriptionDto dto = SubscriptionTestHelper.createManualSubscriptionDto(SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
 				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, new Date(), new Date(),
 				includeAssets, true);
@@ -728,20 +724,15 @@ public class SubscriptionServiceBeanTest {
 		SubscriptionEntity subscription = captor.getValue();
 		assertEquals(subscription.getId(), SUBSCR_ID);
 
-		ArgumentCaptor<String> captor1 = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<Destination> captor2 = ArgumentCaptor.forClass(Destination.class);
-		@SuppressWarnings("unchecked")
-		ArgumentCaptor<Map<String, String>> captor3 = ArgumentCaptor.forClass(Map.class);
+		ArgumentCaptor<AssetPageRetrievalMessage> captor1 = ArgumentCaptor.forClass(AssetPageRetrievalMessage.class);
 		int numberOfInvocations = includeAssets ? 3 : 2;
-		verify(subscriptionManualProducerBean, times(numberOfInvocations)).sendModuleMessageWithProps(captor1.capture(), captor2.capture(), captor3.capture());
-		List<String> messageBody = captor1.getAllValues();
-		List<Destination> replyToDestination = captor2.getAllValues();
-		List<Map<String, String>> messageProps = captor3.getAllValues();
+		verify(subscriptionSender, times(numberOfInvocations)).sendAssetPageRetrievalMessageSameTx(captor1.capture());
+		List<AssetPageRetrievalMessage> messages = captor1.getAllValues();
 
-		verifyQueueMessageContents(messageBody, replyToDestination, messageProps, "greece-small-ships", 0);
-		verifyQueueMessageContents(messageBody, replyToDestination, messageProps, "greece-big-ships", 1);
+		verifyMessageContents(messages.get(0), "11ac3628-9a2e-4a21-a9eb-3931e5a1ce53", 1L);
+		verifyMessageContents(messages.get(1), "22ac3628-9a2e-4a21-a9eb-3931e5a1ce54", 1L);
 		if (includeAssets) {
-			verifyQueueMessageContents(messageBody, replyToDestination, messageProps, "mainAssets", 2);
+			verifyMessageContents(messages.get(2),"mainAssets", 1L);
 		}
 	}
 
@@ -752,10 +743,10 @@ public class SubscriptionServiceBeanTest {
 		);
 	}
 
-	private void verifyQueueMessageContents(List<String> messageBody, List<Destination> replyToDestination, List<Map<String, String>> messageProps, String assetGroupName, int i) {
-		assertEquals(String.join(";", String.valueOf(SUBSCR_ID), assetGroupName, "0", "1"), messageBody.get(i));
-		assertNull(replyToDestination.get(i));
-		assertEquals(SUBSCRIPTION_SOURCE_VALUE, messageProps.get(i).get(SUBSCRIPTION_SOURCE_KEY));
+	private void verifyMessageContents(AssetPageRetrievalMessage message, String assetGroupGuid, long pageNumber) {
+		assertEquals(assetGroupGuid, message.getAssetGroupGuid());
+		assertEquals(pageNumber, message.getPageNumber());
+		assertTrue(message.getPageSize() > 1L);
 	}
 
 	@Test

@@ -118,4 +118,9 @@ class SubscriptionFinderImpl implements SubscriptionFinder {
 		criteria.setWithAnyTriggerType(triggerTypes);
 		return criteria;
 	}
+
+    @Override
+    public SubscriptionEntity findSubscriptionById(Long id) {
+		return dao.findById(id);
+    }
 }
