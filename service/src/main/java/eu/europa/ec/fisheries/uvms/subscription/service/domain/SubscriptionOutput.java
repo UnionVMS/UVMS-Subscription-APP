@@ -88,6 +88,5 @@ public class SubscriptionOutput implements Serializable {
 			@AttributeOverride(name = "endDate", column = @Column(name = "query_end_date"))
 	})
 	@Valid
-	private DateRange queryPeriod = new DateRange(new Date(), new Date(Long.MAX_VALUE));
-
+	private DateRange queryPeriod;
 }

@@ -23,15 +23,20 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
+import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ActivitySender;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.ReceiverAndDataflow;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.TriggeredSubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecution;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
@@ -42,6 +47,7 @@ import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,6 +69,8 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 	private static final String RECEIVER = "RECEIVER";
 	private static final String DATAFLOW = "DATAFLOW";
 	private static final String OCCURRENCE = "2017-03-04T17:39:00Z";
+	private static final Date START_DATE = Date.from(LocalDateTime.of(2020, 6, 11, 12, 1,2).atZone(ZoneId.of("UTC")).toInstant());
+	private static final Date END_DATE = Date.from(LocalDateTime.of(2020, 6, 21, 13, 3,4).atZone(ZoneId.of("UTC")).toInstant());
 
 	@Produces @Mock
 	private TriggeredSubscriptionDao triggeredSubscriptionDao;
@@ -92,20 +100,17 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 
 	@Test
 	void testExecuteNoFaQuery() {
-		SubscriptionExecutionEntity execution = setup(OutgoingMessageType.FA_REPORT);
+		SubscriptionExecutionEntity execution = setup(OutgoingMessageType.FA_REPORT, TriggerType.INC_FA_QUERY);
 		sut.execute(execution);
 		verifyNoMoreInteractions(activitySender, usmSender);
 	}
 
 	@Test
 	void testExecute() throws Exception {
-		SubscriptionExecutionEntity execution = setup(OutgoingMessageType.FA_QUERY);
-		ReceiverAndDataflow receiverAndDataflow = new ReceiverAndDataflow(RECEIVER, DATAFLOW);
-		when(usmSender.findReceiverAndDataflow(ENDPOINT_ID,CHANNEL_ID)).thenReturn(receiverAndDataflow);
-		VesselIdentifiersHolder idsHolder = new VesselIdentifiersHolder();
-		idsHolder.setCfr("CFR123456789");
-		idsHolder.setIrcs("DUMMY IRCS");
-		when(assetSender.findVesselIdentifiers(CONNECT_ID)).thenReturn(idsHolder);
+		SubscriptionExecutionEntity execution = setup(OutgoingMessageType.FA_QUERY, TriggerType.INC_FA_QUERY);
+		execution.getTriggeredSubscription().getSubscription().getOutput().setHistory(3);
+		execution.getTriggeredSubscription().getSubscription().getOutput().setHistoryUnit(SubscriptionTimeUnit.DAYS);
+		setupMocks();
 
 		sut.execute(execution);
 
@@ -118,11 +123,35 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 		assertNull(execution.getExecutionTime());
 		assertEquals(QUEUED, execution.getStatus());
 		assertEquals(datatypeFactory.newXMLGregorianCalendar("2017-03-01T17:39:00Z"), dateCaptor1.getValue());
+		assertEquals(datatypeFactory.newXMLGregorianCalendar(OCCURRENCE), dateCaptor2.getValue());
 		assertEquals(1, idsCaptor.getValue().size());
 		assertEquals("DUMMY IRCS", idsCaptor.getValue().get(0).getValue());
 	}
 
-	private SubscriptionExecutionEntity setup(OutgoingMessageType outgoingMessageType) {
+	@Test
+	void testExecuteManualSubscription() throws Exception {
+		SubscriptionExecutionEntity execution = setup(OutgoingMessageType.FA_QUERY, TriggerType.MANUAL);
+		execution.getTriggeredSubscription().getSubscription().getOutput().setQueryPeriod(new DateRange(START_DATE, END_DATE));
+		execution.getTriggeredSubscription().getData().add(new TriggeredSubscriptionDataEntity(execution.getTriggeredSubscription(), "IRCS", "IRCS FROM DATA"));
+		setupMocks();
+
+		sut.execute(execution);
+
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<List<VesselIdentifierType>> idsCaptor = ArgumentCaptor.forClass(List.class);
+		ArgumentCaptor<XMLGregorianCalendar> dateCaptor1 = ArgumentCaptor.forClass(XMLGregorianCalendar.class);
+		ArgumentCaptor<XMLGregorianCalendar> dateCaptor2 = ArgumentCaptor.forClass(XMLGregorianCalendar.class);
+		DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
+		verify(activitySender).createAndSendQueryForVessel(idsCaptor.capture(), eq(true), dateCaptor1.capture(), dateCaptor2.capture(), eq(RECEIVER), eq(DATAFLOW));
+		assertNull(execution.getExecutionTime());
+		assertEquals(QUEUED, execution.getStatus());
+		assertEquals(datatypeFactory.newXMLGregorianCalendar("2020-06-11T12:01:02Z"), dateCaptor1.getValue());
+		assertEquals(datatypeFactory.newXMLGregorianCalendar("2020-06-21T13:03:04Z"), dateCaptor2.getValue());
+		assertEquals(1, idsCaptor.getValue().size());
+		assertEquals("IRCS FROM DATA", idsCaptor.getValue().get(0).getValue());
+	}
+
+	private SubscriptionExecutionEntity setup(OutgoingMessageType outgoingMessageType, TriggerType triggerType) {
 		SubscriptionEntity subscription = new SubscriptionEntity();
 		SubscriptionSubscriber subscriber = new SubscriptionSubscriber();
 		subscriber.setChannelId(CHANNEL_ID);
@@ -130,11 +159,12 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 		SubscriptionOutput output = new SubscriptionOutput();
 		output.setMessageType(outgoingMessageType);
 		output.setSubscriber(subscriber);
-		output.setHistory(3);
-		output.setHistoryUnit(SubscriptionTimeUnit.DAYS);
 		output.setConsolidated(true);
 		output.setVesselIds(EnumSet.of(SubscriptionVesselIdentifier.IRCS));
 		subscription.setOutput(output);
+		SubscriptionExecution subscriptionExecution = new SubscriptionExecution();
+		subscriptionExecution.setTriggerType(triggerType);
+		subscription.setExecution(subscriptionExecution);
 		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
 		triggeredSubscription.setId(TRIGGERED_SUBSCRIPTION_ID);
 		triggeredSubscription.setSubscription(subscription);
@@ -145,5 +175,14 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 		execution.setTriggeredSubscription(triggeredSubscription);
 		execution.setStatus(QUEUED);
 		return execution;
+	}
+
+	private void setupMocks() {
+		ReceiverAndDataflow receiverAndDataflow = new ReceiverAndDataflow(RECEIVER, DATAFLOW);
+		when(usmSender.findReceiverAndDataflow(ENDPOINT_ID, CHANNEL_ID)).thenReturn(receiverAndDataflow);
+		VesselIdentifiersHolder idsHolder = new VesselIdentifiersHolder();
+		idsHolder.setCfr("CFR123456789");
+		idsHolder.setIrcs("DUMMY IRCS");
+		lenient().when(assetSender.findVesselIdentifiers(CONNECT_ID)).thenReturn(idsHolder);
 	}
 }

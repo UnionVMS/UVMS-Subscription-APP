@@ -23,12 +23,16 @@ import eu.europa.ec.fisheries.uvms.user.model.exception.ModelMarshallException;
 import eu.europa.ec.fisheries.uvms.user.model.mapper.JAXBMarshaller;
 import eu.europa.ec.fisheries.wsdl.asset.module.AssetGroupsForAssetRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.AssetGroupsForAssetResponse;
+import eu.europa.ec.fisheries.wsdl.asset.module.AssetIdsForGroupRequest;
+import eu.europa.ec.fisheries.wsdl.asset.module.AssetIdsForGroupResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHistGuidsRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHistGuidsResponse;
+import eu.europa.ec.fisheries.wsdl.asset.types.AssetIdsForGroupGuidQueryElement;
+import eu.europa.ec.fisheries.wsdl.asset.types.AssetIdsForGroupGuidResponseElement;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.ApplicationException;
 
 /**
@@ -125,6 +129,26 @@ public class JmsAssetClient implements AssetClient {
 			if(correlationID != null) {
 				TextMessage message = subscriptionConsumer.getMessage(correlationID, TextMessage.class );
 				response = JAXBMarshaller.unmarshallTextMessage(message, AssetGroupsForAssetResponse.class);
+			}
+			return response;
+		} catch (MessageException | ModelMarshallException e) {
+			throw new ApplicationException(e);
+		}
+	}
+
+	@Override
+	public AssetIdsForGroupGuidResponseElement findAssetIdentifiersForGroupGuid(AssetIdsForGroupRequest request) {
+		try {
+			String correlationID = subscriptionAssetProducerBean.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request),
+					subscriptionAssetProducerBean.getDestination(),
+					subscriptionConsumer.getDestination());
+
+			AssetIdsForGroupGuidResponseElement response = null;
+			AssetIdsForGroupResponse res = null;
+			if (correlationID != null) {
+				TextMessage message = subscriptionConsumer.getMessage(correlationID, TextMessage.class);
+				res = JAXBMarshaller.unmarshallTextMessage(message, AssetIdsForGroupResponse.class);
+				response = res.getAssetIdsForGroupGuidResponseElement();
 			}
 			return response;
 		} catch (MessageException | ModelMarshallException e) {

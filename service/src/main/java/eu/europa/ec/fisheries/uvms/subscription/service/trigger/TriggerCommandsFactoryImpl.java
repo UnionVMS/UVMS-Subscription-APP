@@ -11,7 +11,6 @@ package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-
 import java.util.Set;
 import java.util.function.Function;
 
@@ -20,6 +19,9 @@ import eu.europa.ec.fisheries.uvms.subscription.service.bean.TriggeredSubscripti
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionExecutionService;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.AssetPageRetrievalMessage;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionManualProducerBean;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
 
 /**
@@ -31,6 +33,7 @@ class TriggerCommandsFactoryImpl implements TriggerCommandsFactory {
 	private TriggeredSubscriptionService triggeredSubscriptionService;
 	private SubscriptionExecutionScheduler subscriptionExecutionScheduler;
 	private SubscriptionExecutionService subscriptionExecutionService;
+	private SubscriptionSender subscriptionSender;
 
 	/**
 	 * Constructor for injection.
@@ -38,12 +41,14 @@ class TriggerCommandsFactoryImpl implements TriggerCommandsFactory {
 	 * @param triggeredSubscriptionService   The triggered subscription service
 	 * @param subscriptionExecutionScheduler The subscription execution scheduler
 	 * @param subscriptionExecutionService   The subscription execution service
+	 * @param subscriptionSender The facility used to re-enter messages in the subscription queue
 	 */
 	@Inject
-	public TriggerCommandsFactoryImpl(TriggeredSubscriptionService triggeredSubscriptionService, SubscriptionExecutionScheduler subscriptionExecutionScheduler, SubscriptionExecutionService subscriptionExecutionService) {
+	public TriggerCommandsFactoryImpl(TriggeredSubscriptionService triggeredSubscriptionService, SubscriptionExecutionScheduler subscriptionExecutionScheduler, SubscriptionExecutionService subscriptionExecutionService, SubscriptionSender subscriptionSender) {
 		this.triggeredSubscriptionService = triggeredSubscriptionService;
 		this.subscriptionExecutionScheduler = subscriptionExecutionScheduler;
 		this.subscriptionExecutionService = subscriptionExecutionService;
+		this.subscriptionSender = subscriptionSender;
 	}
 
 	/**
@@ -62,5 +67,10 @@ class TriggerCommandsFactoryImpl implements TriggerCommandsFactory {
 	@Override
 	public Command createStopSubscriptionCommand(StopConditionCriteria stopConditionCriteria) {
 		return new StopSubscriptionCommand(triggeredSubscriptionService, subscriptionExecutionService, stopConditionCriteria);
+	}
+
+	@Override
+	public Command createAssetPageRetrievalCommand(AssetPageRetrievalMessage message) {
+		return new AssetPageRetrievalCommand(message, subscriptionSender);
 	}
 }

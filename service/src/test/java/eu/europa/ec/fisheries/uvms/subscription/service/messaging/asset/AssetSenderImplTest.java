@@ -12,15 +12,21 @@ package eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
+import eu.europa.ec.fisheries.wsdl.asset.module.AssetGroupsForAssetRequest;
+import eu.europa.ec.fisheries.wsdl.asset.module.AssetIdsForGroupRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.AssetModuleMethod;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse;
@@ -29,7 +35,9 @@ import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidResp
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHistGuidsRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHistGuidsResponse;
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
+import eu.europa.ec.fisheries.wsdl.asset.types.AssetIdsForGroupGuidResponseElement;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
+import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersWithConnectIdHolder;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -96,4 +104,38 @@ public class AssetSenderImplTest {
 		assertEquals(ASSET_GUID1, request.getAssetGuid());
 		assertEquals(date, request.getOccurrenceDate());
 	}
+
+	@Test
+	void testFindAssetIdentifiersByAssetGroupGuid() {
+		String assetGroupGuid = "an-asset-group-uuid";
+		Date occurrenceDate = new Date();
+		long pageNumber = 1;
+		long pageSize = 10;
+		VesselIdentifiersWithConnectIdHolder holder = new VesselIdentifiersWithConnectIdHolder();
+		holder.setConnectId("connect-uuid");
+		holder.setUvi("UVI_VALUE");
+		holder.setIrcs("IRCS_VALUE");
+		List<VesselIdentifiersWithConnectIdHolder> vesselIdentifiers = Collections.singletonList(holder);
+		AssetIdsForGroupGuidResponseElement mockedResponse = mock(AssetIdsForGroupGuidResponseElement.class);
+		when(mockedResponse.getVesselIdentifiers()).thenReturn(vesselIdentifiers);
+		when(assetClient.findAssetIdentifiersForGroupGuid(any())).thenReturn(mockedResponse);
+
+		List<VesselIdentifiersWithConnectIdHolder> result = sut.findAssetIdentifiersByAssetGroupGuid(assetGroupGuid, occurrenceDate, pageNumber, pageSize);
+
+		assertEquals(1, result.size());
+		assertEquals(vesselIdentifiers.get(0).getConnectId(), result.get(0).getConnectId());
+		assertEquals(vesselIdentifiers.get(0).getUvi(), result.get(0).getUvi());
+		assertEquals(vesselIdentifiers.get(0).getIrcs(), result.get(0).getIrcs());
+
+		ArgumentCaptor<AssetIdsForGroupRequest> captor = ArgumentCaptor.forClass(AssetIdsForGroupRequest.class);
+		verify(assetClient).findAssetIdentifiersForGroupGuid(captor.capture());
+		AssetIdsForGroupRequest request = captor.getValue();
+		assertEquals(AssetModuleMethod.ASSET_IDS_FOR_GROUP_GUID, request.getMethod());
+		assertEquals(assetGroupGuid, request.getAssetIdsForGroupGuidQueryElement().getAssetGuid());
+		assertEquals(occurrenceDate, request.getAssetIdsForGroupGuidQueryElement().getOccurrenceDate());
+		assertEquals(pageNumber, request.getAssetIdsForGroupGuidQueryElement().getPagination().getPage());
+		assertEquals(pageSize, request.getAssetIdsForGroupGuidQueryElement().getPagination().getListSize());
+
+	}
+
 }

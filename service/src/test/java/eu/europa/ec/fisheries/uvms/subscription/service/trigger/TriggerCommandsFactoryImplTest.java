@@ -14,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-
 import java.util.Collections;
 import java.util.Set;
 import java.util.function.Function;
@@ -24,6 +23,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.bean.TriggeredSubscripti
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionExecutionService;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.AssetPageRetrievalMessage;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
@@ -46,6 +47,9 @@ public class TriggerCommandsFactoryImplTest {
 
 	@Produces @Mock
 	private SubscriptionExecutionService subscriptionExecutionService;
+
+	@Produces @Mock
+	private SubscriptionSender subscriptionSender;
 
 	@Inject
 	private TriggerCommandsFactoryImpl sut;
@@ -70,6 +74,13 @@ public class TriggerCommandsFactoryImplTest {
 		StopConditionCriteria stopConditionCriteria = new StopConditionCriteria();
 		Command result = sut.createStopSubscriptionCommand(stopConditionCriteria);
 		assertTrue(result instanceof StopSubscriptionCommand);
+		result.execute();
+	}
+
+	@Test
+	void testCreateAssetPageRetrivalCommand() {
+		Command result = sut.createAssetPageRetrievalCommand((new AssetPageRetrievalMessage(true, 500L, "greece", 0L, 100L)));
+		assertTrue(result instanceof AssetPageRetrievalCommand);
 		result.execute();
 	}
 }

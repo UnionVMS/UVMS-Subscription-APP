@@ -11,47 +11,57 @@ package eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset;
 
 import eu.europa.ec.fisheries.wsdl.asset.module.AssetGroupsForAssetRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.AssetGroupsForAssetResponse;
+import eu.europa.ec.fisheries.wsdl.asset.module.AssetIdsForGroupRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHistGuidsRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHistGuidsResponse;
+import eu.europa.ec.fisheries.wsdl.asset.types.AssetIdsForGroupGuidResponseElement;
 
 /**
  * Low-level client to interesting Asset module services.
  */
 public interface AssetClient {
+    /**
+     * Call {@code FIND_VESSEL_IDS_BY_ASSET_HIST_GUID}.
+     *
+     * @param request The asset module request
+     * @return The asset module response
+     */
+    FindVesselIdsByAssetHistGuidResponse findVesselIdsByAssetHistGuid(FindVesselIdsByAssetHistGuidRequest request);
+
+    /**
+     * Call {@code FIND_VESSEL_IDS_BY_MULTIPLE_ASSET_HIST_GUID}.
+     *
+     * @param request The asset module request
+     * @return The asset module response
+     */
+    FindVesselIdsByMultipleAssetHistGuidsResponse findVesselIdsByMultipleAssetHistGuid(FindVesselIdsByMultipleAssetHistGuidsRequest request);
+
+    /**
+     * Call {@code FIND_ASSET_HIST_GUID_BY_ASSET_GUID_AND_OCCURRENCE_DATE}.
+     *
+     * @param request The asset module request
+     * @return The asset module response
+     */
+    FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse findAssetHistGuidByAssetGuidAndOccurrenceDate(FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest request);
+
+
+    /**
+     * Call {@code ASSET_GROUPS_FOR_ASSET}.
+     *
+     * @param request The asset module request
+     * @return The asset module response
+     */
+    AssetGroupsForAssetResponse findAssetGroupsForAsset(AssetGroupsForAssetRequest request);
+
 	/**
-	 * Call {@code FIND_VESSEL_IDS_BY_ASSET_HIST_GUID}.
+	 * Call {@code ASSET_IDS_FOR_GROUP_GUID}.
 	 *
 	 * @param request The asset module request
 	 * @return The asset module response
 	 */
-	FindVesselIdsByAssetHistGuidResponse findVesselIdsByAssetHistGuid(FindVesselIdsByAssetHistGuidRequest request);
-
-	/**
-	 * Call {@code FIND_VESSEL_IDS_BY_MULTIPLE_ASSET_HIST_GUID}.
-	 *
-	 * @param request The asset module request
-	 * @return The asset module response
-	 */
-	FindVesselIdsByMultipleAssetHistGuidsResponse findVesselIdsByMultipleAssetHistGuid(FindVesselIdsByMultipleAssetHistGuidsRequest request);
-
-	/**
-	 * Call {@code FIND_ASSET_HIST_GUID_BY_ASSET_GUID_AND_OCCURRENCE_DATE}.
-	 *
-	 * @param request The asset module request
-	 * @return The asset module response
-	 */
-	FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse findAssetHistGuidByAssetGuidAndOccurrenceDate(FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest request);
-
-
-	/**
-	 * Call {@code ASSET_GROUPS_FOR_ASSET}.
-	 *
-	 * @param request The asset module request
-	 * @return The asset module response
-	 */
-	AssetGroupsForAssetResponse findAssetGroupsForAsset(AssetGroupsForAssetRequest request);
+	AssetIdsForGroupGuidResponseElement findAssetIdentifiersForGroupGuid(AssetIdsForGroupRequest request);
 }

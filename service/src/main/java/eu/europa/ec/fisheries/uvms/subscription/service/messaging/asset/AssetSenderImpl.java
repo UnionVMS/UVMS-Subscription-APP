@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 import eu.europa.ec.fisheries.wsdl.asset.module.AssetGroupsForAssetRequest;
+import eu.europa.ec.fisheries.wsdl.asset.module.AssetIdsForGroupRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.AssetModuleMethod;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse;
@@ -27,7 +28,11 @@ import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHist
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetGroupsForAssetQueryElement;
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetGroupsForAssetResponseElement;
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
+import eu.europa.ec.fisheries.wsdl.asset.types.AssetIdsForGroupGuidQueryElement;
+import eu.europa.ec.fisheries.wsdl.asset.types.AssetIdsForGroupGuidResponseElement;
+import eu.europa.ec.fisheries.wsdl.asset.types.AssetListPagination;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
+import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersWithConnectIdHolder;
 
 /**
  * Implementation of {@link AssetSender}
@@ -84,7 +89,6 @@ public class AssetSenderImpl implements AssetSender {
     }
 
 
-
     @Override
     public List<String> findAssetGroupsForAsset(String assetGuid, Date occurrenceDate) {
         AssetGroupsForAssetRequest request = new AssetGroupsForAssetRequest();
@@ -98,5 +102,21 @@ public class AssetSenderImpl implements AssetSender {
         List<AssetGroupsForAssetResponseElement> response = assetClient.findAssetGroupsForAsset(request).getAssetGroupsForAssetResponseElementList();
         AssetGroupsForAssetResponseElement assetGroupsForAssetResponseElement = response.stream().filter(a -> refUuid.equals(a.getRefUuid())).findAny().orElse(null);
         return assetGroupsForAssetResponseElement != null ? assetGroupsForAssetResponseElement.getGroupUuid() : Collections.emptyList();
+    }
+
+    @Override
+    public List<VesselIdentifiersWithConnectIdHolder> findAssetIdentifiersByAssetGroupGuid(String assetGroupGuid, Date occurrenceDate, Long pageNumber, Long pageSize) {
+        AssetIdsForGroupGuidQueryElement queryElement = new AssetIdsForGroupGuidQueryElement();
+        AssetListPagination assetListPagination = new AssetListPagination();
+        assetListPagination.setPage(pageNumber.intValue());
+        assetListPagination.setListSize(pageSize.intValue());
+        queryElement.setPagination(assetListPagination);
+        queryElement.setAssetGuid(assetGroupGuid);
+        queryElement.setOccurrenceDate(occurrenceDate);
+        AssetIdsForGroupRequest assetIdsForGroupRequest = new AssetIdsForGroupRequest();
+        assetIdsForGroupRequest.setMethod(AssetModuleMethod.ASSET_IDS_FOR_GROUP_GUID);
+        assetIdsForGroupRequest.setAssetIdsForGroupGuidQueryElement(queryElement);
+        AssetIdsForGroupGuidResponseElement assetIdsForGroupGuidResponseElement = assetClient.findAssetIdentifiersForGroupGuid(assetIdsForGroupRequest);
+        return assetIdsForGroupGuidResponseElement != null ? assetIdsForGroupGuidResponseElement.getVesselIdentifiers() : Collections.emptyList();
     }
 }

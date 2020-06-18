@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -57,10 +56,11 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionLis
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionListQueryImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.AssetPageRetrievalMessage;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
-import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionManualProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmClient;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
@@ -82,9 +82,8 @@ import org.apache.commons.beanutils.BeanUtils;
 class SubscriptionServiceBean implements SubscriptionService {
 
     private static final String SUBSCRIPTION = "SUBSCRIPTION";
-    private static final String SUBSCRIPTION_SOURCE_KEY = "subscriptionSource";
-    private static final String SUBSCRIPTION_SOURCE_VALUE = "manual";
     private static final String MAIN_ASSETS = "mainAssets";
+    private static final long PAGE_SIZE_FOR_MANUAL = 500L;
 
     @Inject
     private SubscriptionDao subscriptionDAO;
@@ -102,7 +101,7 @@ class SubscriptionServiceBean implements SubscriptionService {
     private SubscriptionAuditProducer auditProducer;
 
     @Inject
-    private SubscriptionManualProducerBean subscriptionManualProducerBean;
+    private SubscriptionSender subscriptionSender;
 
     @Inject
     private SubscriptionProducerBean subscriptionProducer;
@@ -209,7 +208,7 @@ class SubscriptionServiceBean implements SubscriptionService {
             enrichNewAssets(entity.getAssets());
         }
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
-        enqueueOneMessagePerAssetGroup(saved);
+        sendAssetPageRetrievalMessages(saved);
         sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.CREATE.name(), saved.getId().toString(), authenticationContext.getUserPrincipal().getName()));
         return mapper.mapEntityToDto(saved, null);
     }
@@ -390,31 +389,12 @@ class SubscriptionServiceBean implements SubscriptionService {
         entity.setValidityPeriod(validityPeriod);
     }
 
-    /**
-     * Encodes the subscriptionId, an assetGroupName, the firstPage and the pageSize
-     * into the following string format: "subscriptionId;assetGroupName;page_number;page_size"
-     *
-     * @param subscriptionId the subscription id
-     * @param assetGroupName the assetGroup name
-     * @return the encoded/formatted string
-     */
-    private String encodeManualSubscriptionMessage(Long subscriptionId, String assetGroupName) {
-        // todo change page_size to i.e. 100 & update respective unit test case accordingly
-        return String.join(";", subscriptionId.toString(), assetGroupName, "0", "1");
-    }
-
-    private void enqueueOneMessagePerAssetGroup(SubscriptionEntity subscriptionEntity) throws MessageException {
+    private void sendAssetPageRetrievalMessages(SubscriptionEntity subscriptionEntity) {
         for (AssetGroupEntity assetGroup : subscriptionEntity.getAssetGroups()) {
-            sendToQueue(SUBSCRIPTION_SOURCE_VALUE, encodeManualSubscriptionMessage(subscriptionEntity.getId(), assetGroup.getName()));
+            subscriptionSender.sendAssetPageRetrievalMessageSameTx(new AssetPageRetrievalMessage(true, subscriptionEntity.getId(), assetGroup.getGuid(), 1L, PAGE_SIZE_FOR_MANUAL));
         }
         if (!subscriptionEntity.getAssets().isEmpty()) {
-            sendToQueue(SUBSCRIPTION_SOURCE_VALUE, encodeManualSubscriptionMessage(subscriptionEntity.getId(), MAIN_ASSETS));
+            subscriptionSender.sendAssetPageRetrievalMessageSameTx(new AssetPageRetrievalMessage(false, subscriptionEntity.getId(), MAIN_ASSETS, 1L, PAGE_SIZE_FOR_MANUAL));
         }
-    }
-
-    private void sendToQueue(String messageSource, String messageBody) throws MessageException {
-        Map<String, String> props = new HashMap<>();
-        props.put(SUBSCRIPTION_SOURCE_KEY, messageSource);
-        subscriptionManualProducerBean.sendModuleMessageWithProps(messageBody, null, props);
     }
 }
