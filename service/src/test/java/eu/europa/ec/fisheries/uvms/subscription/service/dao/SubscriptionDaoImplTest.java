@@ -878,6 +878,25 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     }
 
     @Test
+    public void testGetNullEmailConfigurationPassword() {
+        em.getTransaction().begin();
+        String password = sut.getEmailConfigurationPassword(1L);
+        em.getTransaction().commit();
+        em.clear();
+        assertEquals(null, password);
+    }
+
+    @Test
+    public void testUpdateEmptyEmailConfigurationPassword() {
+        em.getTransaction().begin();
+        sut.updateEmailConfigurationPassword(4L, "");
+        em.getTransaction().commit();
+        em.clear();
+        String password = sut.getEmailConfigurationPassword(4L);
+        assertEquals("", password);
+    }
+
+    @Test
     void testDeleteNonExisting() {
         em.getTransaction().begin();
         try {

@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -323,7 +324,7 @@ class SubscriptionDaoImpl implements SubscriptionDao {
         CriteriaQuery<String> query = cb.createQuery(String.class);
         Root<SubscriptionEntity> subscription = query.from(SubscriptionEntity.class);
         query.select(subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.emailConfiguration).get(SubscriptionEmailConfiguration_.password)).where(cb.equal(subscription.get(SubscriptionEntity_.id), id));
-        return em.createQuery(query).getResultList().stream().findFirst().orElse(null);
+        return em.createQuery(query).getResultList().stream().filter(Objects::nonNull).findFirst().orElse(null);
     }
 
     @Override
