@@ -7,7 +7,7 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.ec.fisheries.uvms.subscription.service.messaging;
+package eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -18,11 +18,15 @@ import java.util.List;
 
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionConsumerBean;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionUserProducerBean;
 import eu.europa.ec.fisheries.uvms.user.model.exception.ModelMarshallException;
 import eu.europa.ec.fisheries.uvms.user.model.mapper.JAXBMarshaller;
 import eu.europa.ec.fisheries.uvms.user.model.mapper.UserModuleRequestMapper;
 import eu.europa.ec.fisheries.wsdl.user.module.FindEndpointRequest;
 import eu.europa.ec.fisheries.wsdl.user.module.FindEndpointResponse;
+import eu.europa.ec.fisheries.wsdl.user.module.FindOrganisationByEndpointAndChannelRequest;
+import eu.europa.ec.fisheries.wsdl.user.module.FindOrganisationByEndpointAndChannelResponse;
 import eu.europa.ec.fisheries.wsdl.user.module.FindOrganisationsResponse;
 import eu.europa.ec.fisheries.wsdl.user.module.UserModuleMethod;
 import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
@@ -94,5 +98,19 @@ public class UsmClientImpl implements UsmClient{
             throw new ApplicationException(e);
         }
         return endpoint;
+    }
+
+    @Override
+    public FindOrganisationByEndpointAndChannelResponse findOrganisationByEndpointAndChannel(FindOrganisationByEndpointAndChannelRequest request) {
+        try {
+            String correlationID = subscriptionUserProducer.sendModuleMessage(JAXBMarshaller.marshallJaxBObjectToString(request), subscriptionConsumer.getDestination());
+            if (correlationID != null) {
+                TextMessage message = subscriptionConsumer.getMessage(correlationID, TextMessage.class );
+                return JAXBUtils.unMarshallMessage(message.getText(), FindOrganisationByEndpointAndChannelResponse.class);
+            }
+            return null;
+        } catch (MessageException | ModelMarshallException | JMSException | JAXBException e) {
+            throw new ApplicationException(e);
+        }
     }
 }

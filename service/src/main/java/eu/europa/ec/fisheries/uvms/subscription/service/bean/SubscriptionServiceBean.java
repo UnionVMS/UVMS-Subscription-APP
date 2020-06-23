@@ -47,7 +47,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
-import eu.europa.ec.fisheries.uvms.subscription.service.messaging.UsmClient;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmClient;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;

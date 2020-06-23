@@ -11,8 +11,13 @@ package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
@@ -20,9 +25,14 @@ import javax.inject.Inject;
 import java.util.Arrays;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmSender;
+import eu.europa.ec.fisheries.wsdl.user.types.OrganisationEndpointAndChannelId;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -34,6 +44,12 @@ public class IncomingDataMessageServiceImplTest {
 
 	private static final String SUBSCRIPTION_SOURCE = "SUBSCRIPTION_SOURCE";
 	private static final String REPRESENTATION = "REPRESENTATION";
+	private static final long ORGANISATION_ID = 111L;
+	private static final long ENDPOINT_ID = 222L;
+	private static final long CHANNEL_ID = 333L;
+
+	@Produces @Mock
+	private UsmSender usmSender;
 
 	@Inject
 	private IncomingDataMessageServiceImpl sut;
@@ -55,16 +71,72 @@ public class IncomingDataMessageServiceImplTest {
 	void testHandle() {
 		Command cmd1 = mock(Command.class);
 		Command cmd2 = mock(Command.class);
-		when(subscriptionCommandFromMessageExtractor.extractCommands(REPRESENTATION)).thenReturn(Arrays.stream(new Command[]{cmd1, cmd2}));
+		when(subscriptionCommandFromMessageExtractor.extractCommands(REPRESENTATION, new SenderCriterion(ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID))).thenReturn(Arrays.stream(new Command[]{cmd1, cmd2}));
+		OrganisationEndpointAndChannelId organisationEndpointAndChannelId = new OrganisationEndpointAndChannelId();
+		organisationEndpointAndChannelId.setOrganisationId(ORGANISATION_ID);
+		organisationEndpointAndChannelId.setEndpointId(ENDPOINT_ID);
+		organisationEndpointAndChannelId.setChannelId(CHANNEL_ID);
+		when(usmSender.findOrganizationByDataFlowAndEndpointName("a", "b")).thenReturn(organisationEndpointAndChannelId);
 
-		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION);
+		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION, new SenderInformation("a","b"));
 
 		verify(cmd1).execute();
 		verify(cmd2).execute();
 	}
 
 	@Test
+	void testDoesNotCallUsmForNullSenderInformation() {
+		Command cmd1 = mock(Command.class);
+		Command cmd2 = mock(Command.class);
+		when(subscriptionCommandFromMessageExtractor.extractCommands(eq(REPRESENTATION), any())).thenReturn(Arrays.stream(new Command[]{cmd1, cmd2}));
+
+		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION, null);
+
+		verify(cmd1).execute();
+		verify(cmd2).execute();
+		verifyNoMoreInteractions(usmSender);
+	}
+
+	@Test
+	void testDoesNotCallUsmForEmptyDataflow() {
+		Command cmd1 = mock(Command.class);
+		Command cmd2 = mock(Command.class);
+		when(subscriptionCommandFromMessageExtractor.extractCommands(eq(REPRESENTATION), any())).thenReturn(Arrays.stream(new Command[]{cmd1, cmd2}));
+
+		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION, new SenderInformation(" ", "SR"));
+
+		verify(cmd1).execute();
+		verify(cmd2).execute();
+		verifyNoMoreInteractions(usmSender);
+
+		ArgumentCaptor<SenderCriterion> captor = ArgumentCaptor.forClass(SenderCriterion.class);
+		verify(subscriptionCommandFromMessageExtractor).extractCommands(anyString(), captor.capture());
+		assertTrue(captor.getValue().getOrganisationId() < 0);
+		assertTrue(captor.getValue().getEndpointId() < 0);
+		assertTrue(captor.getValue().getChannelId() < 0);
+	}
+
+	@Test
+	void testDoesNotCallUsmForEmptySenderReceiver() {
+		Command cmd1 = mock(Command.class);
+		Command cmd2 = mock(Command.class);
+		when(subscriptionCommandFromMessageExtractor.extractCommands(eq(REPRESENTATION), any())).thenReturn(Arrays.stream(new Command[]{cmd1, cmd2}));
+
+		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION, new SenderInformation("DF", " "));
+
+		verify(cmd1).execute();
+		verify(cmd2).execute();
+		verifyNoMoreInteractions(usmSender);
+
+		ArgumentCaptor<SenderCriterion> captor = ArgumentCaptor.forClass(SenderCriterion.class);
+		verify(subscriptionCommandFromMessageExtractor).extractCommands(anyString(), captor.capture());
+		assertTrue(captor.getValue().getOrganisationId() < 0);
+		assertTrue(captor.getValue().getEndpointId() < 0);
+		assertTrue(captor.getValue().getChannelId() < 0);
+	}
+
+	@Test
 	void testHandleThrowsForUnknownSource() {
-		assertThrows(IllegalStateException.class, () -> sut.handle("unknown source", REPRESENTATION));
+		assertThrows(IllegalStateException.class, () -> sut.handle("unknown source", REPRESENTATION, null));
 	}
 }

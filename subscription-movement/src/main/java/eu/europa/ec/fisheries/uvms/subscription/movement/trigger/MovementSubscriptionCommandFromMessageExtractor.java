@@ -39,6 +39,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
@@ -106,12 +107,12 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	}
 
 	@Override
-	public Stream<Command> extractCommands(String representation) {
+	public Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion) {
 		return Stream.of(unmarshal(representation))
 				.filter(message -> message.getResponse() == SimpleResponse.OK)
 				.flatMap(message -> message.getMovements().stream())
 				.filter(m -> !m.isDuplicate())
-				.flatMap(this::makeCommandsForMovement);
+				.flatMap(t -> makeCommandsForMovement(t, senderCriterion));
 	}
 
 	private CreateMovementBatchResponse unmarshal(String representation) {
@@ -122,9 +123,9 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		}
 	}
 
-	private Stream<Command> makeCommandsForMovement(MovementType movement) {
+	private Stream<Command> makeCommandsForMovement(MovementType movement, SenderCriterion senderCriterion) {
 		return Stream.concat(
-				findTriggeredSubscriptions(movement)
+				findTriggeredSubscriptions(movement, senderCriterion)
 						.map(this::makeTriggeredSubscriptionEntity)
 						.map(this::makeTriggerSubscriptionCommand),
 				Stream.of(movement)
@@ -133,7 +134,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		);
 	}
 
-	private Stream<MovementAndSubscription> findTriggeredSubscriptions(MovementType movement) {
+	private Stream<MovementAndSubscription> findTriggeredSubscriptions(MovementType movement, SenderCriterion senderCriterion) {
 		if (movement.getPositionTime() == null) {
 			return Stream.empty();
 		}
@@ -143,7 +144,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		assets.add(new AssetCriterion(AssetType.ASSET, movement.getConnectId()));
 		List<String> assetGroupsForAsset = assetSender.findAssetGroupsForAsset(movement.getConnectId(), movement.getPositionTime());
 		assets.addAll(assetGroupsForAsset.stream().map(a -> new AssetCriterion(AssetType.VGROUP, a)).collect(Collectors.toList()));
-		return subscriptionFinder.findTriggeredSubscriptions(areas, assets, validAt, Collections.singleton(TriggerType.INC_POSITION)).stream()
+		return subscriptionFinder.findTriggeredSubscriptions(areas, assets, senderCriterion, validAt, Collections.singleton(TriggerType.INC_POSITION)).stream()
 				.map(subscription -> new MovementAndSubscription(movement, subscription));
 	}
 

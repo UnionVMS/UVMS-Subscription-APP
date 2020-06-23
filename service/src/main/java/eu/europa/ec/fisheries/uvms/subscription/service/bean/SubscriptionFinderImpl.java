@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionSearchCriteriaImpl;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
@@ -60,32 +61,53 @@ class SubscriptionFinderImpl implements SubscriptionFinder {
 	}
 
 	@Override
-	public List<SubscriptionEntity> findTriggeredSubscriptions(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, @Valid @NotNull ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
-		List<SubscriptionEntity> triggeredByAreas = findSubscriptionsTriggeredByAreas(areas, assets, validAt, triggerTypes);
-		List<SubscriptionEntity> triggeredByAssets = findSubscriptionsTriggeredByAssets(areas, assets, validAt, triggerTypes);
-		return Stream.concat(triggeredByAreas.stream(), triggeredByAssets.stream())
+	public List<SubscriptionEntity> findTriggeredSubscriptions(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, SenderCriterion sender, @Valid @NotNull ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
+		List<SubscriptionEntity> triggeredByAreas = findSubscriptionsTriggeredByAreas(areas, assets, sender, validAt, triggerTypes);
+		List<SubscriptionEntity> triggeredByAssets = findSubscriptionsTriggeredByAssets(areas, assets, sender, validAt, triggerTypes);
+		List<SubscriptionEntity> triggeredBySenders = findSubscriptionsTriggeredBySenders(areas, assets, sender, validAt, triggerTypes);
+		return Stream.concat(Stream.concat(triggeredByAreas.stream(), triggeredByAssets.stream()),triggeredBySenders.stream())
 				.collect(collectingAndThen(toCollection(() -> new TreeSet<>(comparingLong(SubscriptionEntity::getId))), ArrayList::new));
 	}
 
-	private List<SubscriptionEntity> findSubscriptionsTriggeredByAreas(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
+	private List<SubscriptionEntity> findSubscriptionsTriggeredByAreas(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, SenderCriterion sender, ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
 		if (areas == null || areas.isEmpty()) {
 			return Collections.emptyList();
 		}
 		SubscriptionSearchCriteriaImpl criteria = makeCommonCriteria(validAt, triggerTypes);
 		criteria.setInAnyArea(areas);
+
 		criteria.setWithAnyAsset(assets);
 		criteria.setAllowWithNoAsset(true);
+		criteria.setSender(sender);
+		criteria.setAllowWithNoSenders(true);
 		return dao.listSubscriptions(criteria);
 	}
 
-	private List<SubscriptionEntity> findSubscriptionsTriggeredByAssets(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
+	private List<SubscriptionEntity> findSubscriptionsTriggeredByAssets(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, SenderCriterion sender, ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
 		if (assets == null || assets.isEmpty()) {
 			return Collections.emptyList();
 		}
 		SubscriptionSearchCriteriaImpl criteria = makeCommonCriteria(validAt, triggerTypes);
+		criteria.setWithAnyAsset(assets);
+
+		criteria.setInAnyArea(areas);
+		criteria.setAllowWithNoArea(true);
+		criteria.setSender(sender);
+		criteria.setAllowWithNoSenders(true);
+		return dao.listSubscriptions(criteria);
+	}
+
+	private List<SubscriptionEntity> findSubscriptionsTriggeredBySenders(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, SenderCriterion sender, ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
+		if (sender == null ) {
+			return Collections.emptyList();
+		}
+		SubscriptionSearchCriteriaImpl criteria = makeCommonCriteria(validAt, triggerTypes);
+		criteria.setSender(sender);
+
 		criteria.setInAnyArea(areas);
 		criteria.setAllowWithNoArea(true);
 		criteria.setWithAnyAsset(assets);
+		criteria.setAllowWithNoAsset(true);
 		return dao.listSubscriptions(criteria);
 	}
 

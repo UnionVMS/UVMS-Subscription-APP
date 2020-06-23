@@ -28,8 +28,8 @@ import java.util.List;
 
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ActivitySender;
-import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ReceiverAndDataflow;
-import eu.europa.ec.fisheries.uvms.subscription.activity.communication.UsmSender;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.ReceiverAndDataflow;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.TriggeredSubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;

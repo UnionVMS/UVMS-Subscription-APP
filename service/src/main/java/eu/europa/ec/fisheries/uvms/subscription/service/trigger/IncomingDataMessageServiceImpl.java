@@ -17,8 +17,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmSender;
 
 /**
  * Implementation of the {@link IncomingDataMessageService}.
@@ -27,15 +30,24 @@ import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
 @Transactional
 class IncomingDataMessageServiceImpl implements IncomingDataMessageService {
 
+	/**
+	 * Pass this as criterion when there is no sender info (e.g. when handling manual or scheduled subscriptions)
+	 * so that subscriptions with senders do not match.
+	 */
+	private static final SenderCriterion BAD_SENDER = new SenderCriterion(-1L, -1L, -1L);
+
+	private UsmSender usmSender;
 	private Map<String,SubscriptionCommandFromMessageExtractor> extractors;
 
 	/**
 	 * Injection constructor.
 	 *
+	 * @param usmSender    The facility to communicate with the User module
 	 * @param extractors   The services that can translate the representation of an incoming message to subscription-specific commands to execute
 	 */
 	@Inject
-	public IncomingDataMessageServiceImpl(Instance<SubscriptionCommandFromMessageExtractor> extractors) {
+	public IncomingDataMessageServiceImpl(UsmSender usmSender, Instance<SubscriptionCommandFromMessageExtractor> extractors) {
+		this.usmSender = usmSender;
 		this.extractors = extractors.stream().collect(Collectors.toMap(
 				SubscriptionCommandFromMessageExtractor::getEligibleSubscriptionSource,
 				Function.identity()
@@ -51,9 +63,18 @@ class IncomingDataMessageServiceImpl implements IncomingDataMessageService {
 	}
 
 	@Override
-	public void handle(String subscriptionSource, String representation) {
+	public void handle(String subscriptionSource, String representation, SenderInformation senderInformation) {
 		SubscriptionCommandFromMessageExtractor extractor = Optional.ofNullable(extractors.get(subscriptionSource))
 				.orElseThrow(() -> new IllegalStateException("unknown subscription source: " + subscriptionSource));
-		extractor.extractCommands(representation).forEach(Command::execute);
+		SenderCriterion senderCriterion = extractSenderCriterion(senderInformation);
+		extractor.extractCommands(representation, senderCriterion).forEach(Command::execute);
+	}
+
+	private SenderCriterion extractSenderCriterion(SenderInformation senderInformation) {
+		return Optional.ofNullable(senderInformation)
+				.filter(si -> StringUtils.isNotBlank(si.getDataflow()) && StringUtils.isNotBlank(si.getSenderOrReceiver()))
+				.map(si -> usmSender.findOrganizationByDataFlowAndEndpointName(si.getDataflow(), si.getSenderOrReceiver()))
+				.map(sender -> new SenderCriterion(sender.getOrganisationId(), sender.getEndpointId(), sender.getChannelId()))
+				.orElse(BAD_SENDER);
 	}
 }

@@ -60,6 +60,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubsc
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.PaginationDataImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionListQueryImpl;
@@ -1031,6 +1032,46 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
         retrievedSubscription = sut.findById(id);
         assertEquals(java.util.Collections.singleton(new SubscriptionSubscriber(4L,5L,6L)), retrievedSubscription.getSenders());
+    }
+
+    @Test
+    public void testSubscriberCriterion() {
+        em.getTransaction().begin();
+        SubscriptionEntity s1 = sut.findById(1L);
+        SubscriptionEntity s2 = sut.findById(2L);
+        SubscriptionSubscriber ss1 = new SubscriptionSubscriber(1L, 2L, 3L);
+        SubscriptionSubscriber ss2 = new SubscriptionSubscriber(4L, 2L, 6L);
+        SubscriptionSubscriber ss3 = new SubscriptionSubscriber(4L, 8L, 3L);
+        s1.getSenders().add(ss1);
+        s1.getSenders().add(ss2);
+        s2.getSenders().add(ss2);
+        s2.getSenders().add(ss3);
+        s1.setHasSenders(true);
+        s2.setHasSenders(true);
+        em.getTransaction().commit();
+        em.clear();
+
+        SubscriptionSearchCriteriaImpl criteria1 = new SubscriptionSearchCriteriaImpl();
+        criteria1.setSender(new SenderCriterion(1L, 2L, 3L));
+        List<SubscriptionEntity> result1 = sut.listSubscriptions(criteria1);
+        assertEquals(java.util.Collections.singletonList(1L), result1.stream().map(SubscriptionEntity::getId).sorted().collect(Collectors.toList()));
+
+        SubscriptionSearchCriteriaImpl criteria2 = new SubscriptionSearchCriteriaImpl();
+        criteria2.setSender(new SenderCriterion(4L, 2L, 6L));
+        List<SubscriptionEntity> result2 = sut.listSubscriptions(criteria2);
+        assertEquals(Arrays.asList(1L,2L), result2.stream().map(SubscriptionEntity::getId).sorted().collect(Collectors.toList()));
+
+        SubscriptionSearchCriteriaImpl criteria3 = new SubscriptionSearchCriteriaImpl();
+        criteria3.setSender(new SenderCriterion(4L, 8L, 3L));
+        criteria3.setAllowWithNoSenders(true);
+        List<SubscriptionEntity> result3 = sut.listSubscriptions(criteria3);
+        assertEquals(Arrays.asList(2L, 3L, 4L), result3.stream().map(SubscriptionEntity::getId).sorted().collect(Collectors.toList()));
+
+        SubscriptionSearchCriteriaImpl criteria4 = new SubscriptionSearchCriteriaImpl();
+        criteria4.setSender(new SenderCriterion(4L, 2L, 6L));
+        criteria4.setInAnyArea(java.util.Collections.singletonList(new AreaCriterion(AreaType.EEZ, 101L)));
+        List<SubscriptionEntity> result4 = sut.listSubscriptions(criteria4);
+        assertEquals(java.util.Collections.singletonList(1L), result4.stream().map(SubscriptionEntity::getId).sorted().collect(Collectors.toList()));
     }
 
     private List<SubscriptionEntity> findAllSubscriptions() {

@@ -29,5 +29,7 @@ public class SubscriptionSearchCriteriaImpl implements SubscriptionSearchCriteri
     private Boolean allowWithNoArea;
     private Collection<AssetCriterion> withAnyAsset;
     private Boolean allowWithNoAsset;
+    private SenderCriterion sender;
+    private Boolean allowWithNoSenders;
     private Collection<TriggerType> withAnyTriggerType;
 }

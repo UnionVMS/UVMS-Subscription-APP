@@ -49,11 +49,13 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecution_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.OrderByData;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
@@ -205,6 +207,13 @@ class SubscriptionDaoImpl implements SubscriptionDao {
                 predicates.add(predicate);
             });
         }
+        if (criteria.getSender() != null) {
+            Predicate predicate = makeSenderPredicate(query, subscription, cb, criteria.getSender());
+            if (TRUE.equals(criteria.getAllowWithNoSenders())) {
+                predicate = cb.or(cb.equal(cb.coalesce().value(subscription.get(SubscriptionEntity_.hasSenders)).value(false), false), predicate);
+            }
+            predicates.add(predicate);
+        }
         if(criteria.getWithAnyTriggerType() != null && !criteria.getWithAnyTriggerType().isEmpty()) {
             predicates.add(subscription.get(SubscriptionEntity_.execution).get(SubscriptionExecution_.triggerType).in(criteria.getWithAnyTriggerType()));
         }
@@ -242,6 +251,19 @@ class SubscriptionDaoImpl implements SubscriptionDao {
                 .map(AssetCriterion::getGuid)
                 .collect(Collectors.toList());
         subquery.where(assetRoot.get(guid).in(ids));
+        return cb.exists(subquery);
+    }
+
+    private Predicate makeSenderPredicate(CriteriaQuery<?> query, Root<SubscriptionEntity> subscription, CriteriaBuilder cb, SenderCriterion senderCriterion) {
+        Subquery<Long> subquery = query.subquery(Long.class);
+        subquery.select(cb.literal(1L));
+        Root<SubscriptionEntity> correlatedRoot = subquery.correlate(subscription);
+        SetJoin<SubscriptionEntity, SubscriptionSubscriber> sender = correlatedRoot.join(SubscriptionEntity_.senders);
+        subquery.where(
+                cb.equal(sender.get(SubscriptionSubscriber_.ORGANISATION_ID), senderCriterion.getOrganisationId()),
+                cb.equal(sender.get(SubscriptionSubscriber_.ENDPOINT_ID), senderCriterion.getEndpointId()),
+                cb.equal(sender.get(SubscriptionSubscriber_.CHANNEL_ID), senderCriterion.getChannelId())
+        );
         return cb.exists(subquery);
     }
 

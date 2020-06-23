@@ -21,14 +21,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityModuleMethod;
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForVesselRequest;
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.PluginType;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierSchemeIdEnum;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ActivitySender;
-import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ReceiverAndDataflow;
-import eu.europa.ec.fisheries.uvms.subscription.activity.communication.UsmSender;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.ReceiverAndDataflow;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
