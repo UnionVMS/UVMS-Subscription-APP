@@ -12,6 +12,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
 
 /**
  * Translates a textual message representation from a specific source to a
@@ -30,7 +31,8 @@ public interface SubscriptionCommandFromMessageExtractor {
 	 * Extract the commands from this kind of message.
 	 *
 	 * @param representation The representation of the message as string, as it arrived in the messaging facilities
+	 * @param senderCriterion The sender information, as it arrived in the messaging facilities
 	 * @return A possibly empty but never null stream of commands to execute in order to process this message
 	 */
-	Stream<Command> extractCommands(String representation);
+	Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion);
 }

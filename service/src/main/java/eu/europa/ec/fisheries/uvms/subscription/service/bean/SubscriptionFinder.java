@@ -18,6 +18,7 @@ import java.util.List;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 
 /**
@@ -34,5 +35,5 @@ public interface SubscriptionFinder {
 	 * @param triggerTypes The subscription trigger is any of these, {@code null} to ignore the criterion
 	 * @return A non-null list of subscriptions
 	 */
-	List<SubscriptionEntity> findTriggeredSubscriptions(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, @Valid @NotNull ZonedDateTime validAt, Collection<TriggerType> triggerTypes);
+	List<SubscriptionEntity> findTriggeredSubscriptions(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, SenderCriterion senders, @Valid @NotNull ZonedDateTime validAt, Collection<TriggerType> triggerTypes);
 }

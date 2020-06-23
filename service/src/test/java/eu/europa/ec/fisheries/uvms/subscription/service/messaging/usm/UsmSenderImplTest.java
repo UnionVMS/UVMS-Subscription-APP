@@ -1,4 +1,4 @@
-package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
+package eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -8,11 +8,11 @@ import static org.mockito.Mockito.when;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.messaging.UsmClient;
 import eu.europa.ec.fisheries.wsdl.user.types.Channel;
 import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -68,7 +68,12 @@ class UsmSenderImplTest {
         endpoint.getChannels().add(channel);
         when(usmClient.findEndpoint(ENDPOINT_ID)).thenReturn(endpoint);
         ReceiverAndDataflow result = sut.findReceiverAndDataflow(ENDPOINT_ID, CHANNEL_ID);
-        assertEquals(DATAFLOW, result.getDataflow());
-        assertEquals(URI, result.getReceiver());
+        Assertions.assertEquals(DATAFLOW, result.getDataflow());
+        Assertions.assertEquals(URI, result.getReceiver());
+    }
+
+    @Test
+    void testFindOrganizationByDataFlowAndEndpointName() {
+        // TODO
     }
 }

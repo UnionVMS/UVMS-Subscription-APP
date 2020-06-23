@@ -7,18 +7,32 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
-/**
- * Service that handles incoming messages.
- */
-public interface IncomingDataMessageService {
-	/**
-	 * Handle an incoming message.
-	 *
-	 * @param subscriptionSource The source of this message (movement, activity etc)
-	 * @param representation The representation of this message, to be passed to an appropriate {@link SubscriptionCommandFromMessageExtractor}
-	 * @param senderInformation The sender information
-	 */
-	void handle(String subscriptionSource, String representation, SenderInformation senderInformation);
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class SenderInformation {
+     private String dataflow;
+     private String senderOrReceiver;
+
+     /**
+      * Factory method to create a possibly null instance of this class with the given data.
+      *
+      * @param dataflow         The dataflow
+      * @param senderOrReceiver The sender or receiver
+      * @return A possibly null instance
+      */
+     public static SenderInformation fromProperties(String dataflow, String senderOrReceiver) {
+          if (StringUtils.isNotBlank(dataflow) && StringUtils.isNotBlank(senderOrReceiver)) {
+               return new SenderInformation(dataflow, senderOrReceiver);
+          }
+          return null;
+     }
 }

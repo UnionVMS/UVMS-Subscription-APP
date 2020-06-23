@@ -19,9 +19,15 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
 
+import java.util.Optional;
+
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
+import eu.europa.ec.fisheries.uvms.commons.message.context.FluxEnvelopeHolder;
+import eu.europa.ec.fisheries.uvms.commons.message.context.FluxEnvelopePropagatedData;
+import eu.europa.ec.fisheries.uvms.commons.message.context.PropagateFluxEnvelopeData;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.IncomingDataMessageService;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SenderInformation;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.ApplicationException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,7 +50,11 @@ public class SubscriptionDataMessageConsumerBean implements MessageListener {
 	@Inject
 	private IncomingDataMessageService incomingDataMessageService;
 
+	@Inject
+	private FluxEnvelopeHolder fluxEnvelopeHolder;
+
 	@Override
+	@PropagateFluxEnvelopeData
 	public void onMessage(Message message) {
 		String jmsCorrelationID = null;
 		String jmsMessageID = null;
@@ -54,7 +64,11 @@ public class SubscriptionDataMessageConsumerBean implements MessageListener {
 			jmsCorrelationID = message.getJMSCorrelationID();
 			jmsMessageID = message.getJMSMessageID();
 			String subscriptionSource = message.getStringProperty(MessageConstants.JMS_SUBSCRIPTION_SOURCE_PROPERTY);
-			incomingDataMessageService.handle(subscriptionSource, ((TextMessage) message).getText());
+			Optional<FluxEnvelopePropagatedData> fluxEnvelopeData = Optional.ofNullable(fluxEnvelopeHolder.get());
+			incomingDataMessageService.handle(subscriptionSource, ((TextMessage) message).getText(), SenderInformation.fromProperties(
+					fluxEnvelopeData.map(FluxEnvelopePropagatedData::getDataflow).orElse(null),
+					fluxEnvelopeData.map(FluxEnvelopePropagatedData::getSenderOrReceiver).orElse(null)
+			));
 		} catch (JMSException e) {
 			log.error("error while handling subscriptions data message", e);
 			throw new RuntimeException(e);

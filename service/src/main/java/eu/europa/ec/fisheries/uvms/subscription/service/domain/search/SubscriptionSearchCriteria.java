@@ -34,6 +34,10 @@ public interface SubscriptionSearchCriteria {
 	Boolean getAllowWithNoAsset();
 	/** Demand that the subscription trigger is any of these. */
 	Collection<TriggerType> getWithAnyTriggerType();
+	/** Return subscriptions that have no senders  */
+	Boolean getAllowWithNoSenders();
+	/** Demand that the subscription has this sender. */
+	SenderCriterion getSender();
 
 	/**
 	 * Criterion to demand that a subscription is triggered by an asset.
@@ -44,5 +48,17 @@ public interface SubscriptionSearchCriteria {
 	class AssetCriterion {
 		private final AssetType type;
 		private final String guid;
+	}
+
+	/**
+	 * Criterion to demand that a subscription is triggered by a sender.
+	 */
+	@AllArgsConstructor
+	@Getter
+	@EqualsAndHashCode
+	class SenderCriterion {
+		private final long organisationId;
+		private final long endpointId;
+		private final long channelId;
 	}
 }
