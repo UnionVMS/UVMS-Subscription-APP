@@ -337,6 +337,7 @@ class SubscriptionDaoImpl implements SubscriptionDao {
         CriteriaDelete<EmailBodyEntity> delete = cb.createCriteriaDelete(EmailBodyEntity.class);
         Root<EmailBodyEntity> fromEmailBodyEntity = delete.from(EmailBodyEntity.class);
         delete.where(cb.equal(fromEmailBodyEntity.get(EmailBodyEntity_.SUBSCRIPTION), subscription));
+        em.createQuery(delete).executeUpdate();
         em.remove(subscription);
     }
 

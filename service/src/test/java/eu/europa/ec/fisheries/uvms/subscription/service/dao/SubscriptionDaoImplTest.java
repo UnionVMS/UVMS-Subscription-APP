@@ -912,6 +912,8 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         em.getTransaction().begin();
         SubscriptionEntity subscription = SubscriptionTestHelper.random();
         Long id = sut.createEntity(subscription).getId();
+        EmailBodyEntity email = new EmailBodyEntity(subscription, "email content");
+        sut.createEmailBodyEntity(email);
         em.getTransaction().commit();
         em.clear();
         assertNotNull(em.find(SubscriptionEntity.class, id));
