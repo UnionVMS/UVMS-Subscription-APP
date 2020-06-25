@@ -356,4 +356,16 @@
             <column name="subscription_id" />
         </createIndex>
     </changeSet>
+
+    <changeSet id="UNIONVMS-4644-scheduled-subscriptions" author="cpapatheodorou">
+        <addColumn tableName="subscription">
+            <column name="next_scheduled_execution" type="TIMESTAMP WITHOUT TIME ZONE"> </column>
+        </addColumn>
+        <createIndex tableName="subscription" indexName="idx_next_scheduled_execution_subscription">
+            <column name="next_scheduled_execution" />
+            <column name="active" />
+            <column name="trigger_type" />
+        </createIndex>
+    </changeSet>
+
 </databaseChangeLog>

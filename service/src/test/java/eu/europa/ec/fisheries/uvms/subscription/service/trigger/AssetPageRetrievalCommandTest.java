@@ -27,10 +27,10 @@ class AssetPageRetrievalCommandTest {
         String assetGroupName = "greece";
         long pageNumber = 0L;
         long pageSize = 3L;
-        String encodedMessageFromQueue = AssetPageRetrievalMessage.encodeManualSubscriptionMessage(new AssetPageRetrievalMessage(isGroup, subscriptionId, assetGroupName, pageNumber, pageSize));
+        String encodedMessageFromQueue = AssetPageRetrievalMessage.encodeMessage(new AssetPageRetrievalMessage(isGroup, subscriptionId, assetGroupName, pageNumber, pageSize));
         SubscriptionSender subscriptionSender = mock(SubscriptionSender.class);
 
-        AssetPageRetrievalCommand sut = new AssetPageRetrievalCommand(AssetPageRetrievalMessage.decodeManualSubscriptionMessage(encodedMessageFromQueue), subscriptionSender);
+        AssetPageRetrievalCommand sut = new AssetPageRetrievalCommand(AssetPageRetrievalMessage.decodeMessage(encodedMessageFromQueue), subscriptionSender);
         sut.execute();
 
         ArgumentCaptor<AssetPageRetrievalMessage> captor = ArgumentCaptor.forClass(AssetPageRetrievalMessage.class);
@@ -40,7 +40,7 @@ class AssetPageRetrievalCommandTest {
 
     private void assertAssetPageRetrievalMessage(String encodedMessageFromQueue, ArgumentCaptor<AssetPageRetrievalMessage> captor) {
         AssetPageRetrievalMessage message = captor.getValue();
-        AssetPageRetrievalMessage expectedMessage = AssetPageRetrievalMessage.decodeManualSubscriptionMessage(encodedMessageFromQueue);
+        AssetPageRetrievalMessage expectedMessage = AssetPageRetrievalMessage.decodeMessage(encodedMessageFromQueue);
         assertEquals(expectedMessage.getSubscriptionId(), message.getSubscriptionId());
         assertEquals(expectedMessage.getAssetGroupGuid(), message.getAssetGroupGuid());
         assertEquals(expectedMessage.getPageNumber(), message.getPageNumber());

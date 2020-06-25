@@ -14,28 +14,45 @@ import javax.inject.Inject;
 import java.util.Date;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionExecutionService;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.ScheduledSubscriptionTriggeringService;
+import eu.europa.fisheries.uvms.subscription.model.exceptions.ScheduledSubscriptionProcessingException;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Implementation of the {@link SubscriptionSchedulerService}.
  */
 @ApplicationScoped
+@Slf4j
 class SubscriptionSchedulerServiceImpl implements SubscriptionSchedulerService {
 
-	private final SubscriptionExecutionService subscriptionExecutionService;
+    private final SubscriptionExecutionService subscriptionExecutionService;
+    private final ScheduledSubscriptionTriggeringService scheduledSubscriptionTriggeringService;
 
-	/**
-	 * Injection constructor.
-	 *
-	 * @param subscriptionExecutionService The subscription execution service
-	 */
-	@Inject
-	public SubscriptionSchedulerServiceImpl(SubscriptionExecutionService subscriptionExecutionService) {
-		this.subscriptionExecutionService = subscriptionExecutionService;
-	}
+    /**
+     * Injection constructor.
+     *
+     * @param subscriptionExecutionService           The subscription execution service
+     * @param scheduledSubscriptionTriggeringService The scheduled subscription triggering service
+     */
+    @Inject
+    public SubscriptionSchedulerServiceImpl(SubscriptionExecutionService subscriptionExecutionService, ScheduledSubscriptionTriggeringService scheduledSubscriptionTriggeringService) {
+        this.subscriptionExecutionService = subscriptionExecutionService;
+        this.scheduledSubscriptionTriggeringService = scheduledSubscriptionTriggeringService;
+    }
 
-	@Override
-	public void activatePendingSubscriptionExecutions(Date activationDate) {
-		subscriptionExecutionService.findPendingSubscriptionExecutionIds(activationDate)
-				.forEach(subscriptionExecutionService::enqueueForExecutionInNewTransaction);
-	}
+    @Override
+    public void activatePendingSubscriptionExecutions(Date activationDate) {
+        subscriptionExecutionService.findPendingSubscriptionExecutionIds(activationDate)
+                .forEach(subscriptionExecutionService::enqueueForExecutionInNewTransaction);
+    }
+
+    @Override
+    public void activateScheduledSubscriptions(Date activationDate) {
+        try {
+            scheduledSubscriptionTriggeringService.findScheduledSubscriptionIdsForTriggering(activationDate)
+                    .forEach(scheduledSubscriptionTriggeringService::enqueueForTriggeringInNewTransaction);
+        } catch (ScheduledSubscriptionProcessingException e) {
+            log.error("Error processing scheduled subscription batch: " + e.getMessage());
+        }
+    }
 }

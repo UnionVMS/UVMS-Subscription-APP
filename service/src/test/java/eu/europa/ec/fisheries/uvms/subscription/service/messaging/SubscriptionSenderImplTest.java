@@ -35,10 +35,18 @@ class SubscriptionSenderImplTest {
     private SubscriptionSenderImpl sut;
 
     @Test
-    void testSendAssetPageRetrievalMessage() {
+    void testSendAssetPageRetrievalMessageSameTx() {
         AssetPageRetrievalMessage assetPageRetrievalMessage = new AssetPageRetrievalMessage(true, 500L, "greece", 1L, 10L);
         sut.sendAssetPageRetrievalMessageSameTx(assetPageRetrievalMessage);
 
-        verify(subscriptionClient).sendAssetPageRetrievalMessageSameTx(AssetPageRetrievalMessage.encodeManualSubscriptionMessage(assetPageRetrievalMessage));
+        verify(subscriptionClient).sendAssetPageRetrievalMessageSameTx(AssetPageRetrievalMessage.encodeMessage(assetPageRetrievalMessage));
+    }
+
+    @Test
+    void sendMessageForScheduledSubscriptionExecutionSameTx() {
+        AssetPageRetrievalMessage assetPageRetrievalMessage = new AssetPageRetrievalMessage(true, 500L, "greece", 1L, 10L);
+        sut.sendMessageForScheduledSubscriptionExecutionSameTx(assetPageRetrievalMessage);
+
+        verify(subscriptionClient).sendMessageForScheduledSubscriptionExecutionSameTx(AssetPageRetrievalMessage.encodeMessage(assetPageRetrievalMessage));
     }
 }

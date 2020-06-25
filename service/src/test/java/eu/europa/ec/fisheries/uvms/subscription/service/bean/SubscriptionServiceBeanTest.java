@@ -23,7 +23,9 @@ import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
+import eu.europa.ec.fisheries.uvms.subscription.helper.DateTimeServiceTestImpl;
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.authentication.AuthenticationContext;
 import eu.europa.ec.fisheries.uvms.subscription.service.authentication.SubscriptionUser;
@@ -147,6 +150,9 @@ public class SubscriptionServiceBeanTest {
 	@Produces
 	private SubscriptionMapper mapper = new SubscriptionMapperImpl();
 
+	@Produces
+	private DateTimeServiceTestImpl dateTimeService = new DateTimeServiceTestImpl();
+
 	@Produces @Mock
 	private SubscriptionAuditProducer auditProducer;
 
@@ -164,6 +170,8 @@ public class SubscriptionServiceBeanTest {
 
 	@BeforeEach
 	void beforeEach() {
+		LocalDateTime now = LocalDateTime.parse("2020-05-05T11:00:00");
+		dateTimeService.setNow(now);
 		SubscriptionUser principal = mock(SubscriptionUser.class);
 		lenient().when(principal.getName()).thenReturn(CURRENT_USER_NAME);
 		lenient().when(mockAuthenticationContext.getUserPrincipal()).thenReturn(principal);
@@ -551,10 +559,11 @@ public class SubscriptionServiceBeanTest {
 		assertTrue(sut.checkNameAvailability("name", 2L));
 	}
 
-	@Test
-	void testCreate() {
+	@ParameterizedTest
+	@MethodSource("testCreateWithExpressionParamsInput")
+	void testCreate(String timeExpression, String expectedNextScheduledExecution) {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, timeExpression, new Date(), new Date(),
 				EMAIL_BODY, true, true, PASSWORD, false, false);
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 		when(subscriptionDAO.createEmailBodyEntity(any())).thenAnswer(iom -> iom.getArgument(0));
@@ -587,6 +596,15 @@ public class SubscriptionServiceBeanTest {
 		assertFalse(subscription.getHasAssets());
 		assertFalse(subscription.getHasSenders());
 		assertFalse(subscription.getHasStartActivities());
+		assertNotNull(subscription.getExecution().getNextScheduledExecution());
+		assert(subscription.getExecution().getNextScheduledExecution().toInstant().equals(LocalDateTime.parse(expectedNextScheduledExecution).toInstant(ZoneOffset.UTC)));
+	}
+
+	protected static Stream<Arguments> testCreateWithExpressionParamsInput() {
+		return Stream.of(
+				Arguments.of("12:00", "2020-05-05T12:00:00"), // expected date/time is after todays current time (dateTimeService.getNowAsInstant())
+				Arguments.of("10:00", "2020-05-06T10:00:00") // expected date/time is before todays current time (dateTimeService.getNowAsInstant())
+		);
 	}
 
 	@Test

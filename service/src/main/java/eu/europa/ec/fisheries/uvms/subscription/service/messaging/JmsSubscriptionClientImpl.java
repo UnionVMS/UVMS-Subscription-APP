@@ -11,8 +11,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.messaging;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
 
 import lombok.SneakyThrows;
 
@@ -20,7 +19,8 @@ import lombok.SneakyThrows;
 public class JmsSubscriptionClientImpl implements SubscriptionClient {
 
     private static final String JMS_MESSAGE_SOURCE_KEY = "subscriptionSource";
-    private static final String SOURCE = "manual";
+    private static final String SOURCE_MANUAL = "manual";
+    private static final String SOURCE_SCHEDULED = "scheduled";
 
     private SubscriptionManualProducerBean producerBean;
 
@@ -32,8 +32,12 @@ public class JmsSubscriptionClientImpl implements SubscriptionClient {
     @SneakyThrows
     @Override
     public void sendAssetPageRetrievalMessageSameTx(String messageBody) {
-        Map<String, String> props = new HashMap<>();
-        props.put(JMS_MESSAGE_SOURCE_KEY, SOURCE);
-        producerBean.sendModuleMessageWithPropsSameTx(messageBody, props);
+        producerBean.sendModuleMessageWithPropsSameTx(messageBody, Collections.singletonMap(JMS_MESSAGE_SOURCE_KEY, SOURCE_MANUAL));
+    }
+
+    @SneakyThrows
+    @Override
+    public void sendMessageForScheduledSubscriptionExecutionSameTx(String messageBody) {
+        producerBean.sendModuleMessageWithPropsSameTx(messageBody, Collections.singletonMap(JMS_MESSAGE_SOURCE_KEY, SOURCE_SCHEDULED));
     }
 }

@@ -22,7 +22,7 @@ class AssetPageRetrievalMessageTest {
     @ParameterizedTest
     @MethodSource("encodeMessageTestInput")
     void testEncodeManualSubscriptionMessage(String expectedEncodedMessage, AssetPageRetrievalMessage message) {
-        String result = AssetPageRetrievalMessage.encodeManualSubscriptionMessage(message);
+        String result = AssetPageRetrievalMessage.encodeMessage(message);
         assertEquals(expectedEncodedMessage, result);
     }
 
@@ -36,7 +36,7 @@ class AssetPageRetrievalMessageTest {
     @ParameterizedTest
     @MethodSource("decodeMessageTestInput")
     void testDecodeManualSubscriptionMessage(AssetPageRetrievalMessage expectedObject, String encodedInput) {
-        AssetPageRetrievalMessage result = AssetPageRetrievalMessage.decodeManualSubscriptionMessage(encodedInput);
+        AssetPageRetrievalMessage result = AssetPageRetrievalMessage.decodeMessage(encodedInput);
         assertEquals(expectedObject.isGroup(), result.isGroup());
         assertEquals(expectedObject.getSubscriptionId(), result.getSubscriptionId());
         assertEquals(expectedObject.getAssetGroupGuid(), result.getAssetGroupGuid());
