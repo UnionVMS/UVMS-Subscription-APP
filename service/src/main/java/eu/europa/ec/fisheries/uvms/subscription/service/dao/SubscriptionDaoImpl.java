@@ -60,6 +60,7 @@ import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
 import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -361,6 +362,27 @@ class SubscriptionDaoImpl implements SubscriptionDao {
         delete.where(cb.equal(fromEmailBodyEntity.get(EmailBodyEntity_.SUBSCRIPTION), subscription));
         em.createQuery(delete).executeUpdate();
         em.remove(subscription);
+    }
+
+    @Override
+    public List<Long> findScheduledSubscriptionIdsForTriggering(Date now, int page, int pageSize) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        Root<SubscriptionEntity> subscription = query.from(SubscriptionEntity.class);
+        query.select(subscription.get(SubscriptionEntity_.id));
+        query.where(cb.and(
+                cb.equal(subscription.get(SubscriptionEntity_.active), true),
+                cb.equal(subscription.get(SubscriptionEntity_.execution).get(SubscriptionExecution_.triggerType), TriggerType.SCHEDULER)),
+                cb.isNotNull(subscription.get(SubscriptionEntity_.execution).get(SubscriptionExecution_.nextScheduledExecution)),
+                cb.lessThan(subscription.get(SubscriptionEntity_.execution).get(SubscriptionExecution_.nextScheduledExecution), now)
+        );
+
+        query.orderBy(cb.asc(subscription.get(SubscriptionEntity_.id)));
+
+        return em.createQuery(query)
+                .setFirstResult(page * pageSize)
+                .setMaxResults(pageSize)
+                .getResultList();
     }
 
     private void setAreasSubscription(SubscriptionEntity subscription) {

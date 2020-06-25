@@ -24,4 +24,9 @@ public interface SubscriptionSchedulerService {
 	 * Activate all pending subscription executions that should activate for the given date.
 	 */
 	void activatePendingSubscriptionExecutions(Date activationDate);
+
+	/**
+	 * Activate scheduled subscriptions that should be triggered for the given date.
+	 */
+	void activateScheduledSubscriptions(Date activationDate);
 }

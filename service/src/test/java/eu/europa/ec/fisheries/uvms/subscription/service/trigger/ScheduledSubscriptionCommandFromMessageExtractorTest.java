@@ -63,13 +63,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Tests for the {@link ManualSubscriptionCommandFromMessageExtractor}.
+ * Tests for the {@link ScheduledSubscriptionCommandFromMessageExtractor}.
  */
 @EnableAutoWeld
 @ExtendWith(MockitoExtension.class)
-class ManualSubscriptionCommandFromMessageExtractorTest {
+class ScheduledSubscriptionCommandFromMessageExtractorTest {
 
-    private static final String SOURCE = "manual";
+    private static final String SOURCE = "scheduled";
     private static final LocalDateTime NOW = LocalDateTime.now();
 
     @Produces
@@ -94,11 +94,11 @@ class ManualSubscriptionCommandFromMessageExtractorTest {
     }
 
     @Inject
-    private ManualSubscriptionCommandFromMessageExtractor sut;
+    private ScheduledSubscriptionCommandFromMessageExtractor sut;
 
     @Test
     void testEmptyConstructor() {
-        ManualSubscriptionCommandFromMessageExtractor sut = new ManualSubscriptionCommandFromMessageExtractor();
+        ScheduledSubscriptionCommandFromMessageExtractor sut = new ScheduledSubscriptionCommandFromMessageExtractor();
         assertNotNull(sut);
     }
 
@@ -263,7 +263,7 @@ class ManualSubscriptionCommandFromMessageExtractorTest {
     }
 
     private List<VesselIdentifiersWithConnectIdHolder> makeAssetsWithStaticData() {
-        return Stream.of(makeAssetWithStaticData(1L, "Sea Pearl", "guid-1"), makeAssetWithStaticData(2L, "Titanic", "guid-2"), makeAssetWithStaticData(3L, "King George", "guid-3"))
+        return Arrays.asList(makeAssetWithStaticData(1L, "Sea Pearl", "guid-1"), makeAssetWithStaticData(2L, "Titanic", "guid-2"), makeAssetWithStaticData(3L, "King George", "guid-3")).stream()
                 .map(a -> {
                     VesselIdentifiersWithConnectIdHolder holder = new VesselIdentifiersWithConnectIdHolder();
                     holder.setConnectId(a.getGuid());

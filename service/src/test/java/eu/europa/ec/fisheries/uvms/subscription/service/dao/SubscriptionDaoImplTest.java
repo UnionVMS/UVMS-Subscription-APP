@@ -34,9 +34,11 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -925,6 +927,23 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         em.getTransaction().commit();
         em.clear();
         assertNull(em.find(SubscriptionEntity.class, id));
+    }
+
+    @ParameterizedTest
+    @MethodSource("inputForDate")
+    void testFindScheduledSubscriptionsReadyForTriggering(Date now, int expectedResultSetSize) {
+        List<Long> results = sut.findScheduledSubscriptionIdsForTriggering(now, 0, 10);
+        assertEquals(expectedResultSetSize, results.size());
+        if (results.size() > 0) {
+            assertEquals(1L, results.get(0));
+        }
+    }
+
+    protected static Stream<Arguments> inputForDate(){
+        return Stream.of(
+                Arguments.of(Date.from(Instant.parse("2016-12-30T12:00:00Z")), 0),
+                Arguments.of(Date.from(Instant.parse("2020-06-25T12:00:00Z")), 1)
+        );
     }
 
     @Test

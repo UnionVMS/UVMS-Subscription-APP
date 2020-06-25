@@ -28,6 +28,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecu
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 
 /**
  * Implementation of the {@link SubscriptionExecutionScheduler}.
@@ -71,6 +72,11 @@ class SubscriptionExecutionSchedulerImpl implements SubscriptionExecutionSchedul
 		if (Integer.valueOf(0).equals(triggeredSubscription.getSubscription().getExecution().getFrequency())) {
 			return finish(triggeredSubscription);
 		}
+		// if scheduled subscription we want to execute only once (lastExecution != null)
+		// so as to create a new triggeredSubscription/execution via scheduler
+		if (TriggerType.SCHEDULER.equals(triggeredSubscription.getSubscription().getExecution().getTriggerType())) {
+			return finish(triggeredSubscription);
+		}
 		return makeNextSubscriptionExecutionEntity(triggeredSubscription, calculateNextExecutionTime(triggeredSubscription, lastExecution));
 	}
 
@@ -89,6 +95,9 @@ class SubscriptionExecutionSchedulerImpl implements SubscriptionExecutionSchedul
 
 	private Instant calculateBaseTime(TriggeredSubscriptionEntity triggeredSubscription) {
 		Instant requestedTime = dateTimeService.getNowAsInstant();
+		if (TriggerType.SCHEDULER.equals(triggeredSubscription.getSubscription().getExecution().getTriggerType())) {
+			return requestedTime;
+		}
 		if (FALSE.equals(triggeredSubscription.getSubscription().getExecution().getImmediate())) {
 			// if not immediate, we need to adjust the requestedTime to
 			// the next occurrence of timeExpression, which might be tomorrow

@@ -18,18 +18,18 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSen
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 
 /**
- * Implementation of {@link SubscriptionCommandFromMessageExtractor} for manual subscription triggered messages.
+ * Implementation of {@link SubscriptionCommandFromMessageExtractor} for scheduled subscription  messages.
  */
 @ApplicationScoped
-public class ManualSubscriptionCommandFromMessageExtractor extends SubscriptionBasedCommandFromMessageExtractor {
+public class ScheduledSubscriptionCommandFromMessageExtractor extends SubscriptionBasedCommandFromMessageExtractor {
 
-    private static final String SOURCE = "manual";
+    private static final String SOURCE = "scheduled";
 
     @Inject
-    public ManualSubscriptionCommandFromMessageExtractor(SubscriptionFinder subscriptionFinder,
-                                                         TriggerCommandsFactory triggerCommandsFactory,
-                                                         DatatypeFactory datatypeFactory,
-                                                         DateTimeService dateTimeService, AssetSender assetSender) {
+    public ScheduledSubscriptionCommandFromMessageExtractor(SubscriptionFinder subscriptionFinder,
+                                                            TriggerCommandsFactory triggerCommandsFactory,
+                                                            DatatypeFactory datatypeFactory,
+                                                            DateTimeService dateTimeService, AssetSender assetSender) {
         super(subscriptionFinder, triggerCommandsFactory, datatypeFactory, dateTimeService, assetSender);
     }
 
@@ -37,7 +37,7 @@ public class ManualSubscriptionCommandFromMessageExtractor extends SubscriptionB
      * Constructor for frameworks.
      */
     @SuppressWarnings("unused")
-    ManualSubscriptionCommandFromMessageExtractor() {
+    ScheduledSubscriptionCommandFromMessageExtractor() {
         super();
     }
 

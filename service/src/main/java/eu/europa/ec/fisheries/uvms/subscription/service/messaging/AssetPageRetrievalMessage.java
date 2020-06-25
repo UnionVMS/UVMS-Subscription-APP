@@ -23,7 +23,7 @@ public class AssetPageRetrievalMessage {
     private final Long pageSize;
 
     /**
-     * Encodes the data included in the ManualSubscriptionMessage
+     * Encodes the data included in the SubscriptionMessage
      * (is group, subscriptionId, an assetGroupName, the firstPage and the pageSize) into
      * the following string format: "g;subscriptionId;assetGroupName;pa
      * ge_number;page_size"
@@ -31,7 +31,7 @@ public class AssetPageRetrievalMessage {
      * @param assetPageRetrievalMessage including the data needed for the message
      * @return the encoded/formatted string
      */
-    public static String encodeManualSubscriptionMessage(AssetPageRetrievalMessage assetPageRetrievalMessage) {
+    public static String encodeMessage(AssetPageRetrievalMessage assetPageRetrievalMessage) {
         return String.join(";",
                 assetPageRetrievalMessage.isGroup() ? "g" : "m",
                 assetPageRetrievalMessage.getSubscriptionId().toString(),
@@ -43,12 +43,12 @@ public class AssetPageRetrievalMessage {
     /**
      * Decodes the isGroup flag, the subscriptionId, an assetGroupName, the firstPage and the pageSize
      * from an encoded string of format "g;subscriptionId;assetGroupName;page_number;page_size"
-     * to an ManualSubscriptionMessage object
+     * to a SubscriptionMessage object
      *
      * @param encodedMessage the encoded string
      * @return decoded message object
      */
-    public static AssetPageRetrievalMessage decodeManualSubscriptionMessage(String encodedMessage) {
+    public static AssetPageRetrievalMessage decodeMessage(String encodedMessage) {
         String[] messageParameters = encodedMessage.split(";");
         return new AssetPageRetrievalMessage("g".equals(messageParameters[0]),
                 Long.valueOf(messageParameters[1]),

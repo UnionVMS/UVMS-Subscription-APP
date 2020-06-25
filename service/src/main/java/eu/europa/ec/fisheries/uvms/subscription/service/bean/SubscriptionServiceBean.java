@@ -21,6 +21,9 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.time.Instant;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
@@ -62,6 +65,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionPr
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmClient;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
+import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
@@ -81,9 +85,14 @@ import org.apache.commons.beanutils.BeanUtils;
 @Transactional
 class SubscriptionServiceBean implements SubscriptionService {
 
+    private static final DateTimeFormatter TIME_EXPRESSION_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+
     private static final String SUBSCRIPTION = "SUBSCRIPTION";
     private static final String MAIN_ASSETS = "mainAssets";
     private static final long PAGE_SIZE_FOR_MANUAL = 500L;
+
+    @Inject
+    private DateTimeService dateTimeService;
 
     @Inject
     private SubscriptionDao subscriptionDAO;
@@ -223,6 +232,7 @@ class SubscriptionServiceBean implements SubscriptionService {
         entity.setHasAssets(subscription.getAssets() != null && !subscription.getAssets().isEmpty());
         entity.setHasSenders(subscription.getSenders() != null && !subscription.getSenders().isEmpty());
         entity.setHasStartActivities(subscription.getStartActivities() != null && !subscription.getStartActivities().isEmpty());
+        setNextScheduleExecutionIfApplicable(entity);
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
         EmailBodyEntity emailBodyEntity = null;
         if (TRUE.equals(subscription.getOutput().getHasEmail())) {
@@ -396,5 +406,21 @@ class SubscriptionServiceBean implements SubscriptionService {
         if (!subscriptionEntity.getAssets().isEmpty()) {
             subscriptionSender.sendAssetPageRetrievalMessageSameTx(new AssetPageRetrievalMessage(false, subscriptionEntity.getId(), MAIN_ASSETS, 1L, PAGE_SIZE_FOR_MANUAL));
         }
+    }
+
+    private void setNextScheduleExecutionIfApplicable(SubscriptionEntity entity) {
+        if (TriggerType.SCHEDULER.equals(entity.getExecution().getTriggerType())){
+            entity.getExecution().setNextScheduledExecution(calculateNextScheduledExecutionDate(entity));
+        }
+    }
+
+    private Date calculateNextScheduledExecutionDate(SubscriptionEntity subscriptionEntity) {
+        Instant date = dateTimeService.getNowAsInstant();
+        // we need to adjust the requestedTime to
+        // the next occurrence of timeExpression, which might be tomorrow
+        LocalTime time = LocalTime.parse(subscriptionEntity.getExecution().getTimeExpression(), TIME_EXPRESSION_FORMAT);
+        Instant timeToday = time.atDate(dateTimeService.getToday()).toInstant(ZoneOffset.UTC);
+        date = timeToday.isAfter(date) ? timeToday : timeToday.plus(1L, ChronoUnit.DAYS);
+        return Date.from(date);
     }
 }

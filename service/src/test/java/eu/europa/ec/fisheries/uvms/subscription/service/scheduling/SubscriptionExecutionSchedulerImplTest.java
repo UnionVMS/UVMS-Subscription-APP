@@ -30,6 +30,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecu
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -139,6 +140,22 @@ public class SubscriptionExecutionSchedulerImplTest {
 
 		assertSubscriptionExecutionEntity(result, triggeredSubscription, LocalDateTime.parse("2020-05-08T11:00:00"));
 		assertTrue(triggeredSubscription.getActive());
+	}
+
+	@Test
+	void testScheduledSubscriptionSubsequentExecution() {
+		SubscriptionExecution executionInput = new SubscriptionExecution();
+		executionInput.setTriggerType(TriggerType.SCHEDULER);
+		executionInput.setImmediate(false);
+		TriggeredSubscriptionEntity triggeredSubscription = setup(executionInput, "2020-06-25T12:00:00");
+		SubscriptionExecutionEntity prevExecution = new SubscriptionExecutionEntity();
+		prevExecution.setRequestedTime(Date.from(LocalDateTime.parse("2020-06-25T11:00:00").toInstant(ZoneOffset.UTC)));
+		triggeredSubscription.setEffectiveFrom(Date.from(LocalDateTime.parse("2020-06-30T11:00:00").toInstant(ZoneOffset.UTC)));
+
+		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, prevExecution);
+
+		assertFalse(result.isPresent());
+		assertFalse(triggeredSubscription.getActive());
 	}
 
 	@Test
