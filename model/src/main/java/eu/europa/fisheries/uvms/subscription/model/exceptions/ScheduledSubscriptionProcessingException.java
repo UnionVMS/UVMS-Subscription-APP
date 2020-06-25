@@ -7,23 +7,24 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.ec.fisheries.uvms.subscription.service.messaging;
+package eu.europa.fisheries.uvms.subscription.model.exceptions;
 
 /**
- * Client to Subscription related services
+ * Signals that a requested entity was not found.
  */
-public interface SubscriptionSender {
+public class ScheduledSubscriptionProcessingException extends ApplicationException {
+	public ScheduledSubscriptionProcessingException() {
+	}
 
-    /**
-     * Sends an AssetPageRetrievalMessage to the appropriate queue
-     *
-     * @param assetPageRetrievalMessage
-     */
-    void sendAssetPageRetrievalMessageSameTx(AssetPageRetrievalMessage assetPageRetrievalMessage);
+	public ScheduledSubscriptionProcessingException(String message) {
+		super(message);
+	}
 
-    /**
-     * Sends a message to the appropriate queue
-     * @param assetPageRetrievalMessage
-     */
-    void sendMessageForScheduledSubscriptionExecutionSameTx(AssetPageRetrievalMessage assetPageRetrievalMessage);
+	public ScheduledSubscriptionProcessingException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public ScheduledSubscriptionProcessingException(Throwable cause) {
+		super(cause);
+	}
 }

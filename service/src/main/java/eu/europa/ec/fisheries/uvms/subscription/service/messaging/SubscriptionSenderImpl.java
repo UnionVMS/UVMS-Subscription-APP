@@ -24,6 +24,11 @@ public class SubscriptionSenderImpl implements SubscriptionSender {
 
     @Override
     public void sendAssetPageRetrievalMessageSameTx(AssetPageRetrievalMessage assetPageRetrievalMessage) {
-        subscriptionClient.sendAssetPageRetrievalMessageSameTx(AssetPageRetrievalMessage.encodeManualSubscriptionMessage(assetPageRetrievalMessage));
+        subscriptionClient.sendAssetPageRetrievalMessageSameTx(AssetPageRetrievalMessage.encodeMessage(assetPageRetrievalMessage));
+    }
+
+    @Override
+    public void sendMessageForScheduledSubscriptionExecutionSameTx(AssetPageRetrievalMessage assetPageRetrievalMessage) {
+        subscriptionClient.sendMessageForScheduledSubscriptionExecutionSameTx(AssetPageRetrievalMessage.encodeMessage(assetPageRetrievalMessage));
     }
 }

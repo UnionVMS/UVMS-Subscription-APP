@@ -19,4 +19,10 @@ public interface SubscriptionClient {
      * @param messageBody
      */
     void sendAssetPageRetrievalMessageSameTx(String messageBody);
+
+    /**
+     * Send a message to the appropriate jms queue for scheduled subscriptions
+     * @param messageBody
+     */
+    void sendMessageForScheduledSubscriptionExecutionSameTx(String messageBody);
 }

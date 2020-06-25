@@ -14,10 +14,13 @@ import static javax.persistence.EnumType.STRING;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Enumerated;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
@@ -48,4 +51,8 @@ public class SubscriptionExecution implements Serializable {
 
 	@Column(name = "time_expr")
 	private String timeExpression;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "next_scheduled_execution")
+	private Date nextScheduledExecution;
 }

@@ -10,12 +10,10 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.messaging;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.verify;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import javax.jms.Destination;
 import java.util.Map;
 
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
@@ -31,7 +29,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class JmsSubscriptionClientImplTest {
 
     private static final String JMS_MESSAGE_SOURCE_KEY = "subscriptionSource";
-    private static final String SOURCE = "manual";
+    private static final String SOURCE_MANUAL = "manual";
+    private static final String SOURCE_SCHEDULED = "scheduled";
 
     @Mock
     @Produces
@@ -41,7 +40,7 @@ class JmsSubscriptionClientImplTest {
     private JmsSubscriptionClientImpl sut;
 
     @Test
-    void testSendAssetPageRetrievalMessage() throws MessageException {
+    void testSendAssetPageRetrievalMessageSameTx() throws MessageException {
         String encodedMessage = "encoded message body";
         sut.sendAssetPageRetrievalMessageSameTx(encodedMessage);
 
@@ -54,6 +53,23 @@ class JmsSubscriptionClientImplTest {
         Map<String, String> messageProps = propsCaptor.getValue();
 
         assertEquals(encodedMessage, messageBody);
-        assertEquals(SOURCE, messageProps.get(JMS_MESSAGE_SOURCE_KEY));
+        assertEquals(SOURCE_MANUAL, messageProps.get(JMS_MESSAGE_SOURCE_KEY));
+    }
+
+    @Test
+    void testSendMessageForScheduledSubscriptionExecutionSameTx() throws MessageException {
+        String encodedMessage = "encoded message body";
+        sut.sendMessageForScheduledSubscriptionExecutionSameTx(encodedMessage);
+
+        ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, String>> propsCaptor = ArgumentCaptor.forClass(Map.class);
+
+        verify(producerBean).sendModuleMessageWithPropsSameTx(messageCaptor.capture(), propsCaptor.capture());
+        String messageBody = messageCaptor.getValue();
+        Map<String, String> messageProps = propsCaptor.getValue();
+
+        assertEquals(encodedMessage, messageBody);
+        assertEquals(SOURCE_SCHEDULED, messageProps.get(JMS_MESSAGE_SOURCE_KEY));
     }
 }

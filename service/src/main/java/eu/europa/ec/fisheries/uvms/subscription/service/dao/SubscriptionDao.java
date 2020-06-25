@@ -11,7 +11,9 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
@@ -53,4 +55,6 @@ public interface SubscriptionDao {
 	String getEmailConfigurationPassword(Long id);
 
 	void delete(Long id);
+
+	List<Long> findScheduledSubscriptionIdsForTriggering(Date now, int page, int pageSize);
 }
