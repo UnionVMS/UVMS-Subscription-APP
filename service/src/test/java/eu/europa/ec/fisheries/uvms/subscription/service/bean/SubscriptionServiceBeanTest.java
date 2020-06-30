@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -723,10 +724,10 @@ public class SubscriptionServiceBeanTest {
 
 	@ParameterizedTest
 	@MethodSource("testCreateManualSubscriptionParams")
-	void testCreateManualSubscription(Boolean includeAssets) {
+	void testCreateManualSubscription(boolean includeAssets, boolean includeAssetGroups, boolean includeAreas) {
 		SubscriptionDto dto = SubscriptionTestHelper.createManualSubscriptionDto(SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
 				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, new Date(), new Date(),
-				includeAssets, true);
+				includeAssets, includeAssetGroups);
 
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 
@@ -734,6 +735,9 @@ public class SubscriptionServiceBeanTest {
 		if (includeAssets) {
 			AssetHistGuidIdWithVesselIdentifiers mockIds = mock(AssetHistGuidIdWithVesselIdentifiers.class);
 			when(assetSender.findMultipleVesselIdentifiers(guids)).thenReturn(Collections.singletonList(mockIds));
+		}
+		if (includeAreas) {
+			dto.setAreas(Collections.singleton(new AreaDto(33L, 11L, AreaType.GFCM)));
 		}
 
 		SubscriptionDto result = sut.createManual(dto);
@@ -765,24 +769,46 @@ public class SubscriptionServiceBeanTest {
 		verify(subscriptionDAO).createEntity(captor.capture());
 		SubscriptionEntity subscription = captor.getValue();
 		assertEquals(subscription.getId(), SUBSCR_ID);
+		assertEquals(includeAssets || includeAssetGroups, Boolean.TRUE.equals(subscription.getHasAssets()));
+		assertEquals(includeAreas, Boolean.TRUE.equals(subscription.getHasAreas()));
 
-		ArgumentCaptor<AssetPageRetrievalMessage> captor1 = ArgumentCaptor.forClass(AssetPageRetrievalMessage.class);
-		int numberOfInvocations = includeAssets ? 3 : 2;
-		verify(subscriptionSender, times(numberOfInvocations)).sendAssetPageRetrievalMessageSameTx(captor1.capture());
-		List<AssetPageRetrievalMessage> messages = captor1.getAllValues();
+		if (includeAssets || includeAssetGroups) {
+			int numberOfInvocations = (includeAssets ? 1 : 0) + (includeAssetGroups ? 2 : 0);
+			ArgumentCaptor<AssetPageRetrievalMessage> captor1 = ArgumentCaptor.forClass(AssetPageRetrievalMessage.class);
+			verify(subscriptionSender, times(numberOfInvocations)).sendAssetPageRetrievalMessageSameTx(captor1.capture());
+			Iterator<AssetPageRetrievalMessage> messages = captor1.getAllValues().iterator();
+			if (includeAssetGroups) {
+				verifyMessageContents(messages.next(), "11ac3628-9a2e-4a21-a9eb-3931e5a1ce53", 1L);
+				verifyMessageContents(messages.next(), "22ac3628-9a2e-4a21-a9eb-3931e5a1ce54", 1L);
+			}
+			if (includeAssets) {
+				verifyMainAssets(messages.next(), 1L);
+			}
+			assertFalse(messages.hasNext());
+		}
 
-		verifyMessageContents(messages.get(0), "11ac3628-9a2e-4a21-a9eb-3931e5a1ce53", 1L);
-		verifyMessageContents(messages.get(1), "22ac3628-9a2e-4a21-a9eb-3931e5a1ce54", 1L);
-		if (includeAssets) {
-			verifyMessageContents(messages.get(2),"mainAssets", 1L);
+		if (includeAreas) {
+			assertEquals(1, subscription.getAreas().size());
+			assertEquals(33L, subscription.getAreas().iterator().next().getId());
+			assertEquals(11L, subscription.getAreas().iterator().next().getGid());
+			assertEquals(AreaType.GFCM, subscription.getAreas().iterator().next().getAreaType());
 		}
 	}
 
 	protected static Stream<Arguments> testCreateManualSubscriptionParams() {
 		return Stream.of(
-				Arguments.of(false),
-				Arguments.of(true)
+				Arguments.of(false, false, false),
+				Arguments.of(true, false, false),
+				Arguments.of(false, true, true),
+				Arguments.of(true, true, true)
 		);
+	}
+
+	private void verifyMainAssets(AssetPageRetrievalMessage message, long pageNumber) {
+		assertFalse(message.isGroup());
+		assertEquals("mainAssets", message.getAssetGroupGuid());
+		assertEquals(pageNumber, message.getPageNumber());
+		assertTrue(message.getPageSize() > 1L);
 	}
 
 	private void verifyMessageContents(AssetPageRetrievalMessage message, String assetGroupGuid, long pageNumber) {

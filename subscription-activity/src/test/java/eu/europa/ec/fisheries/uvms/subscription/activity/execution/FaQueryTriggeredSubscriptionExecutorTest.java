@@ -25,6 +25,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
@@ -43,6 +44,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubsc
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
+import eu.europa.ec.fisheries.uvms.subscription.service.util.SubscriptionDateTimeService;
+import static eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeUtil.convertDateToZonedDateTime;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
@@ -84,6 +87,9 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 	@Produces @Mock
 	private UsmSender usmSender;
 
+	@Produces @Mock
+	private SubscriptionDateTimeService subscriptionDateTimeService;
+
 	@Inject
 	private FaQueryTriggeredSubscriptionExecutor sut;
 
@@ -108,9 +114,16 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 	@Test
 	void testExecute() throws Exception {
 		SubscriptionExecutionEntity execution = setup(OutgoingMessageType.FA_QUERY, TriggerType.INC_FA_QUERY);
-		execution.getTriggeredSubscription().getSubscription().getOutput().setHistory(3);
-		execution.getTriggeredSubscription().getSubscription().getOutput().setHistoryUnit(SubscriptionTimeUnit.DAYS);
+		SubscriptionOutput output = execution.getTriggeredSubscription().getSubscription().getOutput();
+		output.setHistory(3);
+		output.setHistoryUnit(SubscriptionTimeUnit.DAYS);
 		setupMocks();
+		DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
+		ZonedDateTime endDate = datatypeFactory.newXMLGregorianCalendar(OCCURRENCE).toGregorianCalendar().toZonedDateTime();
+		when(subscriptionDateTimeService.calculateEndDate(output,OCCURRENCE)).thenReturn(endDate);
+		when(subscriptionDateTimeService.calculateStartDate(output,endDate)).thenReturn(
+				endDate.minus(output.getHistory(), output.getHistoryUnit().getTemporalUnit())
+		);
 
 		sut.execute(execution);
 
@@ -118,7 +131,6 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 		ArgumentCaptor<List<VesselIdentifierType>> idsCaptor = ArgumentCaptor.forClass(List.class);
 		ArgumentCaptor<XMLGregorianCalendar> dateCaptor1 = ArgumentCaptor.forClass(XMLGregorianCalendar.class);
 		ArgumentCaptor<XMLGregorianCalendar> dateCaptor2 = ArgumentCaptor.forClass(XMLGregorianCalendar.class);
-		DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
 		verify(activitySender).createAndSendQueryForVessel(idsCaptor.capture(), eq(true), dateCaptor1.capture(), dateCaptor2.capture(), eq(RECEIVER), eq(DATAFLOW));
 		assertNull(execution.getExecutionTime());
 		assertEquals(QUEUED, execution.getStatus());
@@ -131,9 +143,13 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 	@Test
 	void testExecuteManualSubscription() throws Exception {
 		SubscriptionExecutionEntity execution = setup(OutgoingMessageType.FA_QUERY, TriggerType.MANUAL);
-		execution.getTriggeredSubscription().getSubscription().getOutput().setQueryPeriod(new DateRange(START_DATE, END_DATE));
+		SubscriptionOutput output = execution.getTriggeredSubscription().getSubscription().getOutput();
+		output.setQueryPeriod(new DateRange(START_DATE, END_DATE));
 		execution.getTriggeredSubscription().getData().add(new TriggeredSubscriptionDataEntity(execution.getTriggeredSubscription(), "IRCS", "IRCS FROM DATA"));
 		setupMocks();
+		ZonedDateTime endDate = convertDateToZonedDateTime(output.getQueryPeriod().getEndDate());
+		when(subscriptionDateTimeService.calculateEndDate(output,null)).thenReturn(endDate);
+		when(subscriptionDateTimeService.calculateStartDate(output,endDate)).thenReturn(convertDateToZonedDateTime(output.getQueryPeriod().getStartDate()));
 
 		sut.execute(execution);
 

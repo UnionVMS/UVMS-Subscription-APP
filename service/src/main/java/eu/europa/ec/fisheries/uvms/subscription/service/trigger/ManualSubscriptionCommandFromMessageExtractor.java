@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.xml.datatype.DatatypeFactory;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionFinder;
+import eu.europa.ec.fisheries.uvms.subscription.service.filter.AreaFilterComponent;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 
@@ -29,8 +30,8 @@ public class ManualSubscriptionCommandFromMessageExtractor extends SubscriptionB
     public ManualSubscriptionCommandFromMessageExtractor(SubscriptionFinder subscriptionFinder,
                                                          TriggerCommandsFactory triggerCommandsFactory,
                                                          DatatypeFactory datatypeFactory,
-                                                         DateTimeService dateTimeService, AssetSender assetSender) {
-        super(subscriptionFinder, triggerCommandsFactory, datatypeFactory, dateTimeService, assetSender);
+                                                         DateTimeService dateTimeService, AssetSender assetSender, AreaFilterComponent areaFilterComponent) {
+        super(subscriptionFinder, triggerCommandsFactory, datatypeFactory, dateTimeService, assetSender, areaFilterComponent);
     }
 
     /**
