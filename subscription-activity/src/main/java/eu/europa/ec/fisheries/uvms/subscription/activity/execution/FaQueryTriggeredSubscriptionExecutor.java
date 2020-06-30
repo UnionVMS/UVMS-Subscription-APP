@@ -16,12 +16,10 @@ import javax.inject.Inject;
 import javax.xml.datatype.DatatypeFactory;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TimeZone;
 
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierSchemeIdEnum;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
@@ -30,10 +28,10 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.ReceiverAn
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionExecutor;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
+import eu.europa.ec.fisheries.uvms.subscription.service.util.SubscriptionDateTimeService;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
@@ -52,6 +50,7 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 	private UsmSender usmSender;
 	private AssetSender assetSender;
 	private DatatypeFactory datatypeFactory;
+	private SubscriptionDateTimeService subscriptionDateTimeService;
 
 	/**
 	 * Constructor for dependency injection.
@@ -59,13 +58,15 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 	 * @param activitySender The service for communicating with activity
 	 * @param usmSender The service for communicating with USM
 	 * @param datatypeFactory The XML helper object
+	 * @param subscriptionDateTimeService The subscription specific date time helper bean
 	 */
 	@Inject
-	public FaQueryTriggeredSubscriptionExecutor(ActivitySender activitySender, UsmSender usmSender, AssetSender assetSender, DatatypeFactory datatypeFactory) {
+	public FaQueryTriggeredSubscriptionExecutor(ActivitySender activitySender, UsmSender usmSender, AssetSender assetSender, DatatypeFactory datatypeFactory,SubscriptionDateTimeService subscriptionDateTimeService) {
 		this.activitySender = activitySender;
 		this.usmSender = usmSender;
 		this.assetSender = assetSender;
 		this.datatypeFactory = datatypeFactory;
+		this.subscriptionDateTimeService = subscriptionDateTimeService;
 	}
 
 	/**
@@ -110,12 +111,6 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 		return TriggerType.MANUAL.equals(subscription.getExecution().getTriggerType());
 	}
 
-	private ZonedDateTime convertDateToZonedDateTime(Date date) {
-		GregorianCalendar calendarStartDate = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
-		calendarStartDate.setTime(date);
-		return calendarStartDate.toZonedDateTime();
-	}
-
 	private VesselIdentifiersHolder createVesselIdentifierHolderFrom(Map<String, String> dataMap) {
 		VesselIdentifiersHolder idsHolder = new VesselIdentifiersHolder();
 		idsHolder.setCfr(dataMap.get(VesselIdentifierSchemeIdEnum.CFR.name()));
@@ -141,18 +136,15 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 	}
 
 	private ZonedDateTime calculateEndDate(TriggeredSubscriptionEntity triggeredSubscription, Map<String, String> dataMap) {
-		if (triggeredSubscription.getSubscription().getOutput().getQueryPeriod() != null) {
-			return convertDateToZonedDateTime(triggeredSubscription.getSubscription().getOutput().getQueryPeriod().getEndDate());
-		} else {
-			String occurrence = dataMap.get(KEY_OCCURRENCE);
+		String occurrence = null;
+		if (triggeredSubscription.getSubscription().getOutput().getQueryPeriod() == null) {
+			occurrence = dataMap.get(KEY_OCCURRENCE);
 			Objects.requireNonNull(occurrence, "occurrence not found in data of " + triggeredSubscription.getId());
-			return datatypeFactory.newXMLGregorianCalendar(occurrence).toGregorianCalendar().toZonedDateTime();
 		}
+		return subscriptionDateTimeService.calculateEndDate(triggeredSubscription.getSubscription().getOutput(),occurrence);
 	}
 
 	private ZonedDateTime calculateStartDate(TriggeredSubscriptionEntity triggeredSubscription, ZonedDateTime endDate) {
-		SubscriptionOutput output = triggeredSubscription.getSubscription().getOutput();
-		return output.getQueryPeriod() != null ?
-				convertDateToZonedDateTime(output.getQueryPeriod().getStartDate()) : endDate.minus(output.getHistory(), output.getHistoryUnit().getTemporalUnit());
+		return subscriptionDateTimeService.calculateStartDate(triggeredSubscription.getSubscription().getOutput(),endDate);
 	}
 }

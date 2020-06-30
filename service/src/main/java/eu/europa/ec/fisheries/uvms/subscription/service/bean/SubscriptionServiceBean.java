@@ -212,10 +212,10 @@ class SubscriptionServiceBean implements SubscriptionService {
     public SubscriptionDto createManual(@Valid @NotNull SubscriptionDto subscription) {
         SubscriptionEntity entity = mapper.mapDtoToEntity(subscription);
         setValidityPeriodForManualTrigger(entity);
-        entity.setHasAssets((entity.getAssets() != null && !entity.getAssets().isEmpty()) || (entity.getAssetGroups() != null && !entity.getAssetGroups().isEmpty()));
-        if (!entity.getAssets().isEmpty()) {
-            enrichNewAssets(entity.getAssets());
-        }
+        enrichNewAssets(entity.getAssets());
+        entity.setHasAreas(subscription.getAreas() != null && !subscription.getAreas().isEmpty());
+        entity.setHasAssets(subscription.getAssets() != null && !subscription.getAssets().isEmpty());
+        entity.setHasSenders(false);
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
         sendAssetPageRetrievalMessages(saved);
         sendLogToAudit(mapToAuditLog(SUBSCRIPTION, AuditActionEnum.CREATE.name(), saved.getId().toString(), authenticationContext.getUserPrincipal().getName()));
