@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.SubscriptionHasUniqueName;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidManualSubscriptionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidScheduledSubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidSubscriptionDtoOutput;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import lombok.Data;
@@ -33,6 +34,7 @@ import lombok.Data;
 @Data
 @SubscriptionHasUniqueName
 @ValidManualSubscriptionDto
+@ValidScheduledSubscriptionDto
 @ValidSubscriptionDtoOutput
 public class SubscriptionDto {
 
