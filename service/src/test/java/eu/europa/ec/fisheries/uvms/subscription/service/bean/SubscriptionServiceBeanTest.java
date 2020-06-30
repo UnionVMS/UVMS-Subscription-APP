@@ -541,6 +541,30 @@ public class SubscriptionServiceBeanTest {
 		assertDoesNotThrow(() -> sut.create(subscription));
     }
 
+    @Test
+	void createScheduledSubscription() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null,
+				EMAIL_BODY, false, true, "", true, false );
+		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+		subscription.getExecution().setTriggerType(TriggerType.SCHEDULER);
+		subscription.getExecution().setFrequency(1);
+		subscription.getExecution().setFrequencyUnit(SubscriptionTimeUnit.DAYS);
+		subscription.getExecution().setTimeExpression("22:00");
+		assertDoesNotThrow(() -> sut.create(subscription));
+
+		subscription.getExecution().setFrequency(null);
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+		subscription.getExecution().setFrequency(1);
+
+		subscription.getExecution().setFrequencyUnit(null);
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+		subscription.getExecution().setFrequencyUnit(SubscriptionTimeUnit.DAYS);
+
+		subscription.getExecution().setFrequency(0);
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
+
 	@Test
 	void checkAvailableNameForExistingEntityWithThatName() {
 		SubscriptionEntity entity = new SubscriptionEntity();

@@ -1,6 +1,12 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.validation;
 
 import javax.validation.ConstraintValidatorContext;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Utility class implementing methods shared by custom validators.
@@ -41,6 +47,48 @@ public interface ValidationUtil {
         }
         if (nodeBuilder != null) {
             nodeBuilder.addConstraintViolation();
+        }
+    }
+
+    static <R> ValidationUtilContext<R> require(ConstraintValidatorContext context, String message, R value) {
+        return new ValidationUtilContext<>(context, message, value);
+    }
+
+    class ValidationUtilContext<V> {
+        private final ConstraintValidatorContext context;
+        private final String message;
+        private final Optional<V> value;
+        private final List<String> path;
+
+        private ValidationUtilContext(ConstraintValidatorContext context, String message, V value) {
+            this.context = context;
+            this.message = message;
+            this.value = Optional.ofNullable(value);
+            path = new ArrayList<>();
+        }
+
+        private ValidationUtilContext(ConstraintValidatorContext context, String message, List<String> path, Optional<V> value) {
+            this.context = context;
+            this.message = message;
+            this.path = path;
+            this.value = value;
+        }
+
+        public <R> ValidationUtilContext<R> path(String propertyName, Function<V,R> getNext) {
+            Objects.requireNonNull(propertyName);
+            List<String> path = new ArrayList<>(this.path);
+            path.add(propertyName);
+            return new ValidationUtilContext<R>(context, message, path, value.map(getNext));
+        }
+
+        public boolean toBe(Predicate<V> condition) {
+            return value.map(v -> {
+                boolean isValid = condition.test(v);
+                if (!isValid) {
+                    addViolationMessageToPath(context, message, path.toArray(new String[]{}));
+                }
+                return isValid;
+            }).orElse(Boolean.TRUE);
         }
     }
 }
