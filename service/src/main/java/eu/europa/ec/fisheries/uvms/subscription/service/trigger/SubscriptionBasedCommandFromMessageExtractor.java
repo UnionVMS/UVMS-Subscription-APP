@@ -29,13 +29,12 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.filter.AreaFilterComponent;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.AssetPageRetrievalMessage;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersWithConnectIdHolder;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 /* Base abstract class for manual and scheduled subscriptions */
 public abstract class SubscriptionBasedCommandFromMessageExtractor implements SubscriptionCommandFromMessageExtractor {
@@ -53,16 +52,18 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
     private DatatypeFactory datatypeFactory;
     private DateTimeService dateTimeService;
     private AssetSender assetSender;
+    private AreaFilterComponent areaFilterComponent;
 
     public SubscriptionBasedCommandFromMessageExtractor(SubscriptionFinder subscriptionFinder,
                                                         TriggerCommandsFactory triggerCommandsFactory,
                                                         DatatypeFactory datatypeFactory,
-                                                        DateTimeService dateTimeService, AssetSender assetSender) {
+                                                        DateTimeService dateTimeService, AssetSender assetSender, AreaFilterComponent areaFilterComponent) {
         this.subscriptionFinder = subscriptionFinder;
         this.triggerCommandsFactory = triggerCommandsFactory;
         this.datatypeFactory = datatypeFactory;
         this.dateTimeService = dateTimeService;
         this.assetSender = assetSender;
+        this.areaFilterComponent = areaFilterComponent;
     }
 
     /**
@@ -90,9 +91,11 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
     }
 
     private Stream<Command> makeCommandsForSubscription(SubscriptionEntity subscription, List<AssetEntity> assets) {
-        return assets.stream()
+        List<AssetAndSubscriptionData> assetAndSubscriptionData = assets.stream()
                 .distinct()
-                .map(a -> new AssetAndSubscriptionData(a, subscription))
+                .map(makeAssetAndSubscriptionDataMapper(subscription))
+                .collect(Collectors.toList());
+        return areaFilterComponent.filterAssetsBySubscriptionAreas(assetAndSubscriptionData)
                 .map(this::makeTriggeredSubscriptionEntity)
                 .map(this::makeCommandForSubscription);
     }
@@ -111,7 +114,7 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
     private Set<TriggeredSubscriptionDataEntity> makeTriggeredSubscriptionData(TriggeredSubscriptionEntity triggeredSubscription, AssetAndSubscriptionData data) {
         Set<TriggeredSubscriptionDataEntity> result = new HashSet<>();
         addConnectIdData(triggeredSubscription, data, result);
-        addOccurrenceDataIfRequired(triggeredSubscription, result);
+        addOccurrenceDataIfRequired(triggeredSubscription, data, result);
         addVesselIdentifierData(triggeredSubscription, data, result);
         return result;
     }
@@ -120,12 +123,9 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
         result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_CONNECT_ID, data.getAssetEntity().getGuid()));
     }
 
-    private void addOccurrenceDataIfRequired(TriggeredSubscriptionEntity triggeredSubscription, Set<TriggeredSubscriptionDataEntity> result) {
+    private void addOccurrenceDataIfRequired(TriggeredSubscriptionEntity triggeredSubscription,AssetAndSubscriptionData data, Set<TriggeredSubscriptionDataEntity> result) {
         if (triggeredSubscription.getSubscription().getOutput().getQueryPeriod() == null) {
-            GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
-            calendar.setTime(dateTimeService.getNowAsDate());
-            XMLGregorianCalendar xmlCalendar = datatypeFactory.newXMLGregorianCalendar(calendar);
-            result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_OCCURRENCE, xmlCalendar.toXMLFormat()));
+            result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_OCCURRENCE, data.getOccurrenceKeyData()));
         }
     }
 
@@ -194,12 +194,16 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
         );
     }
 
-    @Getter
-    @AllArgsConstructor
-    private static class AssetAndSubscriptionData {
-        private final AssetEntity assetEntity;
-        private final SubscriptionEntity subscription;
+    private Function<AssetEntity,AssetAndSubscriptionData> makeAssetAndSubscriptionDataMapper(SubscriptionEntity manualSubscription) {
+        return assetEntity -> {
+            String occurrenceKeyData = null;
+            if(manualSubscription.getOutput().getQueryPeriod() == null){
+                GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+                calendar.setTime(dateTimeService.getNowAsDate());
+                XMLGregorianCalendar xmlCalendar = datatypeFactory.newXMLGregorianCalendar(calendar);
+                occurrenceKeyData = xmlCalendar.toXMLFormat();
+            }
+            return new AssetAndSubscriptionData(assetEntity,manualSubscription,occurrenceKeyData);
+        };
     }
 }
-
-

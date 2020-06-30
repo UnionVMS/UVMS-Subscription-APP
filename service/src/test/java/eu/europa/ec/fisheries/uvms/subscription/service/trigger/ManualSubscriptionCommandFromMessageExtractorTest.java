@@ -47,6 +47,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.filter.AreaFilterComponent;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.AssetPageRetrievalMessage;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
@@ -59,6 +60,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mapstruct.ap.internal.util.Collections;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -83,6 +85,10 @@ class ManualSubscriptionCommandFromMessageExtractorTest {
     @Produces
     @Mock
     private AssetSender assetSender;
+
+    @Produces
+    @Mock
+    private AreaFilterComponent areaFilterComponent;
 
     @Produces
     @ApplicationScoped
@@ -118,6 +124,8 @@ class ManualSubscriptionCommandFromMessageExtractorTest {
         when(subscriptionFinder.findSubscriptionById(500L)).thenReturn(subscriptionEntity);
         AssetPageRetrievalCommand assetPageRetrievalCommand = new AssetPageRetrievalCommand(messageForQueue, subscriptionSender);
         when(triggerCommandsFactory.createAssetPageRetrievalCommand(any())).thenReturn(assetPageRetrievalCommand);
+        //skip area filtering
+        when(areaFilterComponent.filterAssetsBySubscriptionAreas(ArgumentMatchers.any())).thenAnswer(i-> ((List<?>) i.getArguments()[0]).stream());
         Stream<Command> result = sut.extractCommands(AssetPageRetrievalMessage.encodeMessage(receivedMessageFromQueue), null);
 
         assertNotNull(result);
@@ -164,6 +172,8 @@ class ManualSubscriptionCommandFromMessageExtractorTest {
         AssetPageRetrievalCommand assetPageRetrievalCommand = new AssetPageRetrievalCommand(assetPageRetrievalMessage, subscriptionSender);
         when(triggerCommandsFactory.createAssetPageRetrievalCommand(any())).thenReturn(assetPageRetrievalCommand);
         when(assetSender.findAssetIdentifiersByAssetGroupGuid(assetGroupName, dateTimeService.getNowAsDate(), pageNumber, pageSize)).thenReturn(groupAssets);
+        //skip area filtering
+        when(areaFilterComponent.filterAssetsBySubscriptionAreas(ArgumentMatchers.any())).thenAnswer(i-> ((List<?>) i.getArguments()[0]).stream());
         Stream<Command> result = sut.extractCommands(encodedMessageFromQueue, null);
 
         assertNotNull(result);
