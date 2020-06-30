@@ -20,6 +20,7 @@ import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.CriteriaUpdate;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.SetJoin;
@@ -47,10 +48,17 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEmailConfiguration_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecution;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecution_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.OrderByData;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
@@ -356,12 +364,56 @@ class SubscriptionDaoImpl implements SubscriptionDao {
         if (subscription == null) {
             throw new EntityDoesNotExistException("Subscription with id " + id);
         }
+
         CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaDelete<EmailBodyEntity> delete = cb.createCriteriaDelete(EmailBodyEntity.class);
-        Root<EmailBodyEntity> fromEmailBodyEntity = delete.from(EmailBodyEntity.class);
-        delete.where(cb.equal(fromEmailBodyEntity.get(EmailBodyEntity_.SUBSCRIPTION), subscription));
-        em.createQuery(delete).executeUpdate();
+        deleteEmails(cb, subscription);
+        deleteExecutions(cb, subscription);
+        deleteData(cb, subscription);
+        deleteTriggered(cb, subscription);
+
         em.remove(subscription);
+    }
+
+    private void deleteEmails(CriteriaBuilder cb, SubscriptionEntity subscription) {
+        CriteriaDelete<EmailBodyEntity> deleteEmail = cb.createCriteriaDelete(EmailBodyEntity.class);
+        Root<EmailBodyEntity> fromEmailBodyEntity = deleteEmail.from(EmailBodyEntity.class);
+        deleteEmail.where(cb.equal(fromEmailBodyEntity.get(EmailBodyEntity_.SUBSCRIPTION), subscription));
+        em.createQuery(deleteEmail).executeUpdate();
+    }
+
+    private void deleteExecutions(CriteriaBuilder cb, SubscriptionEntity subscription) {
+        CriteriaDelete<SubscriptionExecutionEntity> deleteExecutions = cb.createCriteriaDelete(SubscriptionExecutionEntity.class);
+        Root<SubscriptionExecutionEntity> fromSubscriptionExecution = deleteExecutions.from(SubscriptionExecutionEntity.class);
+        Subquery<Long> triggeredSubquery = deleteExecutions.subquery(Long.class);
+        Root<TriggeredSubscriptionEntity> fromTriggeredSubscription = triggeredSubquery.from(TriggeredSubscriptionEntity.class);
+        triggeredSubquery.select(fromTriggeredSubscription.get(TriggeredSubscriptionEntity_.id))
+                .where(cb.equal(fromTriggeredSubscription.get(TriggeredSubscriptionEntity_.subscription), subscription));
+        deleteExecutions.where(
+                fromSubscriptionExecution.get(SubscriptionExecutionEntity_.triggeredSubscription).get(TriggeredSubscriptionEntity_.id).in(triggeredSubquery)
+        );
+        em.createQuery(deleteExecutions).executeUpdate();
+    }
+
+    private void deleteData(CriteriaBuilder cb, SubscriptionEntity subscription) {
+        CriteriaDelete<TriggeredSubscriptionDataEntity> deleteData = cb.createCriteriaDelete(TriggeredSubscriptionDataEntity.class);
+        Root<TriggeredSubscriptionDataEntity> fromData = deleteData.from(TriggeredSubscriptionDataEntity.class);
+        Subquery<Long> triggeredSubquery = deleteData.subquery(Long.class);
+        Root<TriggeredSubscriptionEntity> fromTriggeredSubscription = triggeredSubquery.from(TriggeredSubscriptionEntity.class);
+        triggeredSubquery.select(fromTriggeredSubscription.get(TriggeredSubscriptionEntity_.id))
+                .where(cb.equal(fromTriggeredSubscription.get(TriggeredSubscriptionEntity_.subscription), subscription));
+        deleteData.where(
+                fromData.get(TriggeredSubscriptionDataEntity_.triggeredSubscription).get(TriggeredSubscriptionEntity_.id).in(triggeredSubquery)
+        );
+        em.createQuery(deleteData).executeUpdate();
+    }
+
+    private void deleteTriggered(CriteriaBuilder cb, SubscriptionEntity subscription) {
+        CriteriaDelete<TriggeredSubscriptionEntity> deleteTriggered = cb.createCriteriaDelete(TriggeredSubscriptionEntity.class);
+        Root<TriggeredSubscriptionEntity> fromTriggeredSubscription = deleteTriggered.from(TriggeredSubscriptionEntity.class);
+        deleteTriggered.where(
+                cb.equal(fromTriggeredSubscription.get(TriggeredSubscriptionEntity_.subscription), subscription)
+        );
+        em.createQuery(deleteTriggered).executeUpdate();
     }
 
     @Override
