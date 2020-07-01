@@ -31,7 +31,6 @@ import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidRequ
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHistGuidsRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHistGuidsResponse;
-import eu.europa.ec.fisheries.wsdl.asset.types.AssetIdsForGroupGuidQueryElement;
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetIdsForGroupGuidResponseElement;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.ApplicationException;
 

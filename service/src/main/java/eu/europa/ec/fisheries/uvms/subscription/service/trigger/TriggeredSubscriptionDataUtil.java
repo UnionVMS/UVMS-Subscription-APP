@@ -15,6 +15,11 @@ public class TriggeredSubscriptionDataUtil {
 	public static final String KEY_MOVEMENT_GUID_PREFIX = "movementGuidIndex_";
 	public static final String KEY_REPORT_ID_PREFIX = "reportId_";
 
+	@SuppressWarnings("unused")
+	private TriggeredSubscriptionDataUtil() {
+		throw new IllegalStateException("Utility class");
+	}
+
 	/**
 	 * Extract only the {@code connectId} data.
 	 *

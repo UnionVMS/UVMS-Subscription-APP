@@ -13,16 +13,22 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
+import javax.xml.bind.JAXBException;
 
+import java.text.MessageFormat;
+
+import eu.europa.ec.fisheries.schema.movement.common.v1.ExceptionType;
 import eu.europa.ec.fisheries.schema.movement.module.v1.FilterGuidListByAreaAndDateRequest;
 import eu.europa.ec.fisheries.schema.movement.module.v1.FilterGuidListByAreaAndDateResponse;
 import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionRequest;
 import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionResponse;
+import eu.europa.ec.fisheries.schema.movement.module.v1.MovementModuleMethod;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.movement.model.exception.MovementModelException;
 import eu.europa.ec.fisheries.uvms.movement.model.mapper.JAXBMarshaller;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionConsumerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
+import eu.europa.fisheries.uvms.subscription.model.exceptions.ExecutionException;
 
 /**
  * JMS implementation of the {@link MovementClient}.
@@ -60,31 +66,41 @@ public class JmsMovementClient implements MovementClient {
     public FilterGuidListByAreaAndDateResponse filterGuidListForDateByArea(FilterGuidListByAreaAndDateRequest request) {
         try {
             String correlationId = subscriptionProducer.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request), movementQueue, subscriptionConsumerBean.getDestination());
-            FilterGuidListByAreaAndDateResponse response = null;
-            if (correlationId != null) {
-                TextMessage textMessage = subscriptionConsumerBean.getMessage(correlationId, TextMessage.class);
-                response = JAXBMarshaller.unmarshallTextMessage(textMessage, FilterGuidListByAreaAndDateResponse.class);
-            }
-            return response;
+            return createResponse(correlationId, FilterGuidListByAreaAndDateResponse.class, request.getMethod());
         } catch (MessageException | MovementModelException e) {
-            e.printStackTrace();
+            throw new ExecutionException(e);
         }
-        return null;
     }
 
     @Override
     public ForwardPositionResponse forwardPosition(ForwardPositionRequest request) {
         try {
             String correlationId = subscriptionProducer.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request), movementQueue, subscriptionConsumerBean.getDestination());
-            ForwardPositionResponse response = null;
-            if (correlationId != null) {
-                TextMessage textMessage = subscriptionConsumerBean.getMessage(correlationId, TextMessage.class);
-                response = JAXBMarshaller.unmarshallTextMessage(textMessage, ForwardPositionResponse.class);
-            }
-            return response;
+            return createResponse(correlationId, ForwardPositionResponse.class, request.getMethod());
         } catch (MessageException | MovementModelException e) {
-            e.printStackTrace();
+            throw new ExecutionException(e);
         }
-        return null;
+    }
+
+    private <T> T createResponse(String correlationId, Class<T> responseClass, MovementModuleMethod requestMethod) throws MessageException, MovementModelException {
+        T response = null;
+        if (correlationId != null) {
+            TextMessage textMessage = subscriptionConsumerBean.getMessage(correlationId, TextMessage.class);
+            try {
+                response = JAXBMarshaller.unmarshallTextMessage(textMessage, responseClass);
+            } catch (MovementModelException mme1) {
+                if (mme1.getCause() instanceof JAXBException) {
+                    try {
+                        // We may not be able to unmarshal to the wanted object, because movement returned us an "exception" type:
+                        ExceptionType exceptionType = JAXBMarshaller.unmarshallTextMessage(textMessage, ExceptionType.class);
+                        throw new MovementFaultException(exceptionType.getCode(), exceptionType.getFault(), MessageFormat.format("error invoking {0}: {1} - {2}", requestMethod, exceptionType.getCode(), exceptionType.getFault()));
+                    } catch (MovementModelException mme2) {
+                        // Genuine MovementModelException, throwing the original:
+                        throw mme1;
+                    }
+                }
+            }
+        }
+        return response;
     }
 }

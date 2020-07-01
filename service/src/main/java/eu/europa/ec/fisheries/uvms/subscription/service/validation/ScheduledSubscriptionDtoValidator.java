@@ -14,15 +14,20 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutio
  * Implementation of custom validator for {@link SubscriptionDto} with its execution {@code TriggerType.SCHEDULER}.
  */
 public class ScheduledSubscriptionDtoValidator implements ConstraintValidator<ValidScheduledSubscriptionDto, SubscriptionDto> {
+
+	private static final String EXECUTION_PATH = "execution";
+	private static final String FREQUENCY_PATH = "frequency";
+	private static final String FREQUENCY_UNIT_PATH = "frequencyUnit";
+
 	@Override
 	public boolean isValid(SubscriptionDto value, ConstraintValidatorContext context) {
 		boolean valid = true;
 		if (value != null && value.getExecution() != null && value.getExecution().getTriggerType() == SCHEDULER) {
-			valid = requirePropertyNotNullWithMessage(context, value.getExecution().getFrequency(), "Frequency is required", "execution", "frequency");
-			valid &= requirePropertyNotNullWithMessage(context, value.getExecution().getFrequencyUnit(), "Frequency unit is required", "execution", "frequencyUnit");
+			valid = requirePropertyNotNullWithMessage(context, value.getExecution().getFrequency(), "Frequency is required", EXECUTION_PATH, FREQUENCY_PATH);
+			valid &= requirePropertyNotNullWithMessage(context, value.getExecution().getFrequencyUnit(), "Frequency unit is required", EXECUTION_PATH, FREQUENCY_UNIT_PATH);
 			valid &= require(context, "Frequency must be positive for scheduled subscriptions", value)
-						.path("execution", SubscriptionDto::getExecution)
-						.path("frequency", SubscriptionExecutionDto::getFrequency)
+						.path(EXECUTION_PATH, SubscriptionDto::getExecution)
+						.path(FREQUENCY_PATH, SubscriptionExecutionDto::getFrequency)
 						.toBe(frequency -> frequency > 0);
 		}
 		return valid;

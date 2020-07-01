@@ -17,6 +17,8 @@ import javax.persistence.Enumerated;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+import java.io.Serializable;
+
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionFaReportDocumentType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,7 +31,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubscriptionFishingActivity {
+public class SubscriptionFishingActivity implements Serializable {
 	@Enumerated(STRING)
 	@Column(name = "type")
 	@NotNull

@@ -37,7 +37,6 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -204,38 +203,6 @@ class JavaxMailEmailSender implements EmailSender {
             return new InternetAddress(receiver);
         } catch (AddressException e) {
             throw new EmailException(e);
-        }
-    }
-
-    private static class Base64DataSource implements DataSource {
-        private final String name;
-        private final String contentType;
-        private final InputStream stream;
-
-        Base64DataSource(String name, String contentType, String base64EncodedContent) {
-            this.name = name;
-            this.contentType = contentType;
-            stream = Base64.getDecoder().wrap(new ByteArrayInputStream(base64EncodedContent.getBytes()));
-        }
-
-        @Override
-        public InputStream getInputStream() {
-            return stream;
-        }
-
-        @Override
-        public OutputStream getOutputStream() throws IOException {
-            throw new IOException("cannot do this");
-        }
-
-        @Override
-        public String getContentType() {
-            return contentType;
-        }
-
-        @Override
-        public String getName() {
-            return name;
         }
     }
 }

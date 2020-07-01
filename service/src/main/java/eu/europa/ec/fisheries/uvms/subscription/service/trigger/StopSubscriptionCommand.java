@@ -16,7 +16,6 @@ import javax.enterprise.inject.Vetoed;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.TriggeredSubscriptionService;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionExecutionService;
 
 /**
  * Command to find triggered subscriptions and stop them.

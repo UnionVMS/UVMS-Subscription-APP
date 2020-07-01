@@ -786,7 +786,7 @@ public class SubscriptionServiceBeanTest {
 		ArgumentCaptor<SubscriptionEntity> captor = ArgumentCaptor.forClass(SubscriptionEntity.class);
 		verify(subscriptionDAO).createEntity(captor.capture());
 		SubscriptionEntity subscription = captor.getValue();
-		assertEquals(subscription.getId(), SUBSCR_ID);
+		assertEquals(SUBSCR_ID, subscription.getId());
 		assertEquals(includeAssets || includeAssetGroups, Boolean.TRUE.equals(subscription.getHasAssets()));
 		assertEquals(includeAreas, Boolean.TRUE.equals(subscription.getHasAreas()));
 

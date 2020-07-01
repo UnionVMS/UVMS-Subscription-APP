@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.TreeSet;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
@@ -66,7 +65,7 @@ class SubscriptionFinderImpl implements SubscriptionFinder {
 	public List<SubscriptionEntity> findTriggeredSubscriptions(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, Collection<ActivityCriterion> startActivities, SenderCriterion sender, @Valid @NotNull ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
 		List<SubscriptionEntity> triggeredByAreas = findSubscriptionsTriggeredByAreas(areas, assets, startActivities, sender, validAt, triggerTypes);
 		List<SubscriptionEntity> triggeredByAssets = findSubscriptionsTriggeredByAssets(areas, assets, startActivities, sender, validAt, triggerTypes);
-		List<SubscriptionEntity> triggeredByStartActivities = findSubscriptionsTriggeredByActivities(areas, assets, startActivities, sender, validAt, triggerTypes);
+		List<SubscriptionEntity> triggeredByStartActivities = findSubscriptionsTriggeredByActivities(areas, assets, startActivities, validAt, triggerTypes);
 		List<SubscriptionEntity> triggeredBySenders = findSubscriptionsTriggeredBySenders(areas, assets, startActivities, sender, validAt, triggerTypes);
 		return Stream.concat(Stream.concat(triggeredByAreas.stream(), triggeredByAssets.stream()),Stream.concat(triggeredByStartActivities.stream(), triggeredBySenders.stream()))
 				.collect(collectingAndThen(toCollection(() -> new TreeSet<>(comparingLong(SubscriptionEntity::getId))), ArrayList::new));
@@ -102,7 +101,7 @@ class SubscriptionFinderImpl implements SubscriptionFinder {
 		return dao.listSubscriptions(criteria);
 	}
 
-	private List<SubscriptionEntity> findSubscriptionsTriggeredByActivities(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, Collection<ActivityCriterion> startActivities, SenderCriterion sender, ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
+	private List<SubscriptionEntity> findSubscriptionsTriggeredByActivities(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, Collection<ActivityCriterion> startActivities, ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
 		if (startActivities == null || startActivities.isEmpty()) {
 			return Collections.emptyList();
 		}

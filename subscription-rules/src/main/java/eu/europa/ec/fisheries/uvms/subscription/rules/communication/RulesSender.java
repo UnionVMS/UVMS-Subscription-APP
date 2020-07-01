@@ -11,10 +11,8 @@ package eu.europa.ec.fisheries.uvms.subscription.rules.communication;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
-import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 
 /**
  * Service for sending messages to Rules module.

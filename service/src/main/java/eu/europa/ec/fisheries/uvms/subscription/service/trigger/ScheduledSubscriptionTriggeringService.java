@@ -12,8 +12,6 @@ package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 import java.util.Date;
 import java.util.stream.Stream;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-
 /**
  * Service to trigger a scheduled subscription.
  */
