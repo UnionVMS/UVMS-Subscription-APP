@@ -69,10 +69,8 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
      */
     @SuppressWarnings("unused")
     SubscriptionBasedCommandFromMessageExtractor() {
+        // NOOP
     }
-
-    @Override
-    public abstract String getEligibleSubscriptionSource();
 
     @Override
     public void preserveDataFromSupersededTriggering(TriggeredSubscriptionEntity superseded, TriggeredSubscriptionEntity replacement) {

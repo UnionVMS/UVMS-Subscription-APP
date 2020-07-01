@@ -907,14 +907,18 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     public void deleteSubscriptionWithStartActivities() {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
-
         //create subscription
         SubscriptionEntity subscription = SubscriptionTestHelper.random();
         subscription.setStartActivities(Collections.asSet(new SubscriptionFishingActivity(DECLARATION, "ARRIVAL"), new SubscriptionFishingActivity(DECLARATION, "AREA_ENTRY")));
         Long id = sut.createEntity(subscription).getId();
+        tx.commit();
 
+        tx.begin();
         sut.delete(id);
-        em.flush();
+        tx.commit();
+
+        em.clear();
+        assertNull(sut.findById(id));
     }
 
     @Test

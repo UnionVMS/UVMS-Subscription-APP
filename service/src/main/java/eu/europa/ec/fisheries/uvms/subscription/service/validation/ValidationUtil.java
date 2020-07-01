@@ -76,9 +76,9 @@ public interface ValidationUtil {
 
         public <R> ValidationUtilContext<R> path(String propertyName, Function<V,R> getNext) {
             Objects.requireNonNull(propertyName);
-            List<String> path = new ArrayList<>(this.path);
-            path.add(propertyName);
-            return new ValidationUtilContext<R>(context, message, path, value.map(getNext));
+            List<String> newPath = new ArrayList<>(this.path);
+            newPath.add(propertyName);
+            return new ValidationUtilContext<>(context, message, newPath, value.map(getNext));
         }
 
         public boolean toBe(Predicate<V> condition) {

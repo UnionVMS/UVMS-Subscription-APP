@@ -74,7 +74,7 @@ class IncomingDataMessageServiceImpl implements IncomingDataMessageService {
 	private SenderCriterion extractSenderCriterion(SenderInformation senderInformation) {
 		return Optional.ofNullable(senderInformation)
 				.filter(si -> StringUtils.isNotBlank(si.getDataflow()) && StringUtils.isNotBlank(si.getSenderOrReceiver()))
-				.map(si -> usmSender.findOrganizationByDataFlowAndEndpointName(si.getDataflow(), si.getSenderOrReceiver()))
+				.map(si -> usmSender.findOrganizationByDataFlowAndEndpoint(si.getDataflow(), si.getSenderOrReceiver()))
 				.map(sender -> new SenderCriterion(sender.getOrganisationId(), sender.getEndpointId(), sender.getChannelId()))
 				.orElse(BAD_SENDER);
 	}

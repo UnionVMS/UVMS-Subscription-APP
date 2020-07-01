@@ -19,7 +19,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.HasValidSubscriberDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidSubscriptionDtoOutput;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;

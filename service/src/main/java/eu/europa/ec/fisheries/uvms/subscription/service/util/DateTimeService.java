@@ -9,7 +9,6 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.util;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

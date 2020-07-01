@@ -9,6 +9,7 @@ public class ActivityFaultException extends ApplicationException {
 	private Integer code;
 	private String fault;
 
+	@SuppressWarnings("unused")
 	public ActivityFaultException() {
 	}
 

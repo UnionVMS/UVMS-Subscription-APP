@@ -63,11 +63,11 @@ class UsmSenderImpl implements UsmSender {
 	}
 
 	@Override
-	public OrganisationEndpointAndChannelId findOrganizationByDataFlowAndEndpointName(String dataflow, String endpointName) {
+	public OrganisationEndpointAndChannelId findOrganizationByDataFlowAndEndpoint(String dataflow, String endpoint) {
 		FindOrganisationByEndpointAndChannelRequest request = new FindOrganisationByEndpointAndChannelRequest();
 		request.setMethod(UserModuleMethod.FIND_ORGANISATION_BY_ENDPOINT_AND_CHANNEL);
 		request.setChannelDataFlow(dataflow);
-		request.setEndpointName(endpointName);
+		request.setEndpointName(endpoint);
 		return Optional.ofNullable(usmClient.findOrganisationByEndpointAndChannel(request))
 				.map(FindOrganisationByEndpointAndChannelResponse::getResult)
 				.orElse(null);

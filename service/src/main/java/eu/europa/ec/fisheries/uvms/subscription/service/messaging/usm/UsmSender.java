@@ -24,11 +24,11 @@ public interface UsmSender {
 	ReceiverAndDataflow findReceiverAndDataflow(Long endpointId, Long channelId);
 
 	/**
-	 * Find organization data by dataflow and endpoint name.
+	 * Find organization data by dataflow and endpoint.
 	 *
 	 * @param dataflow     The dataflow
-	 * @param endpointName The endpoint name
+	 * @param endpoint     The endpoint
 	 * @return The result, or {@code null} if not found
 	 */
-	OrganisationEndpointAndChannelId findOrganizationByDataFlowAndEndpointName(String dataflow, String endpointName);
+	OrganisationEndpointAndChannelId findOrganizationByDataFlowAndEndpoint(String dataflow, String endpoint);
 }

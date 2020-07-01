@@ -78,7 +78,7 @@ public class IncomingDataMessageServiceImplTest {
 		organisationEndpointAndChannelId.setOrganisationId(ORGANISATION_ID);
 		organisationEndpointAndChannelId.setEndpointId(ENDPOINT_ID);
 		organisationEndpointAndChannelId.setChannelId(CHANNEL_ID);
-		when(usmSender.findOrganizationByDataFlowAndEndpointName("a", "b")).thenReturn(organisationEndpointAndChannelId);
+		when(usmSender.findOrganizationByDataFlowAndEndpoint("a", "b")).thenReturn(organisationEndpointAndChannelId);
 
 		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION, new SenderInformation("a","b"), zdt);
 

@@ -111,7 +111,7 @@ class ActivitySenderImpl implements ActivitySender {
 	}
 
 	private FluxReportIdentifier toFluxReportIdentifier(String id) {
-		int index = id.indexOf(":");
+		int index = id.indexOf(':');
 		FluxReportIdentifier result = new FluxReportIdentifier();
 		result.setSchemeId(id.substring(0,index));
 		result.setId(id.substring(index + 1));
@@ -140,7 +140,7 @@ class ActivitySenderImpl implements ActivitySender {
 	}
 
 	@Override
-	public List<String> findMovementGuidsByReportIdsAndAssetGuid(List<String> reportIds,String assetGuid) {
+	public List<String> findMovementGuidsByReportIdsAndAssetGuid(List<String> reportIds, String assetGuid) {
 		FindMovementGuidsByReportIdsAndAssetGuidRequest request = new FindMovementGuidsByReportIdsAndAssetGuidRequest();
 		request.setMethod(ActivityModuleMethod.FIND_MOVEMENT_GUIDS_BY_REPORT_IDS_AND_ASSET_GUID);
 		request.setReportIds(reportIds);

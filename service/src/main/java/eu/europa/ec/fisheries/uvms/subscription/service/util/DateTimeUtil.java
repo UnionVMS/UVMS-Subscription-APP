@@ -22,6 +22,11 @@ import java.util.TimeZone;
 
 public class DateTimeUtil {
 
+    @SuppressWarnings("unused")
+    private DateTimeUtil() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /**
      * Converts given date to ZonedDateTime
      * @param date To be converted

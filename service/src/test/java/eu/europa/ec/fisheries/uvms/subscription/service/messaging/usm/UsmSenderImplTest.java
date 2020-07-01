@@ -2,19 +2,27 @@ package eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
+import eu.europa.ec.fisheries.wsdl.user.module.FindOrganisationByEndpointAndChannelRequest;
+import eu.europa.ec.fisheries.wsdl.user.module.FindOrganisationByEndpointAndChannelResponse;
+import eu.europa.ec.fisheries.wsdl.user.module.UserModuleMethod;
 import eu.europa.ec.fisheries.wsdl.user.types.Channel;
 import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
+import eu.europa.ec.fisheries.wsdl.user.types.OrganisationEndpointAndChannelId;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -29,6 +37,7 @@ class UsmSenderImplTest {
     private static final Long CHANNEL_ID = 222L;
     private static final String DATAFLOW = "df";
     private static final String URI = "URI";
+    private static final String ENDPOINT = "SRC:EP";
 
     @Produces @Mock
     private UsmClient usmClient;
@@ -73,7 +82,15 @@ class UsmSenderImplTest {
     }
 
     @Test
-    void testFindOrganizationByDataFlowAndEndpointName() {
-        // TODO
+    void testFindOrganizationByDataFlowAndEndpoint() {
+        OrganisationEndpointAndChannelId result = new OrganisationEndpointAndChannelId();
+        FindOrganisationByEndpointAndChannelResponse resp = new FindOrganisationByEndpointAndChannelResponse();
+        resp.setResult(result);
+        when(usmClient.findOrganisationByEndpointAndChannel(any())).thenReturn(resp);
+        OrganisationEndpointAndChannelId outcome = sut.findOrganizationByDataFlowAndEndpoint(DATAFLOW, ENDPOINT);
+        assertSame(result, outcome);
+        ArgumentCaptor<FindOrganisationByEndpointAndChannelRequest> captor = ArgumentCaptor.forClass(FindOrganisationByEndpointAndChannelRequest.class);
+        verify(usmClient).findOrganisationByEndpointAndChannel(captor.capture());
+        assertEquals(UserModuleMethod.FIND_ORGANISATION_BY_ENDPOINT_AND_CHANNEL, captor.getValue().getMethod());
     }
 }
