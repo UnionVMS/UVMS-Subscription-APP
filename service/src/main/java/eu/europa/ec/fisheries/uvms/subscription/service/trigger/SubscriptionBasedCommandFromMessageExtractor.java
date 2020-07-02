@@ -114,7 +114,7 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
     private Set<TriggeredSubscriptionDataEntity> makeTriggeredSubscriptionData(TriggeredSubscriptionEntity triggeredSubscription, AssetAndSubscriptionData data) {
         Set<TriggeredSubscriptionDataEntity> result = new HashSet<>();
         addConnectIdData(triggeredSubscription, data, result);
-        addOccurrenceDataIfRequired(triggeredSubscription, result);
+        addOccurrenceDataIfRequired(triggeredSubscription, data, result);
         addVesselIdentifierData(triggeredSubscription, data, result);
         return result;
     }
@@ -123,12 +123,9 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
         result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_CONNECT_ID, data.getAssetEntity().getGuid()));
     }
 
-    private void addOccurrenceDataIfRequired(TriggeredSubscriptionEntity triggeredSubscription, Set<TriggeredSubscriptionDataEntity> result) {
+    private void addOccurrenceDataIfRequired(TriggeredSubscriptionEntity triggeredSubscription,AssetAndSubscriptionData data, Set<TriggeredSubscriptionDataEntity> result) {
         if (triggeredSubscription.getSubscription().getOutput().getQueryPeriod() == null) {
-            GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
-            calendar.setTime(dateTimeService.getNowAsDate());
-            XMLGregorianCalendar xmlCalendar = datatypeFactory.newXMLGregorianCalendar(calendar);
-            result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_OCCURRENCE, xmlCalendar.toXMLFormat()));
+            result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_OCCURRENCE, data.getOccurrenceKeyData()));
         }
     }
 
