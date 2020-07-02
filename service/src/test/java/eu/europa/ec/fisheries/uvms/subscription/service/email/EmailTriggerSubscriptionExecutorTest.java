@@ -7,21 +7,24 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
-
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityModuleRequest;
+package eu.europa.ec.fisheries.uvms.subscription.service.email;
 
 /**
- * Low-level client to interesting Activity module services.
+ * Tests for the {@link EmailTriggerSubscriptionExecutor}.
  */
-public interface ActivityClient {
+//@EnableAutoWeld
+//@ExtendWith(MockitoExtension.class)
+public class EmailTriggerSubscriptionExecutorTest {
+//
+//	private static final Long EXECUTION_ID = 111L;
+//
+//	@Inject
+//	private EmailTriggerSubscriptionExecutor sut;
 
-    /**
-     * Common usage
-     *
-     * @param request The activity module request
-     * @param responseClass The class to be expected on unmarshall
-     * @return The activity module response
-     */
-    <T> T sendRequest(ActivityModuleRequest request, Class<T> responseClass);
+//	@Test
+//	void testEmptyConstructor() {
+//		SubscriptionExecutionServiceImpl sut = new SubscriptionExecutionServiceImpl();
+//		assertNotNull(sut);
+//	}
+
 }

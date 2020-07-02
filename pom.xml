@@ -54,6 +54,7 @@
 		<version.ninja.squad>2.1.0</version.ninja.squad>
 		<version.resteasy-test>4.4.2.Final</version.resteasy-test>
 		<version.weld-junit5>2.0.1.Final</version.weld-junit5>
+		<version.zip4j>2.6.1</version.zip4j>
 
 		<focus-pom.maven.surefire.plugin.version>2.22.2</focus-pom.maven.surefire.plugin.version>
 	</properties>
@@ -237,6 +238,13 @@
 				<artifactId>lombok</artifactId>
 				<version>${lombok.version}</version>
 				<scope>provided</scope>
+			</dependency>
+
+			<!-- Compression with password -->
+			<dependency>
+				<groupId>net.lingala.zip4j</groupId>
+				<artifactId>zip4j</artifactId>
+				<version>${version.zip4j}</version>
 			</dependency>
 
 			<!-- TEST -->

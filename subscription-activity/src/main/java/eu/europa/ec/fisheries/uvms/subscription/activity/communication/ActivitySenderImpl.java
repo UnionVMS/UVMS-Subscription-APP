@@ -13,12 +13,17 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import java.util.Collections;
 import java.util.List;
 
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityModuleMethod;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.AttachmentResponseObject;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForTripRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForVesselRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryResponse;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.GetAttachmentsForGuidAndQueryPeriod;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.GetAttachmentsForGuidAndQueryPeriodRequest;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.GetAttachmentsForGuidAndQueryPeriodResponse;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.PluginType;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
 
@@ -43,7 +48,7 @@ class ActivitySenderImpl implements ActivitySender {
 	@Override
 	public String createAndSendQueryForVessel(List<VesselIdentifierType> vesselIdentifiers, boolean consolidated, XMLGregorianCalendar startDate, XMLGregorianCalendar endDate, String receiver, String dataflow) {
 		CreateAndSendFAQueryForVesselRequest request = new CreateAndSendFAQueryForVesselRequest(ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY_FOR_VESSEL, PluginType.FLUX, vesselIdentifiers, consolidated, startDate, endDate, receiver, dataflow);
-		CreateAndSendFAQueryResponse response = activityClient.sendRequest(request);
+		CreateAndSendFAQueryResponse response = activityClient.sendRequest(request,CreateAndSendFAQueryResponse.class);
 		String messageId = null;
 		if(response != null) {
 			messageId = response.getMessageId();
@@ -54,11 +59,26 @@ class ActivitySenderImpl implements ActivitySender {
 	@Override
 	public String createAndSendQueryForTrip(String tripId, boolean consolidated, String receiver, String dataflow) {
 		CreateAndSendFAQueryForTripRequest request = new CreateAndSendFAQueryForTripRequest(ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY_FOR_TRIP, PluginType.FLUX, tripId, consolidated, receiver, dataflow);
-		CreateAndSendFAQueryResponse response = activityClient.sendRequest(request);
+		CreateAndSendFAQueryResponse response = activityClient.sendRequest(request,CreateAndSendFAQueryResponse.class);
 		String messageId = null;
 		if(response != null) {
 			messageId = response.getMessageId();
 		}
 		return messageId;
+	}
+
+	@Override
+	public List<AttachmentResponseObject> createAndSendRequestForAttachments(String guid, XMLGregorianCalendar startDate, XMLGregorianCalendar endDate, boolean pdf, boolean xml) {
+		GetAttachmentsForGuidAndQueryPeriodRequest request = new GetAttachmentsForGuidAndQueryPeriodRequest();
+		request.setMethod(ActivityModuleMethod.FIND_ATTACHMENTS_FOR_GUID_AND_QUERY_PERIOD);
+		GetAttachmentsForGuidAndQueryPeriod query = new GetAttachmentsForGuidAndQueryPeriod();
+		request.setQuery(query);
+		query.setGuid(guid);
+		query.setStartDate(startDate);
+		query.setEndDate(endDate);
+		query.setPdf(pdf);
+		query.setXml(xml);
+		GetAttachmentsForGuidAndQueryPeriodResponse response = activityClient.sendRequest(request,GetAttachmentsForGuidAndQueryPeriodResponse.class);
+		return response != null ? response.getResponseLists() : Collections.emptyList();
 	}
 }

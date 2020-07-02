@@ -52,7 +52,7 @@ class ActivitySenderImplTest {
     void testSendVesselQuery() {
         CreateAndSendFAQueryResponse response = new CreateAndSendFAQueryResponse();
         response.setMessageId("uuid1");
-        when(activityClient.sendRequest(any(CreateAndSendFAQueryForVesselRequest.class))).thenReturn(response);
+        when(activityClient.sendRequest(any(CreateAndSendFAQueryForVesselRequest.class),CreateAndSendFAQueryResponse.class)).thenReturn(response);
         String messageId = sut.createAndSendQueryForVessel(Collections.singletonList(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.CFR, "CFR123456789")), true,
                 DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-01-01T10:00:00"), DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-02-01T10:00:00"), "receiver", "dataflow");
         assertEquals("uuid1", messageId);
@@ -63,7 +63,7 @@ class ActivitySenderImplTest {
     void testSendTripQuery() {
         CreateAndSendFAQueryResponse response = new CreateAndSendFAQueryResponse();
         response.setMessageId("uuid1");
-        when(activityClient.sendRequest(any(CreateAndSendFAQueryForTripRequest.class))).thenReturn(response);
+        when(activityClient.sendRequest(any(CreateAndSendFAQueryForTripRequest.class),CreateAndSendFAQueryResponse.class)).thenReturn(response);
         String messageId = sut.createAndSendQueryForTrip("SRC-TRP-00000000001", true, "receiver", "dataflow");
         assertEquals("uuid1", messageId);
     }
@@ -71,7 +71,7 @@ class ActivitySenderImplTest {
     @Test
     @SneakyThrows
     void testSendVesselQueryWithNullResponse() {
-        when(activityClient.sendRequest(any(CreateAndSendFAQueryForVesselRequest.class))).thenReturn(null);
+        when(activityClient.sendRequest(any(CreateAndSendFAQueryForVesselRequest.class),CreateAndSendFAQueryResponse.class)).thenReturn(null);
         String messageId = sut.createAndSendQueryForVessel(Collections.singletonList(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.CFR, "CFR123456789")), true,
                 DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-01-01T10:00:00"), DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-02-01T10:00:00"), "receiver", "dataflow");
         assertEquals(null, messageId);
@@ -80,7 +80,7 @@ class ActivitySenderImplTest {
     @Test
     @SneakyThrows
     void testSendTripQueryWithNullResponse() {
-        when(activityClient.sendRequest(any(CreateAndSendFAQueryForTripRequest.class))).thenReturn(null);
+        when(activityClient.sendRequest(any(CreateAndSendFAQueryForTripRequest.class),CreateAndSendFAQueryResponse.class)).thenReturn(null);
         String messageId = sut.createAndSendQueryForTrip("SRC-TRP-00000000001", true, "receiver", "dataflow");
         assertEquals(null, messageId);
     }

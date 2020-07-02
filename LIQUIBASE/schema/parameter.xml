@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+				   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+				   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
+
+	<changeSet id="Subscription-parameters-for-admin-configuration" author="lsotiriadis">
+		<createTable remarks="Table as a placeholder of parameters and its values" tableName="parameter">
+			<column name="param_id" remarks="Name or code for parameter." type="VARCHAR(500)" >
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+			<column name="param_description" remarks="Description of parameter or value." type="VARCHAR(500)">
+				<constraints nullable="false" />
+			</column>
+			<column name="param_value" remarks="Parameter value." type="VARCHAR(4000)" />
+		</createTable>
+	</changeSet>
+
+	<changeSet author="lsotiriadis" id="UNIONVMS-4616-subscription-email-params">
+		<insert tableName="parameter">
+			<column name="param_id" value="email.manual.subject" />
+			<column name="param_value" value="Subscription triggered" />
+			<column name="param_description" value="Will be added as mail subject on manual subscription triggering" />
+		</insert>
+		<insert tableName="parameter">
+			<column name="param_id" value="email.manual.sender" />
+			<column name="param_value" value="test@ec.europa.eu" />
+			<column name="param_description" value="Will be added as mail sender on manual subscription triggering" />
+		</insert>
+		<insert tableName="parameter">
+			<column name="param_id" value="email.template.body.default" />
+			<column name="param_value" value="A subscription was triggered. Please find all/any related documents in the attachments of this email." />
+			<column name="param_description" value="Default body used for constructing email." />
+		</insert>
+		<rollback>
+			<delete tableName="parameter">
+				<where>
+					param_id in ('email.manual.subject','email.manual.sender','email.template.body.default')
+				</where>
+			</delete>
+		</rollback>
+	</changeSet>
+</databaseChangeLog>
