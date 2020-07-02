@@ -1,5 +1,5 @@
 /*
- Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2020.
+ Developed by the European Commission - Directorate General for Maritime Affairs and Fisheries @ European Union, 2015-2016.
 
  This file is part of the Integrated Fisheries Data Management (IFDM) Suite. The IFDM Suite is free software: you can redistribute it
  and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of
@@ -7,21 +7,24 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
-
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityModuleRequest;
+package eu.europa.fisheries.uvms.subscription.model.exceptions;
 
 /**
- * Low-level client to interesting Activity module services.
+ * Signals an error during the send of a subscription output email.
  */
-public interface ActivityClient {
+public class EmailException extends ApplicationException {
+	public EmailException() {
+	}
 
-    /**
-     * Common usage
-     *
-     * @param request The activity module request
-     * @param responseClass The class to be expected on unmarshall
-     * @return The activity module response
-     */
-    <T> T sendRequest(ActivityModuleRequest request, Class<T> responseClass);
+	public EmailException(String message) {
+		super(message);
+	}
+
+	public EmailException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public EmailException(Throwable cause) {
+		super(cause);
+	}
 }

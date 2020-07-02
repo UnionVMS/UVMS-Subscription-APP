@@ -16,9 +16,7 @@ import javax.jms.TextMessage;
 
 import eu.europa.ec.fisheries.uvms.activity.model.exception.ActivityModelMarshallException;
 import eu.europa.ec.fisheries.uvms.activity.model.mapper.JAXBMarshaller;
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForTripRequest;
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForVesselRequest;
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryResponse;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityModuleRequest;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionConsumerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
@@ -57,30 +55,20 @@ public class JmsActivityClient implements ActivityClient {
     }
 
     @Override
-    public CreateAndSendFAQueryResponse sendRequest(CreateAndSendFAQueryForVesselRequest request) {
+    public <T> T sendRequest(ActivityModuleRequest request, Class<T> responseClass) {
         try {
             String correlationId = subscriptionProducer.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request), activityQueue, subscriptionConsumerBean.getDestination());
-            return getCreateAndSendFAQueryResponse(correlationId);
+            return createResponse(correlationId,responseClass);
         } catch (MessageException | ActivityModelMarshallException e) {
             throw new ExecutionException(e);
         }
     }
 
-    @Override
-    public CreateAndSendFAQueryResponse sendRequest(CreateAndSendFAQueryForTripRequest request) {
-        try {
-            String correlationId = subscriptionProducer.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request), activityQueue, subscriptionConsumerBean.getDestination());
-            return getCreateAndSendFAQueryResponse(correlationId);
-        } catch (MessageException | ActivityModelMarshallException e) {
-            throw new ExecutionException(e);
-        }
-    }
-
-    private CreateAndSendFAQueryResponse getCreateAndSendFAQueryResponse(String correlationId) throws MessageException, ActivityModelMarshallException {
-        CreateAndSendFAQueryResponse response = null;
+    private <T> T createResponse(String correlationId,Class<T> responseClass) throws MessageException, ActivityModelMarshallException {
+        T response = null;
         if(correlationId != null) {
             TextMessage textMessage = subscriptionConsumerBean.getMessage(correlationId, TextMessage.class);
-            response = JAXBMarshaller.unmarshallTextMessage(textMessage, CreateAndSendFAQueryResponse.class);
+            response = JAXBMarshaller.unmarshallTextMessage(textMessage, responseClass);
         }
         return response;
     }

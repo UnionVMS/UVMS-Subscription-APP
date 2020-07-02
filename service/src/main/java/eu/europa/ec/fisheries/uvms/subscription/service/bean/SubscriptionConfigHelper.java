@@ -25,19 +25,20 @@ package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.Collections;
 import java.util.List;
+
 import eu.europa.ec.fisheries.uvms.config.constants.ConfigHelper;
+import eu.europa.ec.fisheries.uvms.subscription.service.config.ParameterKey;
 
 @Stateless
-public class SubscriptionConfigRegistration implements ConfigHelper {
+public class SubscriptionConfigHelper implements ConfigHelper {
 
-    @PersistenceContext(unitName = "subscriptionConfig")
+    @PersistenceContext(unitName = "subscriptionPU")
     private EntityManager em;
 
     @Override
     public List<String> getAllParameterKeys() {
-        return Collections.singletonList("subscription.parameter.key");
+        return ParameterKey.keys();
     }
 
     @Override
@@ -49,5 +50,4 @@ public class SubscriptionConfigRegistration implements ConfigHelper {
     public EntityManager getEntityManager() {
         return em;
     }
-
 }

@@ -9,6 +9,7 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.util;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -47,4 +48,11 @@ public interface DateTimeService {
 	 * @return The system current time in milliseconds
 	 */
 	long currentTimeMillis();
+
+	/**
+	 * Converts a Date object to XMLGregorianCalendar object
+	 * @param date The date object to be converted
+	 * @return The converted result
+	 */
+	XMLGregorianCalendar toXMLGregorianCalendar(Date date);
 }

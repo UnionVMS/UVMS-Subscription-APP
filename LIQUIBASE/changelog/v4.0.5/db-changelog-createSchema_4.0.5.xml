@@ -11,5 +11,6 @@
     <include file="/schema/subscriptionexecution.xml" />
     <include file="/schema/asset.xml" />
     <include file="/schema/assetgroup.xml" />
+    <include file="/schema/parameter.xml" />
 
 </databaseChangeLog>

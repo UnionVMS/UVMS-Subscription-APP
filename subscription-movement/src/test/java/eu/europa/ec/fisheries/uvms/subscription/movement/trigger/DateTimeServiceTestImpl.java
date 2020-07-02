@@ -14,42 +14,59 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Test implementation of the {@link DateTimeService}.
  */
 public class DateTimeServiceTestImpl implements DateTimeService {
 
-	private LocalDateTime now;
+    private LocalDateTime now;
 
-	public void setNow(Date now) {
-		this.now = LocalDateTime.ofInstant(now.toInstant(), ZoneOffset.UTC);
-	}
+    public void setNow(Date now) {
+        this.now = LocalDateTime.ofInstant(now.toInstant(), ZoneOffset.UTC);
+    }
 
-	@Override
-	public LocalDateTime getNow() {
-		return now;
-	}
+    @Override
+    public LocalDateTime getNow() {
+        return now;
+    }
 
-	@Override
-	public Date getNowAsDate() {
-		return Date.from(now.toInstant(ZoneOffset.UTC));
-	}
+    @Override
+    public Date getNowAsDate() {
+        return Date.from(now.toInstant(ZoneOffset.UTC));
+    }
 
-	@Override
-	public Instant getNowAsInstant() {
-		return now.toInstant(ZoneOffset.UTC);
-	}
+    @Override
+    public Instant getNowAsInstant() {
+        return now.toInstant(ZoneOffset.UTC);
+    }
 
-	@Override
-	public LocalDate getToday() {
-		return LocalDate.from(now);
-	}
+    @Override
+    public LocalDate getToday() {
+        return LocalDate.from(now);
+    }
 
-	@Override
-	public long currentTimeMillis() {
-		return now.toInstant(ZoneOffset.UTC).toEpochMilli();
-	}
+    @Override
+    public long currentTimeMillis() {
+        return now.toInstant(ZoneOffset.UTC).toEpochMilli();
+    }
+
+    @Override
+    public XMLGregorianCalendar toXMLGregorianCalendar(Date date) {
+        GregorianCalendar c = new GregorianCalendar();
+        c.setTime(date);
+        try {
+            return DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+        } catch (DatatypeConfigurationException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }
