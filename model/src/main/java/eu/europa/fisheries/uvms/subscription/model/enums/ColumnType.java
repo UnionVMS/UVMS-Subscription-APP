@@ -20,9 +20,10 @@ public enum ColumnType {
     CHANNEL("channel"),
     ORGANISATION("organisation"),
     MESSAGETYPE("messageType"),
+    TRIGGERTYPE("triggerType"),
     ID("id");
 
-    private String propertyName;
+    private final String propertyName;
 
     ColumnType(String propertyName) {
         this.propertyName = propertyName;
