@@ -87,6 +87,8 @@ public interface SubscriptionMapper {
     @Mapping(expression = "java(extractSendersFromDto(dto.getSenders()))", target = "senders")
     void updateEntity(SubscriptionDto dto, @MappingTarget SubscriptionEntity entity);
 
+    @Mapping(source = "output.messageType", target = "messageType")
+    @Mapping(source = "execution.triggerType", target = "triggerType")
     SubscriptionListDto asListDto(SubscriptionEntity entity);
 
     @Named("encodePasswordAsBase64")

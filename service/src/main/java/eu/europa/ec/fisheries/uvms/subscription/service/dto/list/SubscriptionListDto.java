@@ -19,4 +19,5 @@ public class SubscriptionListDto {
 	private String endpointName;
 	private String channelName;
 	private String messageType;
+	private String triggerType;
 }

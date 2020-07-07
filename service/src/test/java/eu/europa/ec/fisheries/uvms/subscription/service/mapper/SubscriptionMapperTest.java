@@ -21,16 +21,20 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 
+import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
 import eu.europa.ec.fisheries.uvms.subscription.helper.SubscriptionTestHelper;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecution;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionFishingActivity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.AreaDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.AssetDto;
@@ -39,6 +43,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutio
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionFishingActivityDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionSubscriberDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
@@ -64,13 +69,13 @@ public class SubscriptionMapperTest {
     private static final Date QUERY_END_DATE;
     static {
         Calendar calendar = Calendar.getInstance();
-        calendar.set(2018, 3,15);
+        calendar.set(2018, Calendar.APRIL,15);
         QUERY_START_DATE = calendar.getTime();
-        calendar.set(2019, 3,15);
+        calendar.set(2019, Calendar.APRIL,15);
         QUERY_END_DATE = calendar.getTime();
     }
 
-    private SubscriptionMapper mapper = new SubscriptionMapperImpl();
+    private final SubscriptionMapper mapper = new SubscriptionMapperImpl();
 
     private SubscriptionDto dto;
     private Date startDate;
@@ -194,6 +199,34 @@ public class SubscriptionMapperTest {
         checkCollections(entity);
     }
 
+    @Test
+    void testAsListDto() {
+        SubscriptionEntity entity = makeSubscription();
+        SubscriptionListDto dto = mapper.asListDto(entity);
+        assertEquals(entity.getId(), dto.getId());
+        assertEquals(entity.getName(), dto.getName());
+        assertEquals(entity.getDescription(), dto.getDescription());
+        assertEquals(entity.isActive(), dto.isActive());
+        assertEquals(entity.getValidityPeriod().getStartDate(), dto.getValidityPeriod().getStartDate());
+        assertEquals(entity.getValidityPeriod().getEndDate(), dto.getValidityPeriod().getEndDate());
+        assertEquals(entity.getOutput().getMessageType().name(), dto.getMessageType());
+        assertEquals(entity.getExecution().getTriggerType().name(), dto.getTriggerType());
+
+        entity.getOutput().setMessageType(null);
+        dto = mapper.asListDto(entity);
+        assertNull(dto.getMessageType());
+        entity.setOutput(null);
+        dto = mapper.asListDto(entity);
+        assertNull(dto.getMessageType());
+
+        entity.getExecution().setTriggerType(null);
+        dto = mapper.asListDto(entity);
+        assertNull(dto.getTriggerType());
+        entity.setExecution(null);
+        dto = mapper.asListDto(entity);
+        assertNull(dto.getTriggerType());
+    }
+
     void checkCollections(SubscriptionEntity entity) {
         assertEquals(new HashSet<>(Arrays.asList(new SubscriptionFishingActivity(DECLARATION, "a"), new SubscriptionFishingActivity(NOTIFICATION, "b"))), entity.getStartActivities());
         assertEquals(new HashSet<>(Arrays.asList(new SubscriptionFishingActivity(DECLARATION, "c"), new SubscriptionFishingActivity(NOTIFICATION, "d"))), entity.getStopActivities());
@@ -214,5 +247,22 @@ public class SubscriptionMapperTest {
         assertEquals(Arrays.asList(ORG_ID_1, ORG_ID_2), entity.getSenders().stream().map(SubscriptionSubscriber::getOrganisationId).sorted().collect(toList()));
         assertEquals(Arrays.asList(ENDPOINT_ID_1, ENDPOINT_ID_2), entity.getSenders().stream().map(SubscriptionSubscriber::getEndpointId).sorted().collect(toList()));
         assertEquals(Arrays.asList(CHANNEL_ID_1, CHANNEL_ID_2), entity.getSenders().stream().map(SubscriptionSubscriber::getChannelId).sorted().collect(toList()));
+    }
+
+    private SubscriptionEntity makeSubscription() {
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setValidityPeriod(new DateRange(new Date(), Date.from(Instant.now().plusSeconds(1000))));
+        SubscriptionOutput output = new SubscriptionOutput();
+        SubscriptionSubscriber subscriber = new SubscriptionSubscriber();
+        subscriber.setOrganisationId(ORG_ID_1);
+        subscriber.setEndpointId(ENDPOINT_ID_1);
+        subscriber.setChannelId(CHANNEL_ID_1);
+        output.setSubscriber(subscriber);
+        output.setMessageType(OutgoingMessageType.NONE);
+        subscription.setOutput(output);
+        SubscriptionExecution execution = new SubscriptionExecution();
+        execution.setTriggerType(TriggerType.SCHEDULER);
+        subscription.setExecution(execution);
+        return subscription;
     }
 }

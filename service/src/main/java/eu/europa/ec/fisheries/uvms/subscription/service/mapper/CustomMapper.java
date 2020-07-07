@@ -58,7 +58,6 @@ public class CustomMapper {
 
         return resultList.stream().map(subscription -> {
             SubscriptionListDto dto = mapper.asListDto(subscription);
-            Optional.ofNullable(subscription.getOutput()).ifPresent(output -> dto.setMessageType(output.getMessageType().name()));
             Organisation orgDomain = Optional.ofNullable(subscription.getOutput()).map(SubscriptionOutput::getSubscriber).map(SubscriptionSubscriber::getOrganisationId).map(organisationMap::get).orElse(null);
             if (orgDomain != null) {
                 String fullOrgName = StringUtils.isNotEmpty(orgDomain.getParentOrganisation()) ? orgDomain.getParentOrganisation() + " / " + orgDomain.getName() : orgDomain.getName();
