@@ -14,6 +14,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service for sending messages to Movement.
@@ -35,4 +36,18 @@ public interface MovementSender {
             Date endDate,
 			Collection<AreaEntity> areas);
 
+	/**
+	 *
+	 * @param vesselIdentifiers the vessel identifiers
+	 * @param vesselRegistrationState the country that the vessel is registered to
+	 * @param movementGuidList the guids of each movement
+	 * @param receiver The receiver
+	 * @param dataflow The dataflow
+	 * @return an OK or NOTOK string when success or failure respectively
+	 */
+    String forwardPosition(Map<String, String> vesselIdentifiers,
+						   String vesselRegistrationState,
+						   List<String> movementGuidList,
+						   String receiver,
+						   String dataflow);
 }

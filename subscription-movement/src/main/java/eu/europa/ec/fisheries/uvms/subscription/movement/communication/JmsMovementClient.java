@@ -9,18 +9,20 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.movement.communication;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.jms.Queue;
+import javax.jms.TextMessage;
+
 import eu.europa.ec.fisheries.schema.movement.module.v1.FilterGuidListByAreaAndDateRequest;
 import eu.europa.ec.fisheries.schema.movement.module.v1.FilterGuidListByAreaAndDateResponse;
+import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionRequest;
+import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionResponse;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.movement.model.exception.MovementModelException;
 import eu.europa.ec.fisheries.uvms.movement.model.mapper.JAXBMarshaller;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionConsumerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.jms.Queue;
-import javax.jms.TextMessage;
 
 /**
  * JMS implementation of the {@link MovementClient}.
@@ -35,9 +37,9 @@ public class JmsMovementClient implements MovementClient {
     /**
      * Injection constructor.
      *
-     * @param subscriptionProducer The subscription module producer bean
+     * @param subscriptionProducer     The subscription module producer bean
      * @param subscriptionConsumerBean The subscription module consumer bean
-     * @param movementQueue The movement specific queue created by ManagedObjectsProducer
+     * @param movementQueue            The movement specific queue created by ManagedObjectsProducer
      */
     @Inject
     public JmsMovementClient(SubscriptionProducerBean subscriptionProducer, SubscriptionConsumerBean subscriptionConsumerBean, @MovementQueue Queue movementQueue) {
@@ -59,9 +61,25 @@ public class JmsMovementClient implements MovementClient {
         try {
             String correlationId = subscriptionProducer.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request), movementQueue, subscriptionConsumerBean.getDestination());
             FilterGuidListByAreaAndDateResponse response = null;
-            if(correlationId != null) {
+            if (correlationId != null) {
                 TextMessage textMessage = subscriptionConsumerBean.getMessage(correlationId, TextMessage.class);
                 response = JAXBMarshaller.unmarshallTextMessage(textMessage, FilterGuidListByAreaAndDateResponse.class);
+            }
+            return response;
+        } catch (MessageException | MovementModelException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public ForwardPositionResponse forwardPosition(ForwardPositionRequest request) {
+        try {
+            String correlationId = subscriptionProducer.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request), movementQueue, subscriptionConsumerBean.getDestination());
+            ForwardPositionResponse response = null;
+            if (correlationId != null) {
+                TextMessage textMessage = subscriptionConsumerBean.getMessage(correlationId, TextMessage.class);
+                response = JAXBMarshaller.unmarshallTextMessage(textMessage, ForwardPositionResponse.class);
             }
             return response;
         } catch (MessageException | MovementModelException e) {

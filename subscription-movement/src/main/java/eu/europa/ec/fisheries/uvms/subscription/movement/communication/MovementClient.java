@@ -11,6 +11,8 @@ package eu.europa.ec.fisheries.uvms.subscription.movement.communication;
 
 import eu.europa.ec.fisheries.schema.movement.module.v1.FilterGuidListByAreaAndDateRequest;
 import eu.europa.ec.fisheries.schema.movement.module.v1.FilterGuidListByAreaAndDateResponse;
+import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionRequest;
+import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionResponse;
 
 /**
  * Low-level client to interesting Movement module services.
@@ -24,4 +26,12 @@ public interface MovementClient {
      * @return The movement module response
      */
     FilterGuidListByAreaAndDateResponse filterGuidListForDateByArea(FilterGuidListByAreaAndDateRequest request);
+
+    /**
+     * Call @{@code FORWARD_POSITION}
+     *
+     * @param request the movement module request
+     * @return The movement module response
+     */
+    ForwardPositionResponse forwardPosition(ForwardPositionRequest request);
 }
