@@ -33,6 +33,6 @@ public class SubscriptionExecutionDto {
 
 	private Boolean immediate;
 
-    @Pattern(regexp = "^(?:23|22|21|20|[01][0-9]):[0-5][0-9]$")
+    @Pattern(regexp = "^(?:23|22|21|20|[01]?[0-9]):[0-5][0-9]$")
     private String timeExpression;
 }

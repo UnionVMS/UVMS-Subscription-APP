@@ -13,7 +13,7 @@ import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExec
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.PENDING;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.QUEUED;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.STOPPED;
-import static java.lang.Boolean.TRUE;
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.INACTIVE;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -21,13 +21,19 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionExecutionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SubscriptionCommandFromMessageExtractor;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 
@@ -42,6 +48,7 @@ class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 	private DateTimeService dateTimeService;
 	private Instance<SubscriptionExecutor> subscriptionExecutorInstance;
 	private SubscriptionExecutionScheduler subscriptionExecutionScheduler;
+	private Map<String, SubscriptionCommandFromMessageExtractor> extractors;
 
 
 	/**
@@ -54,12 +61,23 @@ class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 	 * @param subscriptionExecutionScheduler The scheduler
 	 */
 	@Inject
-	public SubscriptionExecutionServiceImpl(SubscriptionExecutionDao dao, SubscriptionExecutionSender subscriptionExecutionSender, DateTimeService dateTimeService, Instance<SubscriptionExecutor> subscriptionExecutorInstance, SubscriptionExecutionScheduler subscriptionExecutionScheduler) {
+	public SubscriptionExecutionServiceImpl(
+			SubscriptionExecutionDao dao,
+			SubscriptionExecutionSender subscriptionExecutionSender,
+			DateTimeService dateTimeService,
+			Instance<SubscriptionExecutor> subscriptionExecutorInstance,
+			SubscriptionExecutionScheduler subscriptionExecutionScheduler,
+			Instance<SubscriptionCommandFromMessageExtractor> extractors
+	) {
 		this.dao = dao;
 		this.subscriptionExecutionSender = subscriptionExecutionSender;
 		this.dateTimeService = dateTimeService;
 		this.subscriptionExecutorInstance = subscriptionExecutorInstance;
 		this.subscriptionExecutionScheduler = subscriptionExecutionScheduler;
+		this.extractors = extractors.stream().collect(Collectors.toMap(
+				SubscriptionCommandFromMessageExtractor::getEligibleSubscriptionSource,
+				Function.identity()
+		));
 	}
 
 	/**
@@ -71,7 +89,8 @@ class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 	}
 
 	@Override
-	public SubscriptionExecutionEntity save(SubscriptionExecutionEntity entity) {
+	public SubscriptionExecutionEntity activate(SubscriptionExecutionEntity entity) {
+		deactivateAnyPreviousTriggerings(entity);
 		return dao.create(entity);
 	}
 
@@ -92,14 +111,23 @@ class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 	@Override
 	public void execute(Long id) {
 		Optional.ofNullable(dao.findById(id))
-				.filter(execution -> execution.getStatus() == QUEUED && TRUE.equals(execution.getTriggeredSubscription().getActive()) && execution.getTriggeredSubscription().getSubscription().isActive())
+				.filter(execution -> execution.getStatus() == QUEUED && !INACTIVE.equals(execution.getTriggeredSubscription().getStatus()) && execution.getTriggeredSubscription().getSubscription().isActive())
 				.flatMap(execution -> {
 					subscriptionExecutorInstance.stream().forEach(executor -> executor.execute(execution));
 					execution.setStatus(EXECUTED);
 					execution.setExecutionTime(dateTimeService.getNowAsDate());
 					return subscriptionExecutionScheduler.scheduleNext(execution.getTriggeredSubscription(), execution);
 				})
-				.ifPresent(this::save);
+				.ifPresent(dao::create);
+	}
+
+	private void deactivateAnyPreviousTriggerings(SubscriptionExecutionEntity execution) {
+		TriggeredSubscriptionEntity triggeredSubscription = execution.getTriggeredSubscription();
+		Set<TriggeredSubscriptionDataEntity> dataForDuplicates = extractors.get(triggeredSubscription.getSource()).getDataForDuplicatesExtractor().apply(triggeredSubscription);
+		dao.findPendingBy(triggeredSubscription.getSubscription(), dataForDuplicates).forEach(pendingExecution -> {
+			pendingExecution.setStatus(STOPPED);
+			pendingExecution.getTriggeredSubscription().setStatus(INACTIVE);
+		});
 	}
 
 	@Override

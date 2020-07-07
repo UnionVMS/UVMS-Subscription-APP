@@ -62,7 +62,7 @@ public class TriggerSubscriptionCommandTest {
 		verify(triggeredSubscriptionService).isDuplicate(triggeredSubscription, DATA_FOR_DUPLICATES);
 		verify(triggeredSubscriptionService).save(triggeredSubscription);
 		verify(subscriptionExecutionScheduler).scheduleNext(triggeredSubscription);
-		verify(subscriptionExecutionService).save(subscriptionExecution);
+		verify(subscriptionExecutionService).activate(subscriptionExecution);
 	}
 
 	@Test

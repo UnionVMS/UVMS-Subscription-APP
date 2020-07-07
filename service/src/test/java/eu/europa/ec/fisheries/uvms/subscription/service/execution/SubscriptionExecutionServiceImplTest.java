@@ -11,11 +11,15 @@ package eu.europa.ec.fisheries.uvms.subscription.service.execution;
 
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.PENDING;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.STOPPED;
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.INACTIVE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -23,6 +27,7 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -31,9 +36,12 @@ import eu.europa.ec.fisheries.uvms.subscription.helper.DateTimeServiceTestImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionExecutionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SubscriptionCommandFromMessageExtractor;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
@@ -49,6 +57,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class SubscriptionExecutionServiceImplTest {
 
 	private static final Long EXECUTION_ID = 111L;
+	private static final String SUBSCRIPTION_SOURCE = "SUBSCRIPTION_SOURCE";
+	private static final String DATA_KEY = "DATA_KEY";
+	private static final String DATA_VALUE = "DATA_VALUE";
 
 	@Produces @Mock
 	private SubscriptionExecutionDao dao;
@@ -65,6 +76,14 @@ public class SubscriptionExecutionServiceImplTest {
 	@Produces
 	private DateTimeServiceTestImpl dateTimeService = new DateTimeServiceTestImpl();
 
+	@Produces
+	private final SubscriptionCommandFromMessageExtractor subscriptionCommandFromMessageExtractor;
+	{
+		subscriptionCommandFromMessageExtractor = mock(SubscriptionCommandFromMessageExtractor.class);
+		when(subscriptionCommandFromMessageExtractor.getEligibleSubscriptionSource()).thenReturn(SUBSCRIPTION_SOURCE);
+		when(subscriptionCommandFromMessageExtractor.getDataForDuplicatesExtractor()).thenReturn(x -> Collections.singleton(new TriggeredSubscriptionDataEntity(null, DATA_KEY, DATA_VALUE)));
+	}
+
 	@Inject
 	private SubscriptionExecutionServiceImpl sut;
 
@@ -75,10 +94,25 @@ public class SubscriptionExecutionServiceImplTest {
 	}
 
 	@Test
-	void testSave() {
+	void testActivate() {
+		SubscriptionEntity subscription = new SubscriptionEntity();
+		subscription.setActive(true);
+		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
+		triggeredSubscription.setSource(SUBSCRIPTION_SOURCE);
 		SubscriptionExecutionEntity entity = new SubscriptionExecutionEntity();
-		sut.save(entity);
+		entity.setTriggeredSubscription(triggeredSubscription);
+		TriggeredSubscriptionEntity triggeringOfPending = new TriggeredSubscriptionEntity();
+		triggeringOfPending.setStatus(TriggeredSubscriptionStatus.STOPPED);
+		SubscriptionExecutionEntity pendingExecution = new SubscriptionExecutionEntity();
+		pendingExecution.setTriggeredSubscription(triggeringOfPending);
+		pendingExecution.setStatus(PENDING);
+		when(dao.findPendingBy(any(), any())).thenReturn(Stream.of(pendingExecution));
+
+		sut.activate(entity);
+
 		verify(dao).create(entity);
+		assertEquals(STOPPED, pendingExecution.getStatus());
+		assertEquals(INACTIVE, triggeringOfPending.getStatus());
 	}
 
 	@Test
@@ -118,7 +152,31 @@ public class SubscriptionExecutionServiceImplTest {
 		SubscriptionEntity subscription = new SubscriptionEntity();
 		subscription.setActive(true);
 		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
-		triggeredSubscription.setActive(true);
+		triggeredSubscription.setStatus(ACTIVE);
+		triggeredSubscription.setSubscription(subscription);
+		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
+		execution.setStatus(SubscriptionExecutionStatusType.QUEUED);
+		execution.setTriggeredSubscription(triggeredSubscription);
+		when(dao.findById(EXECUTION_ID)).thenReturn(execution);
+		LocalDateTime now = LocalDateTime.parse("2020-05-05T12:00:00");
+		dateTimeService.setNow(now);
+		SubscriptionExecutionEntity nextExecution = new SubscriptionExecutionEntity();
+		when(subscriptionExecutionScheduler.scheduleNext(triggeredSubscription, execution)).thenReturn(Optional.of(nextExecution));
+
+		sut.execute(EXECUTION_ID);
+
+		verify(mockSubscriptionExecutor).execute(execution);
+		assertEquals(SubscriptionExecutionStatusType.EXECUTED, execution.getStatus());
+		assertEquals(Date.from(now.toInstant(ZoneOffset.UTC)), execution.getExecutionTime());
+		verify(dao).create(nextExecution);
+	}
+
+	@Test
+	void testExecuteStoppedTriggeredSubscription() {
+		SubscriptionEntity subscription = new SubscriptionEntity();
+		subscription.setActive(true);
+		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
+		triggeredSubscription.setStatus(TriggeredSubscriptionStatus.STOPPED);
 		triggeredSubscription.setSubscription(subscription);
 		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
 		execution.setStatus(SubscriptionExecutionStatusType.QUEUED);
@@ -142,7 +200,7 @@ public class SubscriptionExecutionServiceImplTest {
 		SubscriptionEntity subscription = new SubscriptionEntity();
 		subscription.setActive(true);
 		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
-		triggeredSubscription.setActive(true);
+		triggeredSubscription.setStatus(ACTIVE);
 		triggeredSubscription.setSubscription(subscription);
 		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
 		execution.setStatus(SubscriptionExecutionStatusType.PENDING);
@@ -156,11 +214,11 @@ public class SubscriptionExecutionServiceImplTest {
 	}
 
 	@Test
-	void testExecuteNotActiveTriggeredSubscription() {
+	void testExecuteInactiveTriggeredSubscription() {
 		SubscriptionEntity subscription = new SubscriptionEntity();
 		subscription.setActive(true);
 		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
-		triggeredSubscription.setActive(false);
+		triggeredSubscription.setStatus(INACTIVE);
 		triggeredSubscription.setSubscription(subscription);
 		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
 		execution.setStatus(SubscriptionExecutionStatusType.QUEUED);
@@ -178,7 +236,7 @@ public class SubscriptionExecutionServiceImplTest {
 		SubscriptionEntity subscription = new SubscriptionEntity();
 		subscription.setActive(false);
 		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
-		triggeredSubscription.setActive(true);
+		triggeredSubscription.setStatus(ACTIVE);
 		triggeredSubscription.setSubscription(subscription);
 		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
 		execution.setStatus(SubscriptionExecutionStatusType.QUEUED);

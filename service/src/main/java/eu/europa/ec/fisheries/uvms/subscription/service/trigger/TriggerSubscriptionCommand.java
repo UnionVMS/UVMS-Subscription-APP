@@ -48,7 +48,7 @@ class TriggerSubscriptionCommand implements Command {
 				.filter(this::notAlreadyTriggered)
 				.map(triggeredSubscriptionService::save)
 				.flatMap(subscriptionExecutionScheduler::scheduleNext)
-				.ifPresent(subscriptionExecutionService::save);
+				.ifPresent(subscriptionExecutionService::activate);
 	}
 
 	private boolean notAlreadyTriggered(TriggeredSubscriptionEntity triggeredSubscription) {
