@@ -9,6 +9,8 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
+
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Comparator;
@@ -36,7 +38,9 @@ import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersWithConnectIdHolder;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
 
-/* Base abstract class for manual and scheduled subscriptions */
+/**
+ * Base abstract class for manual and scheduled subscriptions.
+ */
 public abstract class SubscriptionBasedCommandFromMessageExtractor implements SubscriptionCommandFromMessageExtractor {
 
     private static final String KEY_CONNECT_ID = "connectId";
@@ -77,6 +81,11 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
     public abstract String getEligibleSubscriptionSource();
 
     @Override
+    public Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> getDataForDuplicatesExtractor() {
+        return TRIGGERED_SUBSCRIPTION_DATA_FOR_DUPLICATES;
+    }
+
+    @Override
     public Stream<Command> extractCommands(String representation, SenderCriterion ignoredSenderCriterion) {
         AssetPageRetrievalMessage assetPageRetrievalMessage = AssetPageRetrievalMessage.decodeMessage(representation);
         SubscriptionEntity subscription = subscriptionFinder.findSubscriptionById(assetPageRetrievalMessage.getSubscriptionId());
@@ -106,7 +115,7 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
         result.setSource(getEligibleSubscriptionSource());
         result.setCreationDate(dateTimeService.getNowAsDate());
         result.setEffectiveFrom(dateTimeService.getNowAsDate());
-        result.setActive(true);
+        result.setStatus(ACTIVE);
         result.setData(makeTriggeredSubscriptionData(result, assetAndSubscriptionData));
         return result;
     }

@@ -9,6 +9,7 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -23,6 +24,7 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -100,7 +102,7 @@ public class TriggeredSubscriptionServiceImplTest {
 		TriggeredSubscriptionSearchCriteria areaCriteria = areaCriteriaCaptor.getValue();
 		assertEquals(CONNECT_ID1, areaCriteria.getTriggeredSubscriptionData().get("connectId"));
 		assertEquals(criteria.getAreas(), areaCriteria.getNotInAreas());
-		assertTrue(areaCriteria.getActive());
+		assertEquals(EnumSet.of(ACTIVE), areaCriteria.getWithStatus());
 		assertTrue(areaCriteria.getSubscriptionQuitArea());
 	}
 }

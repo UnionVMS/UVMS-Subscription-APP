@@ -10,9 +10,12 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import java.util.Date;
+import java.util.Set;
 import java.util.stream.Stream;
 
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType;
 
@@ -52,4 +55,13 @@ public interface SubscriptionExecutionDao {
 	 * @return The executions
 	 */
 	Stream<SubscriptionExecutionEntity> findByTriggeredSubscriptionAndStatus(TriggeredSubscriptionEntity triggeredSubscription, SubscriptionExecutionStatusType status);
+
+	/**
+	 * Find pending executions of the given subscription and having the given data.
+	 *
+	 * @param subscription The subscription
+	 * @param dataCriteria The {@code TriggeredSubscriptionDataEntity} to match with
+	 * @return A possibly empty stream of matching executions
+	 */
+	Stream<SubscriptionExecutionEntity> findPendingBy(SubscriptionEntity subscription, Set<TriggeredSubscriptionDataEntity> dataCriteria);
 }

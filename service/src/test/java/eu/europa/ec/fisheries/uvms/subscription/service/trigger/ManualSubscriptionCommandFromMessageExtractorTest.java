@@ -9,6 +9,7 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -138,7 +139,7 @@ class ManualSubscriptionCommandFromMessageExtractorTest {
         TriggeredSubscriptionEntity triggeredSubscription = triggeredSubscriptionCaptor.getValue();
         assertSame(subscriptionEntity, triggeredSubscription.getSubscription());
         assertNotNull(triggeredSubscription.getCreationDate());
-        assertTrue(triggeredSubscription.getActive());
+        assertEquals(ACTIVE, triggeredSubscription.getStatus());
         assertEquals(SOURCE, triggeredSubscription.getSource());
         assertEquals(Date.from(NOW.toInstant(ZoneOffset.UTC)), triggeredSubscription.getCreationDate());
         assertEquals(Date.from(NOW.toInstant(ZoneOffset.UTC)), triggeredSubscription.getEffectiveFrom());
@@ -195,7 +196,7 @@ class ManualSubscriptionCommandFromMessageExtractorTest {
         TriggeredSubscriptionEntity triggeredSubscription = triggeredSubscriptionCaptor.getValue();
         assertSame(subscriptionEntity, triggeredSubscription.getSubscription());
         assertNotNull(triggeredSubscription.getCreationDate());
-        assertTrue(triggeredSubscription.getActive());
+        assertEquals(ACTIVE, triggeredSubscription.getStatus());
         assertEquals(SOURCE, triggeredSubscription.getSource());
         assertEquals(Date.from(NOW.toInstant(ZoneOffset.UTC)), triggeredSubscription.getCreationDate());
         assertEquals(Date.from(NOW.toInstant(ZoneOffset.UTC)), triggeredSubscription.getEffectiveFrom());

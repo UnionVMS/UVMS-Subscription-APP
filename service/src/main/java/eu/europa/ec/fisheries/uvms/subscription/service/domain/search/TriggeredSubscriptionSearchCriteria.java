@@ -9,9 +9,11 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.domain.search;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,8 +25,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TriggeredSubscriptionSearchCriteria {
-	private Boolean active;
+	private Set<TriggeredSubscriptionStatus> withStatus;
 	private Boolean subscriptionQuitArea;
 	private Map<String,String> triggeredSubscriptionData;
 	private Set<AreaCriterion> notInAreas;
+
+	public void setSingleStatus(TriggeredSubscriptionStatus singleStatus) {
+		setWithStatus(Collections.singleton(singleStatus));
+	}
 }

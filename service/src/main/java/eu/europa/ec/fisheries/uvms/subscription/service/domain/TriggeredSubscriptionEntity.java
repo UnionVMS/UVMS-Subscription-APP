@@ -14,6 +14,8 @@ import static javax.persistence.GenerationType.AUTO;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -26,6 +28,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -63,8 +66,9 @@ public class TriggeredSubscriptionEntity {
 	/**
 	 * This is the inverse of what is referenced as "stop" in the specifications.
 	 */
-	@Column(name="active")
-	private Boolean active;
+	@Enumerated(EnumType.STRING)
+	@Column(name="status")
+	private TriggeredSubscriptionStatus status;
 
 	/**
 	 * Referenced as incoming message id in specifications.

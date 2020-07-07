@@ -9,6 +9,9 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.scheduling;
 
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.INACTIVE;
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.STOPPED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -56,17 +59,21 @@ public class SubscriptionExecutionSchedulerImplTest {
 	}
 
 	@Test
-	void testWithInactive() {
+	void testWithNotActive() {
 		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
-		triggeredSubscription.setActive(false);
+		triggeredSubscription.setStatus(INACTIVE);
 		assertFalse(sut.scheduleNext(triggeredSubscription, null).isPresent());
+
+		triggeredSubscription.setStatus(STOPPED);
+		assertFalse(sut.scheduleNext(triggeredSubscription, null).isPresent());
+		assertEquals(INACTIVE, triggeredSubscription.getStatus());
+
 		SubscriptionEntity subscription = new SubscriptionEntity();
 		subscription.setActive(false);
 		triggeredSubscription.setSubscription(subscription);
-		triggeredSubscription.setActive(true);
-
+		triggeredSubscription.setStatus(ACTIVE);
 		assertFalse(sut.scheduleNext(triggeredSubscription, null).isPresent());
-		assertFalse(triggeredSubscription.getActive());
+		assertEquals(INACTIVE, triggeredSubscription.getStatus());
 	}
 
 	@Test
@@ -74,7 +81,7 @@ public class SubscriptionExecutionSchedulerImplTest {
 		TriggeredSubscriptionEntity triggeredSubscription = makeTriggeredSubscriptionEntityForFirstExecution(true);
 		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, null);
 		assertSubscriptionExecutionEntity(result, triggeredSubscription, dateTimeService.getNowAsDate());
-		assertTrue(triggeredSubscription.getActive());
+		assertEquals(ACTIVE, triggeredSubscription.getStatus());
 	}
 
 	@Test
@@ -86,14 +93,14 @@ public class SubscriptionExecutionSchedulerImplTest {
 		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, null);
 
 		assertSubscriptionExecutionEntity(result, triggeredSubscription, LocalDateTime.parse("2020-05-05T13:00:00"));
-		assertTrue(triggeredSubscription.getActive());
+		assertEquals(ACTIVE, triggeredSubscription.getStatus());
 
 		// timeExpression is earlier than now, so next day
 		triggeredSubscription.getSubscription().getExecution().setTimeExpression("11:00");
 		result = sut.scheduleNext(triggeredSubscription, null);
 
 		assertSubscriptionExecutionEntity(result, triggeredSubscription, LocalDateTime.parse("2020-05-06T11:00:00"));
-		assertTrue(triggeredSubscription.getActive());
+		assertEquals(ACTIVE, triggeredSubscription.getStatus());
 	}
 
 	private TriggeredSubscriptionEntity makeTriggeredSubscriptionEntityForFirstExecution(boolean immediate) {
@@ -104,7 +111,7 @@ public class SubscriptionExecutionSchedulerImplTest {
 		subscription.setActive(true);
 		subscription.setExecution(executionInput);
 		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
-		triggeredSubscription.setActive(true);
+		triggeredSubscription.setStatus(ACTIVE);
 		triggeredSubscription.setSubscription(subscription);
 		LocalDateTime now = LocalDateTime.parse("2020-05-05T12:00:00");
 		dateTimeService.setNow(now);
@@ -122,7 +129,7 @@ public class SubscriptionExecutionSchedulerImplTest {
 		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, prevExecution);
 
 		assertSubscriptionExecutionEntity(result, triggeredSubscription, LocalDateTime.parse("2020-05-08T11:00:00"));
-		assertTrue(triggeredSubscription.getActive());
+		assertEquals(ACTIVE, triggeredSubscription.getStatus());
 	}
 
 	@Test
@@ -139,7 +146,7 @@ public class SubscriptionExecutionSchedulerImplTest {
 		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, prevExecution);
 
 		assertSubscriptionExecutionEntity(result, triggeredSubscription, LocalDateTime.parse("2020-05-08T11:00:00"));
-		assertTrue(triggeredSubscription.getActive());
+		assertEquals(ACTIVE, triggeredSubscription.getStatus());
 	}
 
 	@Test
@@ -155,7 +162,7 @@ public class SubscriptionExecutionSchedulerImplTest {
 		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, prevExecution);
 
 		assertFalse(result.isPresent());
-		assertFalse(triggeredSubscription.getActive());
+		assertEquals(INACTIVE, triggeredSubscription.getStatus());
 	}
 
 	@Test
@@ -168,7 +175,7 @@ public class SubscriptionExecutionSchedulerImplTest {
 		prevExecution.setRequestedTime(Date.from(LocalDateTime.parse("2020-05-05T11:00:00").toInstant(ZoneOffset.UTC)));
 
 		assertFalse(sut.scheduleNext(triggeredSubscription, prevExecution).isPresent());
-		assertFalse(triggeredSubscription.getActive());
+		assertEquals(INACTIVE, triggeredSubscription.getStatus());
 	}
 
 	@Test
@@ -185,7 +192,7 @@ public class SubscriptionExecutionSchedulerImplTest {
 		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, prevExecution);
 
 		assertFalse(result.isPresent());
-		assertFalse(triggeredSubscription.getActive());
+		assertEquals(INACTIVE, triggeredSubscription.getStatus());
 	}
 
 	@Test
@@ -198,7 +205,7 @@ public class SubscriptionExecutionSchedulerImplTest {
 		Optional<SubscriptionExecutionEntity> result = sut.scheduleNext(triggeredSubscription, null);
 
 		assertSubscriptionExecutionEntity(result, triggeredSubscription, dateTimeService.getNowAsDate());
-		assertTrue(triggeredSubscription.getActive());
+		assertEquals(ACTIVE, triggeredSubscription.getStatus());
 	}
 
 	private TriggeredSubscriptionEntity setup(SubscriptionExecution executionInput, String now) {
@@ -209,7 +216,7 @@ public class SubscriptionExecutionSchedulerImplTest {
 		SubscriptionEntity subscription = new SubscriptionEntity();
 		subscription.setActive(true);
 		subscription.setExecution(executionInput);
-		triggeredSubscription.setActive(true);
+		triggeredSubscription.setStatus(ACTIVE);
 		triggeredSubscription.setSubscription(subscription);
 		dateTimeService.setNow(LocalDateTime.parse(now));
 		return triggeredSubscription;

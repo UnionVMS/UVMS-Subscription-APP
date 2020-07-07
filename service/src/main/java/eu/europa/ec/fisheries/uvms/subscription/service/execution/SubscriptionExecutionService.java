@@ -20,12 +20,13 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscrip
  */
 public interface SubscriptionExecutionService {
 	/**
-	 * Save the given entity to persistent store.
+	 * Activate the given execution by saving it to persistent store
+	 * and deactivating previous equivalent executions.
 	 *
 	 * @param entity The entity to save
 	 * @return The saved entity
 	 */
-	SubscriptionExecutionEntity save(SubscriptionExecutionEntity entity);
+	SubscriptionExecutionEntity activate(SubscriptionExecutionEntity entity);
 
 	/**
 	 * Find the ids of any executions that must be activated by the given date.
