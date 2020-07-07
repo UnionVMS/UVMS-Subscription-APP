@@ -9,6 +9,7 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.movement.trigger;
 
+import static eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil.KEY_MOVEMENT_GUID_PREFIX;
 import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -29,6 +30,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -51,6 +53,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SubscriptionComm
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsFactory;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
+import eu.europa.ec.fisheries.uvms.subscription.service.util.SequenceIntIterator;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
@@ -65,6 +68,7 @@ import lombok.Getter;
 public class MovementSubscriptionCommandFromMessageExtractor implements SubscriptionCommandFromMessageExtractor {
 
 	private static final String SOURCE = "movement";
+	private static final Predicate<TriggeredSubscriptionDataEntity> BY_KEY_MOVEMENT_GUID_PREFIX = d -> d.getKey().startsWith(KEY_MOVEMENT_GUID_PREFIX);
 
 	private SubscriptionFinder subscriptionFinder;
 	private DatatypeFactory datatypeFactory;
@@ -110,7 +114,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 
 	@Override
 	public void preserveDataFromSupersededTriggering(TriggeredSubscriptionEntity superseded, TriggeredSubscriptionEntity replacement) {
-		// NOOP
+		processTriggering(superseded, replacement);
 	}
 
 	@Override
@@ -166,14 +170,14 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		TriggeredSubscriptionEntity result;
 		Map<Long, TriggeredSubscriptionEntity> triggerings = movementGuidToTriggeringsMap.get(input.getMovement().getGuid());
 		if (triggerings == null) {
-			result = createNewTriggeredSubscriptionEntity(input, movementGuidToTriggeringsMap);
+			result = createNewTriggeredSubscriptionEntity(input);
 			triggerings = new HashMap<>();
 			triggerings.put(input.getSubscription().getId(), result);
 			movementGuidToTriggeringsMap.put(input.getMovement().getGuid(), triggerings);
 		} else {
 			result = triggerings.get(input.getSubscription().getId());
 			if (result == null) {
-				result = createNewTriggeredSubscriptionEntity(input, movementGuidToTriggeringsMap);
+				result = createNewTriggeredSubscriptionEntity(input);
 				triggerings.put(input.getSubscription().getId(), result);
 			} else {
 				addMovementGuidToTriggeredSubscriptionData(input, result.getData(), result);
@@ -182,7 +186,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		return result;
 	}
 
-	private TriggeredSubscriptionEntity createNewTriggeredSubscriptionEntity(MovementAndSubscription input, Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap) {
+	private TriggeredSubscriptionEntity createNewTriggeredSubscriptionEntity(MovementAndSubscription input) {
 		TriggeredSubscriptionEntity result = new TriggeredSubscriptionEntity();
 		result.setSubscription(input.getSubscription());
 		result.setSource(SOURCE);
@@ -210,14 +214,23 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 
 	private void addMovementGuidToTriggeredSubscriptionData(MovementAndSubscription movementAndSubscription, Set<TriggeredSubscriptionDataEntity> triggeredSubscriptionData, TriggeredSubscriptionEntity triggeredSubscription) {
 		long nextIndex = triggeredSubscriptionData.stream()
-				.filter(data -> data.getKey().startsWith(TriggeredSubscriptionDataUtil.KEY_MOVEMENT_GUID_PREFIX))
+				.filter(data -> data.getKey().startsWith(KEY_MOVEMENT_GUID_PREFIX))
 				.count();
 		Optional.ofNullable(movementAndSubscription.getMovement().getGuid())
-				.ifPresent(movementGuid -> triggeredSubscriptionData.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_MOVEMENT_GUID_PREFIX + nextIndex, movementGuid)));
+				.ifPresent(movementGuid -> triggeredSubscriptionData.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_MOVEMENT_GUID_PREFIX + nextIndex, movementGuid)));
 	}
 
 	private Command makeTriggerSubscriptionCommand(TriggeredSubscriptionEntity triggeredSubscription) {
-		return triggerCommandsFactory.createTriggerSubscriptionCommand(triggeredSubscription, getDataForDuplicatesExtractor());
+		return triggerCommandsFactory.createTriggerSubscriptionFromSpecificMessageCommand(triggeredSubscription, getDataForDuplicatesExtractor(), this::processTriggering);
+	}
+
+	private boolean processTriggering(TriggeredSubscriptionEntity triggeredSubscriptionCandidate, TriggeredSubscriptionEntity existingTriggeredSubscription) {
+		SequenceIntIterator indexes = new SequenceIntIterator((int) existingTriggeredSubscription.getData().stream().filter(BY_KEY_MOVEMENT_GUID_PREFIX).count());
+		triggeredSubscriptionCandidate.getData().stream()
+				.filter(BY_KEY_MOVEMENT_GUID_PREFIX)
+				.map(data -> new TriggeredSubscriptionDataEntity(existingTriggeredSubscription, KEY_MOVEMENT_GUID_PREFIX + indexes.nextInt(), data.getValue()))
+				.forEach(existingTriggeredSubscription.getData()::add);
+		return true;
 	}
 
 	private StopConditionCriteria makeStopConditionCriteria(MovementType movement) {

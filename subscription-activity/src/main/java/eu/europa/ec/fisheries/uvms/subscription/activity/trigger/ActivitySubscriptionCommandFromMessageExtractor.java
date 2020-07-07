@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Function;
@@ -59,6 +58,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SubscriptionComm
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsFactory;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
+import eu.europa.ec.fisheries.uvms.subscription.service.util.SequenceIntIterator;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionFaReportDocumentType;
@@ -306,12 +306,12 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 	}
 
 	private boolean processTriggering(TriggeredSubscriptionEntity triggeredSubscriptionCandidate, TriggeredSubscriptionEntity existingTriggeredSubscription) {
-		Sequence indexes = new Sequence((int) existingTriggeredSubscription.getData().stream().filter(BY_KEY_REPORT_ID_PREFIX).count());
+		SequenceIntIterator indexes = new SequenceIntIterator((int) existingTriggeredSubscription.getData().stream().filter(BY_KEY_REPORT_ID_PREFIX).count());
 		triggeredSubscriptionCandidate.getData().stream()
 				.filter(BY_KEY_REPORT_ID_PREFIX)
 				.map(data -> new TriggeredSubscriptionDataEntity(existingTriggeredSubscription, KEY_REPORT_ID_PREFIX + indexes.nextInt(), data.getValue()))
 				.forEach(existingTriggeredSubscription.getData()::add);
-		Sequence tripIndexes = new Sequence((int) existingTriggeredSubscription.getData().stream().filter(BY_KEY_TRIP_ID_PREFIX).count());
+		SequenceIntIterator tripIndexes = new SequenceIntIterator((int) existingTriggeredSubscription.getData().stream().filter(BY_KEY_TRIP_ID_PREFIX).count());
 		triggeredSubscriptionCandidate.getData().stream()
 				.filter(BY_KEY_TRIP_ID_PREFIX)
 				.map(data -> new TriggeredSubscriptionDataEntity(existingTriggeredSubscription, KEY_TRIP_ID_PREFIX + tripIndexes.nextInt(), data.getValue()))
@@ -361,18 +361,5 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 		private final ForwardReportToSubscriptionRequest unmarshalledMessage;
 		/** The triggered subscription. */
 		private final TriggeredSubscriptionEntity triggeredSubscription;
-	}
-
-	@AllArgsConstructor
-	private static class Sequence implements PrimitiveIterator.OfInt {
-		private int curval;
-
-		@Override public int nextInt() {
-			return curval++;
-		}
-
-		@Override public boolean hasNext() {
-			return true;
-		}
 	}
 }
