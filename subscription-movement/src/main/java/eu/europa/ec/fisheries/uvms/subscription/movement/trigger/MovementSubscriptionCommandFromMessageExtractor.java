@@ -21,8 +21,10 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
@@ -41,8 +43,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SubscriptionCommandFromMessageExtractor;
@@ -73,10 +75,10 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	/**
 	 * Constructor for injection.
 	 *
-	 * @param subscriptionFinder The finder
-	 * @param datatypeFactory The data type factory
-	 * @param assetSender The asset sender
-	 * @param dateTimeService The date/time service
+	 * @param subscriptionFinder     The finder
+	 * @param datatypeFactory        The data type factory
+	 * @param assetSender            The asset sender
+	 * @param dateTimeService        The date/time service
 	 * @param triggerCommandsFactory The factory for commands
 	 */
 	@Inject
@@ -103,7 +105,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 
 	@Override
 	public Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> getDataForDuplicatesExtractor() {
-		return TriggeredSubscriptionDataUtil::extractConnectId;
+		return TriggeredSubscriptionDataUtil::extractConnectIdAndMovementGuid;
 	}
 
 	@Override
@@ -113,11 +115,12 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 
 	@Override
 	public Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion) {
+		Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap = new HashMap<>();
 		return Stream.of(unmarshal(representation))
 				.filter(message -> message.getResponse() == SimpleResponse.OK)
 				.flatMap(message -> message.getMovements().stream())
 				.filter(m -> !m.isDuplicate())
-				.flatMap(t -> makeCommandsForMovement(t, senderCriterion));
+				.flatMap(t -> makeCommandsForMovement(t, senderCriterion, movementGuidToTriggeringsMap));
 	}
 
 	private CreateMovementBatchResponse unmarshal(String representation) {
@@ -128,10 +131,10 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		}
 	}
 
-	private Stream<Command> makeCommandsForMovement(MovementType movement, SenderCriterion senderCriterion) {
+	private Stream<Command> makeCommandsForMovement(MovementType movement, SenderCriterion senderCriterion, Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap) {
 		return Stream.concat(
 				findTriggeredSubscriptions(movement, senderCriterion)
-						.map(this::makeTriggeredSubscriptionEntity)
+						.map(movementAndSubscription -> makeTriggeredSubscriptionEntity(movementAndSubscription, movementGuidToTriggeringsMap))
 						.map(this::makeTriggerSubscriptionCommand),
 				Stream.of(movement)
 						.map(this::makeStopConditionCriteria)
@@ -159,21 +162,41 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 				.map(area -> new AreaCriterion(AreaType.fromValue(area.getAreaType()), Long.valueOf(area.getRemoteId())));
 	}
 
-	private TriggeredSubscriptionEntity makeTriggeredSubscriptionEntity(MovementAndSubscription input) {
+	private TriggeredSubscriptionEntity makeTriggeredSubscriptionEntity(MovementAndSubscription input, Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap) {
+		TriggeredSubscriptionEntity result;
+		Map<Long, TriggeredSubscriptionEntity> triggerings = movementGuidToTriggeringsMap.get(input.getMovement().getGuid());
+		if (triggerings == null) {
+			result = createNewTriggeredSubscriptionEntity(input, movementGuidToTriggeringsMap);
+			triggerings = new HashMap<>();
+			triggerings.put(input.getSubscription().getId(), result);
+			movementGuidToTriggeringsMap.put(input.getMovement().getGuid(), triggerings);
+		} else {
+			result = triggerings.get(input.getSubscription().getId());
+			if (result == null) {
+				result = createNewTriggeredSubscriptionEntity(input, movementGuidToTriggeringsMap);
+				triggerings.put(input.getSubscription().getId(), result);
+			} else {
+				addMovementGuidToTriggeredSubscriptionData(input, result.getData(), result);
+			}
+		}
+		return result;
+	}
+
+	private TriggeredSubscriptionEntity createNewTriggeredSubscriptionEntity(MovementAndSubscription input, Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap) {
 		TriggeredSubscriptionEntity result = new TriggeredSubscriptionEntity();
 		result.setSubscription(input.getSubscription());
 		result.setSource(SOURCE);
 		result.setCreationDate(dateTimeService.getNowAsDate());
 		result.setStatus(ACTIVE);
 		result.setEffectiveFrom(input.getMovement().getPositionTime());
-		result.setData(makeTriggeredSubscriptionData(result, input));
+		makeTriggeredSubscriptionData(result, input);
 		return result;
 	}
 
-	private Set<TriggeredSubscriptionDataEntity> makeTriggeredSubscriptionData(TriggeredSubscriptionEntity triggeredSubscription, MovementAndSubscription input) {
+	private void makeTriggeredSubscriptionData(TriggeredSubscriptionEntity triggeredSubscription, MovementAndSubscription input) {
 		Set<TriggeredSubscriptionDataEntity> result = new HashSet<>();
 		Optional.ofNullable(input.getMovement().getConnectId()).ifPresent(connectId ->
-			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_CONNECT_ID, connectId))
+				result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_CONNECT_ID, connectId))
 		);
 		Optional.ofNullable(input.getMovement().getPositionTime()).ifPresent(positionTime -> {
 			GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
@@ -181,7 +204,16 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 			XMLGregorianCalendar xmlCalendar = datatypeFactory.newXMLGregorianCalendar(calendar);
 			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_OCCURRENCE, xmlCalendar.toXMLFormat()));
 		});
-		return result;
+		addMovementGuidToTriggeredSubscriptionData(input, result, triggeredSubscription);
+		triggeredSubscription.setData(result);
+	}
+
+	private void addMovementGuidToTriggeredSubscriptionData(MovementAndSubscription movementAndSubscription, Set<TriggeredSubscriptionDataEntity> triggeredSubscriptionData, TriggeredSubscriptionEntity triggeredSubscription) {
+		long nextIndex = triggeredSubscriptionData.stream()
+				.filter(data -> data.getKey().startsWith(TriggeredSubscriptionDataUtil.KEY_MOVEMENT_GUID_PREFIX))
+				.count();
+		Optional.ofNullable(movementAndSubscription.getMovement().getGuid())
+				.ifPresent(movementGuid -> triggeredSubscriptionData.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_MOVEMENT_GUID_PREFIX + nextIndex, movementGuid)));
 	}
 
 	private Command makeTriggerSubscriptionCommand(TriggeredSubscriptionEntity triggeredSubscription) {

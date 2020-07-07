@@ -12,6 +12,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscrip
 public class TriggeredSubscriptionDataUtil {
 	public static final String KEY_CONNECT_ID = "connectId";
 	public static final String KEY_OCCURRENCE = "occurrence";
+	public static final String KEY_MOVEMENT_GUID_PREFIX = "movementGuidIndex_";
 
 	/**
 	 * Extract only the {@code connectId} data.
@@ -22,6 +23,18 @@ public class TriggeredSubscriptionDataUtil {
 	public static Set<TriggeredSubscriptionDataEntity> extractConnectId(TriggeredSubscriptionEntity entity) {
 		return entity.getData().stream()
 				.filter(d -> KEY_CONNECT_ID.equals(d.getKey()))
+				.collect(Collectors.toSet());
+	}
+
+	/**
+	 * Extract the {@code connectId} and data containing key movements guids.
+	 *
+	 * @param entity The entity whose data to filter
+	 * @return A set containing the {@code connectId} and movement guid {@code TriggeredSubscriptionDataEntity}
+	 */
+	public static Set<TriggeredSubscriptionDataEntity> extractConnectIdAndMovementGuid(TriggeredSubscriptionEntity entity) {
+		return entity.getData().stream()
+				.filter(d -> TriggeredSubscriptionDataUtil.KEY_CONNECT_ID.equals(d.getKey()) || d.getKey().startsWith(KEY_MOVEMENT_GUID_PREFIX))
 				.collect(Collectors.toSet());
 	}
 }
