@@ -187,18 +187,17 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
     @ParameterizedTest
     @MethodSource("queryParametersWithOrderingAsc")
-    public void testListSubscriptionWithOrderingAsc(SubscriptionListQuery query, long firstResultId, long lastResultId){
-        List<SubscriptionEntity> subscriptionEntities = sut.listSubscriptions(query);
-        assertTrue(subscriptionEntities.size() >= 2);
-        assertEquals(firstResultId, subscriptionEntities.get(0).getId());
-        assertEquals(lastResultId, subscriptionEntities.get(subscriptionEntities.size()-1).getId());
+    public void testListSubscriptionWithOrderingAsc(SubscriptionListQuery query, Long[] expectedResultIds) {
+        List<Long> resultIds = sut.listSubscriptions(query).stream().map(SubscriptionEntity::getId).collect(Collectors.toList());
+        assertEquals(Arrays.asList(expectedResultIds), resultIds);
     }
 
-    protected static Stream<Arguments> queryParametersWithOrderingAsc(){
+    protected static Stream<Arguments> queryParametersWithOrderingAsc() {
         return Stream.of(
-                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.NAME, null), 1L, 4L),
-                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.DESCRIPTION, null), 1L, 4L),
-                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.MESSAGETYPE, null), 2L, 4L)
+                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.NAME, null), new Long[] {1L, 2L, 3L, 4L}),
+                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.DESCRIPTION, null), new Long[] {1L, 2L, 3L, 4L}),
+                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.MESSAGETYPE, null), new Long[] {2L, 3L, 1L, 4L}),
+                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.TRIGGERTYPE, null), new Long[] {2L, 3L, 1L, 4L})
         );
     }
 
@@ -892,7 +891,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         String password = sut.getEmailConfigurationPassword(1L);
         em.getTransaction().commit();
         em.clear();
-        assertEquals(null, password);
+        assertNull(password);
     }
 
     @Test
