@@ -9,13 +9,16 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.movement.execution;
 
+import static eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil.KEY_MOVEMENT_GUID_PREFIX;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import eu.europa.ec.fisheries.uvms.subscription.movement.communication.MovementSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
@@ -36,8 +39,6 @@ import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdent
 public class PositionTriggeredSubscriptionExecutor implements SubscriptionExecutor {
 
     private static final String KEY_CONNECT_ID = "connectId";
-    private static final String KEY_MOVEMENT_GUID_PREFIX = "movementGuidIndex";
-
 
     private MovementSender movementSender;
     private AssetSender assetSender;
@@ -77,22 +78,22 @@ public class PositionTriggeredSubscriptionExecutor implements SubscriptionExecut
             populateVesselIdentifierList(subscription, vesselIdentifiers, idsHolder);
             String vesselCountry = idsHolder.getCountryCode();
             List<String> movementGuids = extractMovementGuids(dataMap);
-            String generatedQueryId = movementSender.forwardPosition(
+            String generatedMessageId = movementSender.forwardPosition(
                     vesselIdentifiers,
                     vesselCountry,
                     movementGuids,
                     receiverAndDataflow.getReceiver(),
                     receiverAndDataflow.getDataflow());
-            execution.getMessageIds().add(generatedQueryId);
+            execution.getMessageIds().add(generatedMessageId);
         }
     }
 
     private List<String> extractMovementGuids(Map<String, String> dataMap) {
-        List<String> movementGuids = new ArrayList<>();
-        dataMap.keySet().stream()
-                .filter(key -> key.startsWith(KEY_MOVEMENT_GUID_PREFIX))
-                .forEach(key -> movementGuids.add(dataMap.get(key)));
-        return movementGuids;
+        return dataMap.entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith(KEY_MOVEMENT_GUID_PREFIX))
+                .sorted(Comparator.comparingInt(e -> Integer.parseInt(e.getKey().substring(KEY_MOVEMENT_GUID_PREFIX.length()))))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
     }
 
     private VesselIdentifiersHolder extractVesselIds(TriggeredSubscriptionEntity triggeredSubscription, Map<String, String> dataMap) {
