@@ -9,6 +9,8 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -63,7 +65,7 @@ class TriggeredSubscriptionServiceImpl implements TriggeredSubscriptionService {
 	@Override
 	public Stream<TriggeredSubscriptionEntity> findByStopConditionCriteria(StopConditionCriteria criteria) {
 		TriggeredSubscriptionSearchCriteria searchCriteriaForAreas = new TriggeredSubscriptionSearchCriteria();
-		searchCriteriaForAreas.setActive(Boolean.TRUE);
+		searchCriteriaForAreas.setSingleStatus(ACTIVE);
 		searchCriteriaForAreas.setTriggeredSubscriptionData(Collections.singletonMap("connectId", criteria.getConnectId()));
 		searchCriteriaForAreas.setNotInAreas(criteria.getAreas());
 		searchCriteriaForAreas.setSubscriptionQuitArea(true);

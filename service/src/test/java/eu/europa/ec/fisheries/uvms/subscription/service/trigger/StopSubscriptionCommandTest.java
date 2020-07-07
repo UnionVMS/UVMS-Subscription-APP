@@ -9,15 +9,15 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.STOPPED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
 
 import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.TriggeredSubscriptionService;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionExecutionService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -32,17 +32,13 @@ public class StopSubscriptionCommandTest {
 	@Mock
 	private TriggeredSubscriptionService triggeredSubscriptionService;
 
-	@Mock
-	private SubscriptionExecutionService subscriptionExecutionService;
-
 	@Test
 	void testExecute() {
 		StopConditionCriteria stopConditionCriteria = new StopConditionCriteria();
 		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
-		triggeredSubscription.setActive(true);
+		triggeredSubscription.setStatus(ACTIVE);
 		when(triggeredSubscriptionService.findByStopConditionCriteria(stopConditionCriteria)).thenReturn(Stream.of(triggeredSubscription));
-		new StopSubscriptionCommand(triggeredSubscriptionService, subscriptionExecutionService, stopConditionCriteria).execute();
-		verify(subscriptionExecutionService).stopPendingExecutions(triggeredSubscription);
-		assertFalse(triggeredSubscription.getActive());
+		new StopSubscriptionCommand(triggeredSubscriptionService, stopConditionCriteria).execute();
+		assertEquals(STOPPED, triggeredSubscription.getStatus());
 	}
 }

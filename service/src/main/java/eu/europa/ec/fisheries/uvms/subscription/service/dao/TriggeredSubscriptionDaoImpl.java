@@ -11,7 +11,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.PENDING;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.QUEUED;
-import static java.lang.Boolean.TRUE;
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
@@ -90,10 +91,6 @@ class TriggeredSubscriptionDaoImpl implements TriggeredSubscriptionDao {
 		CriteriaQuery<TriggeredSubscriptionEntity> query = cb.createQuery(TriggeredSubscriptionEntity.class);
 		Root<TriggeredSubscriptionEntity> root = query.from(TriggeredSubscriptionEntity.class);
 
-		List<Predicate> predicates = new ArrayList<>();
-		predicates.add(cb.equal(root.get(TriggeredSubscriptionEntity_.subscription), subscription));
-		predicates.add(cb.equal(root.get(TriggeredSubscriptionEntity_.active), TRUE));
-
 		Subquery<Long> executionSubquery = query.subquery(Long.class);
 		executionSubquery.select(cb.literal(1L));
 		Root<SubscriptionExecutionEntity> executionRoot = executionSubquery.from(SubscriptionExecutionEntity.class);
@@ -101,23 +98,16 @@ class TriggeredSubscriptionDaoImpl implements TriggeredSubscriptionDao {
 				cb.in(executionRoot.get(SubscriptionExecutionEntity_.status)).value(PENDING).value(QUEUED),
 				cb.equal(executionRoot.get(SubscriptionExecutionEntity_.triggeredSubscription), root)
 		);
-		predicates.add(cb.exists(executionSubquery));
 
-		dataCriteria.stream()
-				.map(d -> {
-					Subquery<Long> dataSubquery = query.subquery(Long.class);
-					dataSubquery.select(cb.literal(1L));
-					Root<TriggeredSubscriptionDataEntity> dataRoot = dataSubquery.from(TriggeredSubscriptionDataEntity.class);
-					dataSubquery.where(
-							cb.equal(dataRoot.get(TriggeredSubscriptionDataEntity_.triggeredSubscription), root),
-							cb.equal(dataRoot.get(TriggeredSubscriptionDataEntity_.key), d.getKey()),
-							cb.equal(dataRoot.get(TriggeredSubscriptionDataEntity_.value), d.getValue())
-					);
-					return cb.exists(dataSubquery);
-				})
-				.forEach(predicates::add);
-
-		query.select(root).where(predicates.toArray(new Predicate[0]));
+		query.select(root).where(
+				cb.equal(root.get(TriggeredSubscriptionEntity_.subscription), subscription),
+				cb.equal(root.get(TriggeredSubscriptionEntity_.status), ACTIVE),
+				cb.exists(executionSubquery),
+				makeDataSubquery(query, root, cb, dataCriteria.stream().collect(Collectors.toMap(
+						TriggeredSubscriptionDataEntity::getKey,
+						TriggeredSubscriptionDataEntity::getValue
+				)))
+		);
 
 		return !em.createQuery(query).setMaxResults(1).getResultList().isEmpty();
 	}
@@ -129,8 +119,8 @@ class TriggeredSubscriptionDaoImpl implements TriggeredSubscriptionDao {
 		Root<TriggeredSubscriptionEntity> root = query.from(TriggeredSubscriptionEntity.class);
 
 		List<Predicate> predicates = new ArrayList<>();
-		if (criteria.getActive() != null) {
-			predicates.add(cb.equal(root.get(TriggeredSubscriptionEntity_.active), criteria.getActive()));
+		if (criteria.getWithStatus() != null) {
+			predicates.add(root.get(TriggeredSubscriptionEntity_.status).in(criteria.getWithStatus()));
 		}
 		if (criteria.getSubscriptionQuitArea() != null) {
 			predicates.add(cb.equal(root.get(TriggeredSubscriptionEntity_.subscription).get(SubscriptionEntity_.stopWhenQuitArea), criteria.getSubscriptionQuitArea()));

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
 				   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-				   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
+				   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 	<changeSet id="UNIONVMS-4466-triggeredsubscription" author="nikospara">
 		<createTable tableName="triggered_subscription">
 			<column name="id" type="BIGINT">
@@ -50,6 +50,26 @@
 
 		<rollback>
 			<dropColumn tableName="triggered_subscription" columnName="effective_from" />
+		</rollback>
+	</changeSet>
+	
+	<changeSet id="UNIONVMS-4703-stop-conditions-revised" author="nikospara">
+		<addColumn tableName="triggered_subscription">
+			<column name="status" type="VARCHAR(8)" afterColumn="active" />
+		</addColumn>
+		<update tableName="triggered_subscription">
+			<column name="status" valueComputed="(CASE WHEN active=TRUE THEN 'ACTIVE' ELSE 'INACTIVE' END)" />
+		</update>
+		<dropColumn tableName="triggered_subscription" columnName="active" />
+
+		<rollback>
+			<addColumn tableName="triggered_subscription">
+				<column name="active" type="BOOLEAN"/>
+			</addColumn>
+			<update tableName="triggered_subscription">
+				<column name="active" valueComputed="(CASE WHEN status='ACTIVE' THEN true ELSE false END)" />
+			</update>
+			<dropColumn tableName="triggered_subscription" columnName="status" />
 		</rollback>
 	</changeSet>
 </databaseChangeLog>

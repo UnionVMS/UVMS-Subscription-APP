@@ -9,6 +9,8 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.STOPPED;
+
 import javax.enterprise.inject.Vetoed;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
@@ -23,23 +25,20 @@ import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionEx
 class StopSubscriptionCommand implements Command {
 
 	private final TriggeredSubscriptionService triggeredSubscriptionService;
-	private final SubscriptionExecutionService subscriptionExecutionService;
 	private final StopConditionCriteria stopConditionCriteria;
 
-	public StopSubscriptionCommand(TriggeredSubscriptionService triggeredSubscriptionService, SubscriptionExecutionService subscriptionExecutionService, StopConditionCriteria stopConditionCriteria) {
+	public StopSubscriptionCommand(TriggeredSubscriptionService triggeredSubscriptionService, StopConditionCriteria stopConditionCriteria) {
 		this.triggeredSubscriptionService = triggeredSubscriptionService;
-		this.subscriptionExecutionService = subscriptionExecutionService;
 		this.stopConditionCriteria = stopConditionCriteria;
 	}
 
 	@Override
 	public void execute() {
 		triggeredSubscriptionService.findByStopConditionCriteria(stopConditionCriteria)
-				.peek(subscriptionExecutionService::stopPendingExecutions)
-				.forEach(this::deactivate);
+				.forEach(this::stop);
 	}
 
-	private void deactivate(TriggeredSubscriptionEntity triggeredSubscription) {
-		triggeredSubscription.setActive(false);
+	private void stop(TriggeredSubscriptionEntity triggeredSubscription) {
+		triggeredSubscription.setStatus(STOPPED);
 	}
 }

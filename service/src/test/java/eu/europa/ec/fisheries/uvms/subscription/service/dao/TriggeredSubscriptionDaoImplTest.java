@@ -11,6 +11,9 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dao;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.PENDING;
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.INACTIVE;
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.STOPPED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -23,12 +26,12 @@ import javax.persistence.EntityManager;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
-import java.util.stream.Stream;
 
 import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
@@ -55,6 +58,7 @@ public class TriggeredSubscriptionDaoImplTest extends BaseSubscriptionInMemoryTe
 
 	private static final String CONNECT_ID1 = UUID.randomUUID().toString();
 	private static final String CONNECT_ID2 = UUID.randomUUID().toString();
+	private static final String CONNECT_ID3 = UUID.randomUUID().toString();
 
 	@Inject
 	private SubscriptionDaoImpl subscriptionDao;
@@ -129,7 +133,7 @@ public class TriggeredSubscriptionDaoImplTest extends BaseSubscriptionInMemoryTe
 		entity.setSubscription(subscription);
 		entity.setSource("SOURCE");
 		entity.setCreationDate(new Date());
-		entity.setActive(true);
+		entity.setStatus(ACTIVE);
 		return entity;
 	}
 
@@ -171,7 +175,10 @@ public class TriggeredSubscriptionDaoImplTest extends BaseSubscriptionInMemoryTe
 		addTriggeredSubscriptionDataEntity(s2t1, "connectId", CONNECT_ID1);
 		TriggeredSubscriptionEntity s2t2 = makeTriggeredSubscription(s2);
 		addTriggeredSubscriptionDataEntity(s2t2, "connectId", CONNECT_ID2);
-		s2t2.setActive(false);
+		s2t2.setStatus(INACTIVE);
+		TriggeredSubscriptionEntity s2t3 = makeTriggeredSubscription(s2);
+		addTriggeredSubscriptionDataEntity(s2t3, "connectId", CONNECT_ID3);
+		s2t3.setStatus(STOPPED);
 		TriggeredSubscriptionEntity s3t1 = makeTriggeredSubscription(s3);
 		addTriggeredSubscriptionDataEntity(s3t1, "connectId", CONNECT_ID1);
 		TriggeredSubscriptionEntity s3t2 = makeTriggeredSubscription(s3);
@@ -184,6 +191,7 @@ public class TriggeredSubscriptionDaoImplTest extends BaseSubscriptionInMemoryTe
 		s1t2 = sut.create(s1t2);
 		s2t1 = sut.create(s2t1);
 		s2t2 = sut.create(s2t2);
+		s2t3 = sut.create(s2t3);
 		sut.create(s3t1);
 		s3t2 = sut.create(s3t2);
 		s4t1 = sut.create(s4t1);
@@ -191,7 +199,7 @@ public class TriggeredSubscriptionDaoImplTest extends BaseSubscriptionInMemoryTe
 		em.getTransaction().commit();
 
 		TriggeredSubscriptionSearchCriteria criteria1 = new TriggeredSubscriptionSearchCriteria();
-		criteria1.setActive(true);
+		criteria1.setSingleStatus(ACTIVE);
 		criteria1.setSubscriptionQuitArea(true);
 		criteria1.setTriggeredSubscriptionData(Collections.singletonMap("connectId", CONNECT_ID1));
 		criteria1.setNotInAreas(new HashSet<>(Arrays.asList(new AreaCriterion(AreaType.USERAREA, 333L), new AreaCriterion(AreaType.USERAREA, 444L))));
@@ -201,24 +209,21 @@ public class TriggeredSubscriptionDaoImplTest extends BaseSubscriptionInMemoryTe
 		assertEquals(s1t1.getId(), result1.get(0).getId());
 
 		TriggeredSubscriptionSearchCriteria criteria2 = new TriggeredSubscriptionSearchCriteria();
-		criteria2.setActive(false);
+		criteria2.setWithStatus(EnumSet.of(INACTIVE, STOPPED));
 		List<TriggeredSubscriptionEntity> result2 = sut.find(criteria2).collect(Collectors.toList());
 
-		assertEquals(1, result2.size());
-		assertEquals(s2t2.getId(), result2.get(0).getId());
+		assertEquals(new HashSet<>(Arrays.asList(s2t2.getId(), s2t3.getId())), result2.stream().map(TriggeredSubscriptionEntity::getId).collect(Collectors.toSet()));
 
 		TriggeredSubscriptionSearchCriteria criteria3 = new TriggeredSubscriptionSearchCriteria();
 		criteria3.setNotInAreas(new HashSet<>(Arrays.asList(new AreaCriterion(AreaType.USERAREA, 111L), new AreaCriterion(AreaType.USERAREA, 222L))));
 		List<TriggeredSubscriptionEntity> result3 = sut.find(criteria3).collect(Collectors.toList());
 
-		assertEquals(4, result3.size());
-		assertEquals(new HashSet<>(Arrays.asList(s2t1.getId(),s2t2.getId(),s4t1.getId(),s4t2.getId())), result3.stream().map(TriggeredSubscriptionEntity::getId).collect(Collectors.toSet()));
+		assertEquals(new HashSet<>(Arrays.asList(s2t1.getId(),s2t2.getId(),s2t3.getId(),s4t1.getId(),s4t2.getId())), result3.stream().map(TriggeredSubscriptionEntity::getId).collect(Collectors.toSet()));
 
 		TriggeredSubscriptionSearchCriteria criteria4 = new TriggeredSubscriptionSearchCriteria();
 		criteria4.setTriggeredSubscriptionData(Collections.singletonMap("connectId", CONNECT_ID2));
 		List<TriggeredSubscriptionEntity> result4 = sut.find(criteria4).collect(Collectors.toList());
 
-		assertEquals(4, result4.size());
 		assertEquals(new HashSet<>(Arrays.asList(s1t2.getId(),s2t2.getId(),s3t2.getId(),s4t2.getId())), result4.stream().map(TriggeredSubscriptionEntity::getId).collect(Collectors.toSet()));
 	}
 

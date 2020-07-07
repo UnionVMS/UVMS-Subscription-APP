@@ -9,9 +9,13 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
 
 /**
@@ -35,4 +39,14 @@ public interface SubscriptionCommandFromMessageExtractor {
 	 * @return A possibly empty but never null stream of commands to execute in order to process this message
 	 */
 	Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion);
+
+	/**
+	 * Return a function that can extract the {@link TriggeredSubscriptionDataEntity} that are important for
+	 * comparing triggered subscriptions for equivalence.
+	 * This can be used to identify duplicate triggerings of a subscription, so as to cancel the second or
+	 * identify duplicate executions.
+	 *
+	 * @return The equivalence function
+	 */
+	Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> getDataForDuplicatesExtractor();
 }

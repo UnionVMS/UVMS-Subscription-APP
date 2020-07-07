@@ -21,6 +21,7 @@ import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVess
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier.ICCAT;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier.IRCS;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier.UVI;
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
 import static java.util.stream.Collectors.toSet;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -923,7 +924,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         EmailBodyEntity email = new EmailBodyEntity(subscription, "email content");
         sut.createEmailBodyEntity(email);
         TriggeredSubscriptionEntity ts = new TriggeredSubscriptionEntity();
-        ts.setActive(true);
+        ts.setStatus(ACTIVE);
         ts.setEffectiveFrom(new Date());
         ts.setCreationDate(new Date());
         ts.setSubscription(subscription);

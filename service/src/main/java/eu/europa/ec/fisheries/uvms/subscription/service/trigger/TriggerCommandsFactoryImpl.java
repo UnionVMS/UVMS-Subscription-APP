@@ -66,7 +66,7 @@ class TriggerCommandsFactoryImpl implements TriggerCommandsFactory {
 
 	@Override
 	public Command createStopSubscriptionCommand(StopConditionCriteria stopConditionCriteria) {
-		return new StopSubscriptionCommand(triggeredSubscriptionService, subscriptionExecutionService, stopConditionCriteria);
+		return new StopSubscriptionCommand(triggeredSubscriptionService, stopConditionCriteria);
 	}
 
 	@Override

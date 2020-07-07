@@ -9,8 +9,9 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.scheduling;
 
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.INACTIVE;
 import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -60,7 +61,7 @@ class SubscriptionExecutionSchedulerImpl implements SubscriptionExecutionSchedul
 
 	@Override
 	public Optional<SubscriptionExecutionEntity> scheduleNext(TriggeredSubscriptionEntity triggeredSubscription, SubscriptionExecutionEntity lastExecution) {
-		if (!TRUE.equals(triggeredSubscription.getActive()) || !triggeredSubscription.getSubscription().isActive()) {
+		if (!ACTIVE.equals(triggeredSubscription.getStatus()) || !triggeredSubscription.getSubscription().isActive()) {
 			return finish(triggeredSubscription);
 		}
 		if (lastExecution == null) {
@@ -124,7 +125,7 @@ class SubscriptionExecutionSchedulerImpl implements SubscriptionExecutionSchedul
 	}
 
 	private Optional<SubscriptionExecutionEntity> finish(TriggeredSubscriptionEntity triggeredSubscription) {
-		triggeredSubscription.setActive(false);
+		triggeredSubscription.setStatus(INACTIVE);
 		return Optional.empty();
 	}
 }

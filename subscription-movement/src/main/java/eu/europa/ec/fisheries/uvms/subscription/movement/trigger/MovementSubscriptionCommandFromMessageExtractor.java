@@ -9,6 +9,8 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.movement.trigger;
 
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
@@ -107,6 +109,11 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	}
 
 	@Override
+	public Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> getDataForDuplicatesExtractor() {
+		return TRIGGERED_SUBSCRIPTION_DATA_FOR_DUPLICATES;
+	}
+
+	@Override
 	public Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion) {
 		return Stream.of(unmarshal(representation))
 				.filter(message -> message.getResponse() == SimpleResponse.OK)
@@ -159,7 +166,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		result.setSubscription(input.getSubscription());
 		result.setSource(SOURCE);
 		result.setCreationDate(dateTimeService.getNowAsDate());
-		result.setActive(true);
+		result.setStatus(ACTIVE);
 		result.setEffectiveFrom(input.getMovement().getPositionTime());
 		result.setData(makeTriggeredSubscriptionData(result, input));
 		return result;

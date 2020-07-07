@@ -13,6 +13,8 @@ import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.PENDING;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.EXECUTED;
 import static eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType.QUEUED;
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
+import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.STOPPED;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +41,7 @@ import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
@@ -50,6 +54,10 @@ import org.junit.jupiter.api.Test;
 @EnableAutoWeld
 class SubscriptionExecutionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
+	public static final String UNIMPORTANT_KEY = "UNIMPORTANT_KEY";
+	public static final String IMPORTANT_KEY = "IMPORTANT_KEY";
+	public static final String UNIMPORTANT_VALUE = "UNIMPORTANT_VALUE";
+	public static final String IMPORTANT_VALUE = "IMPORTANT_VALUE";
 	@Inject
 	private SubscriptionExecutionDaoImpl sut;
 
@@ -151,10 +159,47 @@ class SubscriptionExecutionDaoImplTest extends BaseSubscriptionInMemoryTest {
 		assertEquals(id3, resultExecuted.iterator().next().getId());
 	}
 
+	@Test
+	void testFindPendingBy() {
+		em.getTransaction().begin();
+		TriggeredSubscriptionEntity triggeredSubscription1 = setupTriggeredSubscription(1L);
+		triggeredSubscription1.setStatus(STOPPED);
+		triggeredSubscription1.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription1, UNIMPORTANT_KEY, UNIMPORTANT_VALUE));
+		triggeredSubscription1.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription1, IMPORTANT_KEY, IMPORTANT_VALUE));
+		@SuppressWarnings("unused")
+		Long t1e1id = sut.create(makeExecution(triggeredSubscription1, new Date(), EXECUTED)).getId();
+		Long t1e2id = sut.create(makeExecution(triggeredSubscription1, new Date(), PENDING)).getId();
+		TriggeredSubscriptionEntity triggeredSubscription2 = setupTriggeredSubscription(1L);
+		triggeredSubscription2.setStatus(STOPPED);
+		triggeredSubscription2.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription2, UNIMPORTANT_KEY, UNIMPORTANT_VALUE));
+		triggeredSubscription2.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription2, IMPORTANT_KEY, "OTHER_IMPORTANT_VALUE"));
+		@SuppressWarnings("unused")
+		Long t2e1id = sut.create(makeExecution(triggeredSubscription2, new Date(), EXECUTED)).getId();
+		@SuppressWarnings("unused")
+		Long t2e2id = sut.create(makeExecution(triggeredSubscription2, new Date(), PENDING)).getId();
+		TriggeredSubscriptionEntity triggeredSubscription3 = setupTriggeredSubscription(2L);
+		triggeredSubscription3.setStatus(STOPPED);
+		triggeredSubscription3.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription3, UNIMPORTANT_KEY, UNIMPORTANT_VALUE));
+		triggeredSubscription3.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription3, IMPORTANT_KEY, IMPORTANT_VALUE));
+		@SuppressWarnings("unused")
+		Long t3e1id = sut.create(makeExecution(triggeredSubscription3, new Date(), EXECUTED)).getId();
+		@SuppressWarnings("unused")
+		Long t3e2id = sut.create(makeExecution(triggeredSubscription3, new Date(), PENDING)).getId();
+		em.getTransaction().commit();
+
+		List<SubscriptionExecutionEntity> result = sut.findPendingBy(em.find(SubscriptionEntity.class, 1L), Collections.singleton(new TriggeredSubscriptionDataEntity(null, IMPORTANT_KEY, IMPORTANT_VALUE))).collect(Collectors.toList());
+
+		assertEquals(Collections.singleton(t1e2id), result.stream().map(SubscriptionExecutionEntity::getId).collect(Collectors.toSet()));
+	}
+
 	private TriggeredSubscriptionEntity setupTriggeredSubscription() {
-		SubscriptionEntity subscription = em.find(SubscriptionEntity.class, 1L);
+		return setupTriggeredSubscription(1L);
+	}
+
+	private TriggeredSubscriptionEntity setupTriggeredSubscription(long subscriptionId) {
+		SubscriptionEntity subscription = em.find(SubscriptionEntity.class, subscriptionId);
 		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
-		triggeredSubscription.setActive(true);
+		triggeredSubscription.setStatus(ACTIVE);
 		triggeredSubscription.setCreationDate(new Date());
 		triggeredSubscription.setSource("test");
 		triggeredSubscription.setSubscription(subscription);

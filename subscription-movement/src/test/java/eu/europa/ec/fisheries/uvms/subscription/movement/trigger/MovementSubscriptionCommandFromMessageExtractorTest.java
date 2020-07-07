@@ -14,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -50,6 +49,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriter
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsFactory;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.MessageFormatException;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
@@ -158,7 +158,7 @@ public class MovementSubscriptionCommandFromMessageExtractorTest {
 		TriggeredSubscriptionEntity triggeredSubscription = triggeredSubscriptionCaptor.getValue();
 		assertSame(subscription, triggeredSubscription.getSubscription());
 		assertNotNull(triggeredSubscription.getCreationDate());
-		assertTrue(triggeredSubscription.getActive());
+		assertEquals(TriggeredSubscriptionStatus.ACTIVE, triggeredSubscription.getStatus());
 		assertEquals(NOW, triggeredSubscription.getCreationDate());
 		assertEquals(Date.from(LocalDateTime.of(2017,3,4,17,39).toInstant(ZoneOffset.UTC)), triggeredSubscription.getEffectiveFrom());
 		@SuppressWarnings("unchecked")
