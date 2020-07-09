@@ -23,10 +23,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ActivityCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
@@ -61,43 +63,59 @@ class SubscriptionFinderImpl implements SubscriptionFinder {
 	}
 
 	@Override
-	public List<SubscriptionEntity> findTriggeredSubscriptions(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, SenderCriterion sender, @Valid @NotNull ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
-		List<SubscriptionEntity> triggeredByAreas = findSubscriptionsTriggeredByAreas(areas, assets, sender, validAt, triggerTypes);
-		List<SubscriptionEntity> triggeredByAssets = findSubscriptionsTriggeredByAssets(areas, assets, sender, validAt, triggerTypes);
-		List<SubscriptionEntity> triggeredBySenders = findSubscriptionsTriggeredBySenders(areas, assets, sender, validAt, triggerTypes);
-		return Stream.concat(Stream.concat(triggeredByAreas.stream(), triggeredByAssets.stream()),triggeredBySenders.stream())
+	public List<SubscriptionEntity> findTriggeredSubscriptions(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, Collection<ActivityCriterion> startActivities, SenderCriterion sender, @Valid @NotNull ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
+		List<SubscriptionEntity> triggeredByAreas = findSubscriptionsTriggeredByAreas(areas, assets, startActivities, sender, validAt, triggerTypes);
+		List<SubscriptionEntity> triggeredByAssets = findSubscriptionsTriggeredByAssets(areas, assets, startActivities, sender, validAt, triggerTypes);
+		List<SubscriptionEntity> triggeredByStartActivities = findSubscriptionsTriggeredByActivities(areas, assets, startActivities, sender, validAt, triggerTypes);
+		List<SubscriptionEntity> triggeredBySenders = findSubscriptionsTriggeredBySenders(areas, assets, startActivities, sender, validAt, triggerTypes);
+		return Stream.concat(Stream.concat(triggeredByAreas.stream(), triggeredByAssets.stream()),Stream.concat(triggeredByStartActivities.stream(), triggeredBySenders.stream()))
 				.collect(collectingAndThen(toCollection(() -> new TreeSet<>(comparingLong(SubscriptionEntity::getId))), ArrayList::new));
 	}
 
-	private List<SubscriptionEntity> findSubscriptionsTriggeredByAreas(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, SenderCriterion sender, ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
+	private List<SubscriptionEntity> findSubscriptionsTriggeredByAreas(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, Collection<ActivityCriterion> startActivities, SenderCriterion sender, ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
 		if (areas == null || areas.isEmpty()) {
 			return Collections.emptyList();
 		}
 		SubscriptionSearchCriteriaImpl criteria = makeCommonCriteria(validAt, triggerTypes);
 		criteria.setInAnyArea(areas);
-
 		criteria.setWithAnyAsset(assets);
 		criteria.setAllowWithNoAsset(true);
+		criteria.setWithAnyStartActivity(startActivities);
+		criteria.setAllowWithNoStartActivity(true);
 		criteria.setSender(sender);
 		criteria.setAllowWithNoSenders(true);
 		return dao.listSubscriptions(criteria);
 	}
 
-	private List<SubscriptionEntity> findSubscriptionsTriggeredByAssets(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, SenderCriterion sender, ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
+	private List<SubscriptionEntity> findSubscriptionsTriggeredByAssets(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, Collection<ActivityCriterion> startActivities, SenderCriterion sender, ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
 		if (assets == null || assets.isEmpty()) {
 			return Collections.emptyList();
 		}
 		SubscriptionSearchCriteriaImpl criteria = makeCommonCriteria(validAt, triggerTypes);
-		criteria.setWithAnyAsset(assets);
-
 		criteria.setInAnyArea(areas);
 		criteria.setAllowWithNoArea(true);
+		criteria.setWithAnyAsset(assets);
+		criteria.setWithAnyStartActivity(startActivities);
+		criteria.setAllowWithNoStartActivity(true);
 		criteria.setSender(sender);
 		criteria.setAllowWithNoSenders(true);
 		return dao.listSubscriptions(criteria);
 	}
 
-	private List<SubscriptionEntity> findSubscriptionsTriggeredBySenders(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, SenderCriterion sender, ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
+	private List<SubscriptionEntity> findSubscriptionsTriggeredByActivities(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, Collection<ActivityCriterion> startActivities, SenderCriterion sender, ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
+		if (startActivities == null || startActivities.isEmpty()) {
+			return Collections.emptyList();
+		}
+		SubscriptionSearchCriteriaImpl criteria = makeCommonCriteria(validAt, triggerTypes);
+		criteria.setInAnyArea(areas);
+		criteria.setAllowWithNoArea(true);
+		criteria.setWithAnyAsset(assets);
+		criteria.setAllowWithNoAsset(true);
+		criteria.setWithAnyStartActivity(startActivities);
+		return dao.listSubscriptions(criteria);
+	}
+
+	private List<SubscriptionEntity> findSubscriptionsTriggeredBySenders(Collection<AreaCriterion> areas, Collection<AssetCriterion> assets, Collection<ActivityCriterion> startActivities, SenderCriterion sender, ZonedDateTime validAt, Collection<TriggerType> triggerTypes) {
 		if (sender == null ) {
 			return Collections.emptyList();
 		}
@@ -108,6 +126,8 @@ class SubscriptionFinderImpl implements SubscriptionFinder {
 		criteria.setAllowWithNoArea(true);
 		criteria.setWithAnyAsset(assets);
 		criteria.setAllowWithNoAsset(true);
+		criteria.setWithAnyStartActivity(startActivities);
+		criteria.setAllowWithNoStartActivity(true);
 		return dao.listSubscriptions(criteria);
 	}
 

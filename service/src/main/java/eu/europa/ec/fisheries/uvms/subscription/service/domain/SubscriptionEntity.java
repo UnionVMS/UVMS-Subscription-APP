@@ -101,6 +101,9 @@ public class SubscriptionEntity implements Serializable {
     @Column(name = "has_start_activities")
     private Boolean hasStartActivities;
 
+    @Column(name = "has_stop_activities")
+    private Boolean hasStopActivities;
+
     @Column(name = "has_senders")
     private Boolean hasSenders;
 

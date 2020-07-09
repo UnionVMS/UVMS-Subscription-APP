@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns4:ForwardReportToSubscriptionRequest xmlns:ns2="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20" xmlns:ns4="http://europa.eu/ec/fisheries/uvms/activity/model/schemas" xmlns:ns3="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">
+    <faReports>
+        <fluxFaReportMessageIds>
+            <id>messageId2</id>
+            <schemeId>UUID</schemeId>
+        </fluxFaReportMessageIds>
+        <fishingActivities>
+            <ns2:TypeCode listID="FLUX_FA_TYPE">AREA_EXIT</ns2:TypeCode>
+            <ns2:OccurrenceDateTime>
+                <ns3:DateTime>2020-04-08T11:22:32.000Z</ns3:DateTime>
+            </ns2:OccurrenceDateTime>
+            <ns2:SpeciesTargetCode listID="FAO_SPECIES">ALF</ns2:SpeciesTargetCode>
+            <ns2:SpecifiedFACatch>
+                <ns2:SpeciesCode listID="FAO_SPECIES">COD</ns2:SpeciesCode>
+                <ns2:WeightMeasure unitCode="KGM">3000</ns2:WeightMeasure>
+                <ns2:TypeCode listID="FA_CATCH_TYPE">ONBOARD</ns2:TypeCode>
+                <ns2:SpecifiedSizeDistribution>
+                    <ns2:ClassCode listID="FISH_SIZE_CLASS">LSC</ns2:ClassCode>
+                </ns2:SpecifiedSizeDistribution>
+            </ns2:SpecifiedFACatch>
+            <ns2:SpecifiedFACatch>
+                <ns2:SpeciesCode listID="FAO_SPECIES">WHG</ns2:SpeciesCode>
+                <ns2:WeightMeasure unitCode="KGM">8500</ns2:WeightMeasure>
+                <ns2:TypeCode listID="FA_CATCH_TYPE">ONBOARD</ns2:TypeCode>
+                <ns2:SpecifiedSizeDistribution>
+                    <ns2:ClassCode listID="FISH_SIZE_CLASS">LSC</ns2:ClassCode>
+                </ns2:SpecifiedSizeDistribution>
+            </ns2:SpecifiedFACatch>
+            <ns2:RelatedFLUXLocation>
+                <ns2:TypeCode listID="FLUX_LOCATION_TYPE">AREA</ns2:TypeCode>
+                <ns2:ID schemeID="EFFORT_ZONE">A</ns2:ID>
+            </ns2:RelatedFLUXLocation>
+            <ns2:RelatedFLUXLocation>
+                <ns2:TypeCode listID="FLUX_LOCATION_TYPE">POSITION</ns2:TypeCode>
+                <ns2:SpecifiedPhysicalFLUXGeographicalCoordinate>
+                    <ns2:LongitudeMeasure>-14.616</ns2:LongitudeMeasure>
+                    <ns2:LatitudeMeasure>46.678</ns2:LatitudeMeasure>
+                </ns2:SpecifiedPhysicalFLUXGeographicalCoordinate>
+            </ns2:RelatedFLUXLocation>
+            <ns2:SpecifiedFishingTrip>
+                <ns2:ID schemeID="EU_TRIP_ID">SRC-TRP-TTT20200617123256104</ns2:ID>
+            </ns2:SpecifiedFishingTrip>
+        </fishingActivities>
+        <faReportType>DECLARATION</faReportType>
+        <activityAreas>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>38</remoteId>
+                <name>ICES IIId (Baltic Sea) Subdivision 28.2</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>270</remoteId>
+                <name>Union waters of ICES III and IV</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>346</remoteId>
+                <name>North of 56°30'N</name>
+            </area>
+        </activityAreas>
+        <assetHistoryGuids>assetGuid1</assetHistoryGuids>
+    </faReports>
+    <faReports>
+        <fluxFaReportMessageIds>
+            <id>messageId2</id>
+            <schemeId>UUID</schemeId>
+        </fluxFaReportMessageIds>
+        <fishingActivities>
+            <ns2:TypeCode listID="FLUX_FA_TYPE">AREA_ENTRY</ns2:TypeCode>
+            <ns2:OccurrenceDateTime>
+                <ns3:DateTime>2015-02-01T09:00:00.000Z</ns3:DateTime>
+            </ns2:OccurrenceDateTime>
+            <ns2:SpeciesTargetCode listID="FAO_SPECIES">ALF</ns2:SpeciesTargetCode>
+            <ns2:SpecifiedFACatch>
+                <ns2:SpeciesCode listID="FAO_SPECIES">COD</ns2:SpeciesCode>
+                <ns2:WeightMeasure unitCode="KGM">3000</ns2:WeightMeasure>
+                <ns2:TypeCode listID="FA_CATCH_TYPE">ONBOARD</ns2:TypeCode>
+                <ns2:SpecifiedSizeDistribution>
+                    <ns2:ClassCode listID="FISH_SIZE_CLASS">LSC</ns2:ClassCode>
+                </ns2:SpecifiedSizeDistribution>
+            </ns2:SpecifiedFACatch>
+            <ns2:SpecifiedFACatch>
+                <ns2:SpeciesCode listID="FAO_SPECIES">WHG</ns2:SpeciesCode>
+                <ns2:WeightMeasure unitCode="KGM">8500</ns2:WeightMeasure>
+                <ns2:TypeCode listID="FA_CATCH_TYPE">ONBOARD</ns2:TypeCode>
+                <ns2:SpecifiedSizeDistribution>
+                    <ns2:ClassCode listID="FISH_SIZE_CLASS">LSC</ns2:ClassCode>
+                </ns2:SpecifiedSizeDistribution>
+            </ns2:SpecifiedFACatch>
+            <ns2:RelatedFLUXLocation>
+                <ns2:TypeCode listID="FLUX_LOCATION_TYPE">AREA</ns2:TypeCode>
+                <ns2:ID schemeID="EFFORT_ZONE">A</ns2:ID>
+            </ns2:RelatedFLUXLocation>
+            <ns2:RelatedFLUXLocation>
+                <ns2:TypeCode listID="FLUX_LOCATION_TYPE">POSITION</ns2:TypeCode>
+                <ns2:SpecifiedPhysicalFLUXGeographicalCoordinate>
+                    <ns2:LongitudeMeasure>-14.616</ns2:LongitudeMeasure>
+                    <ns2:LatitudeMeasure>46.678</ns2:LatitudeMeasure>
+                </ns2:SpecifiedPhysicalFLUXGeographicalCoordinate>
+            </ns2:RelatedFLUXLocation>
+            <ns2:SpecifiedFishingTrip>
+                <ns2:ID schemeID="EU_TRIP_ID">SRC-TRP-TTT20200617123256104</ns2:ID>
+            </ns2:SpecifiedFishingTrip>
+        </fishingActivities>
+        <faReportType>DECLARATION</faReportType>
+        <activityAreas>
+            <area>
+                <areaType>GFCM</areaType>
+                <remoteId>21</remoteId>
+                <name>Aegean Sea</name>
+            </area>
+        </activityAreas>
+        <assetHistoryGuids>assetGuid1</assetHistoryGuids>
+    </faReports>
+</ns4:ForwardReportToSubscriptionRequest>
