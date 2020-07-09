@@ -14,7 +14,6 @@ import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscri
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -68,7 +67,8 @@ class TriggeredSubscriptionServiceImpl implements TriggeredSubscriptionService {
 		searchCriteriaForAreas.setSingleStatus(ACTIVE);
 		searchCriteriaForAreas.setTriggeredSubscriptionData(Collections.singletonMap("connectId", criteria.getConnectId()));
 		searchCriteriaForAreas.setNotInAreas(criteria.getAreas());
-		searchCriteriaForAreas.setSubscriptionQuitArea(true);
+		searchCriteriaForAreas.setSubscriptionQuitArea(criteria.getAreas() != null);
+		searchCriteriaForAreas.setWithAnyStopActivities(criteria.getActivities());
 		return triggeredSubscriptionDao.find(searchCriteriaForAreas);
 	}
 }

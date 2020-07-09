@@ -621,6 +621,7 @@ public class SubscriptionServiceBeanTest {
 		assertFalse(subscription.getHasAssets());
 		assertFalse(subscription.getHasSenders());
 		assertFalse(subscription.getHasStartActivities());
+		assertFalse(subscription.getHasStopActivities());
 		assertNotNull(subscription.getExecution().getNextScheduledExecution());
 		assert(subscription.getExecution().getNextScheduledExecution().toInstant().equals(LocalDateTime.parse(expectedNextScheduledExecution).toInstant(ZoneOffset.UTC)));
 	}
@@ -640,6 +641,7 @@ public class SubscriptionServiceBeanTest {
 		dto.setAssets(Collections.singleton(new AssetDto(null, "guid", "name", AssetType.ASSET)));
 		dto.setAreas(Collections.singleton(new AreaDto(null, 1L, AreaType.USERAREA)));
 		dto.setStartActivities(Collections.singleton(new SubscriptionFishingActivityDto(SubscriptionFaReportDocumentType.DECLARATION, "val")));
+		dto.setStopActivities(Collections.singleton(new SubscriptionFishingActivityDto(SubscriptionFaReportDocumentType.DECLARATION, "val1")));
 		dto.setSenders(Collections.singleton(new SubscriptionSubscriberDto(1L,2L,3L)));
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 		when(subscriptionDAO.createEmailBodyEntity(any())).thenAnswer(iom -> iom.getArgument(0));
@@ -653,6 +655,7 @@ public class SubscriptionServiceBeanTest {
 		assertTrue(subscription.getHasAssets());
 		assertTrue(subscription.getHasSenders());
 		assertTrue(subscription.getHasStartActivities());
+		assertTrue(subscription.getHasStopActivities());
 	}
 
 	@Test
@@ -956,6 +959,7 @@ public class SubscriptionServiceBeanTest {
 		assertTrue(subscription.getHasAssets());
 		assertTrue(subscription.getHasSenders());
 		assertFalse(subscription.getHasStartActivities());
+		assertFalse(subscription.getHasStopActivities());
 		verify(auditProducer).sendModuleMessage(any(), any());
 		assertTrue(result.getAreas().stream().map(AreaDto::getGid).anyMatch(Long.valueOf(111L)::equals));
 		assertEquals(2, subscription.getAssets().size());

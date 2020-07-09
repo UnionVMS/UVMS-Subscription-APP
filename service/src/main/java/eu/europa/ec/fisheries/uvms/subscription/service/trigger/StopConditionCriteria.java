@@ -11,6 +11,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
 import java.util.Set;
 
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ActivityCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -25,5 +26,5 @@ import lombok.Setter;
 public class StopConditionCriteria {
 	private String connectId;
 	private Set<AreaCriterion> areas;
-	private Set<String> activities;
+	private Set<ActivityCriterion> activities;
 }

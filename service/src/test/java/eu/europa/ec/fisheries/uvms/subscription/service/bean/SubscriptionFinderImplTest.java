@@ -23,6 +23,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ActivityCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
@@ -31,6 +32,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriter
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionFaReportDocumentType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
@@ -62,8 +64,8 @@ public class SubscriptionFinderImplTest {
 
 	@Test
 	void testFindSubscriptionsTriggeredByAreasNullOrEmpty() {
-		assertTrue(sut.findTriggeredSubscriptions(null, null, null, ZonedDateTime.now(), null).isEmpty());
-		assertTrue(sut.findTriggeredSubscriptions(Collections.emptyList(), Collections.emptyList(), null, ZonedDateTime.now(), null).isEmpty());
+		assertTrue(sut.findTriggeredSubscriptions(null, null, null, null, ZonedDateTime.now(), null).isEmpty());
+		assertTrue(sut.findTriggeredSubscriptions(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), null, ZonedDateTime.now(), null).isEmpty());
 		verifyNoMoreInteractions(dao);
 	}
 
@@ -71,14 +73,14 @@ public class SubscriptionFinderImplTest {
 	void testFindSubscriptionsTriggeredByAreasAndAssets() {
 		List<AreaCriterion> areas = Arrays.asList(new AreaCriterion(AreaType.USERAREA, 111L), new AreaCriterion(AreaType.PORT, 222L));
 		List<AssetCriterion> assets = Arrays.asList(new AssetCriterion(AssetType.ASSET, "guid1"), new AssetCriterion(AssetType.VGROUP, "guid2"));
-		SenderCriterion senders = new SenderCriterion(1L, 2L, 3L);
+		SubscriptionSearchCriteria.SenderCriterion senders = new SubscriptionSearchCriteria.SenderCriterion(1L, 2L, 3L);
 		ZonedDateTime validAt = ZonedDateTime.now();
 		when(dao.listSubscriptions(any(SubscriptionSearchCriteria.class))).thenAnswer(iom -> {
 			SubscriptionEntity subscription = new SubscriptionEntity();
 			subscription.setId(456L);
 			return Collections.singletonList(subscription);
 		});
-		List<SubscriptionEntity> result = sut.findTriggeredSubscriptions(areas, assets, senders, validAt, Collections.singleton(TriggerType.SCHEDULER));
+		List<SubscriptionEntity> result = sut.findTriggeredSubscriptions(areas, assets, Collections.emptyList(), senders, validAt, Collections.singleton(TriggerType.SCHEDULER));
 		assertEquals(1, result.size());
 		assertEquals(456L, result.get(0).getId());
 		ArgumentCaptor<SubscriptionSearchCriteria> criteriaCaptor = ArgumentCaptor.forClass(SubscriptionSearchCriteria.class);
@@ -126,8 +128,7 @@ public class SubscriptionFinderImplTest {
 			return "ASSETS";
 		} else if (c.getAllowWithNoSenders() == null) {
 			return "SENDERS";
-		}
-		else {
+		} else {
 			throw new IllegalArgumentException();
 		}
 	}
@@ -138,7 +139,7 @@ public class SubscriptionFinderImplTest {
 		ZonedDateTime validAt = ZonedDateTime.now();
 		List<SubscriptionEntity> mockResult = Collections.emptyList();
 		when(dao.listSubscriptions(any(SubscriptionSearchCriteria.class))).thenReturn(mockResult);
-		List<SubscriptionEntity> result = sut.findTriggeredSubscriptions(areas, Collections.emptyList(), null, validAt, Collections.singleton(TriggerType.SCHEDULER));
+		List<SubscriptionEntity> result = sut.findTriggeredSubscriptions(areas, Collections.emptyList(),Collections.emptyList(), null, validAt, Collections.singleton(TriggerType.SCHEDULER));
 		assertTrue(result.isEmpty());
 		ArgumentCaptor<SubscriptionSearchCriteria> criteriaCaptor = ArgumentCaptor.forClass(SubscriptionSearchCriteria.class);
 		verify(dao).listSubscriptions(criteriaCaptor.capture());
@@ -148,6 +149,7 @@ public class SubscriptionFinderImplTest {
 		assertEquals(1, criteriaCaptor.getValue().getWithAnyTriggerType().size());
 		assertEquals(TriggerType.SCHEDULER, criteriaCaptor.getValue().getWithAnyTriggerType().iterator().next());
 		assertNull(criteriaCaptor.getValue().getAllowWithNoArea());
+		assertTrue(criteriaCaptor.getValue().getAllowWithNoStartActivity());
 		assertTrue(criteriaCaptor.getValue().getAllowWithNoAsset());
 	}
 
@@ -157,7 +159,7 @@ public class SubscriptionFinderImplTest {
 		ZonedDateTime validAt = ZonedDateTime.now();
 		List<SubscriptionEntity> mockResult = Collections.emptyList();
 		when(dao.listSubscriptions(any(SubscriptionSearchCriteria.class))).thenReturn(mockResult);
-		List<SubscriptionEntity> result = sut.findTriggeredSubscriptions(Collections.emptyList(), assets,null, validAt, Collections.singleton(TriggerType.SCHEDULER));
+		List<SubscriptionEntity> result = sut.findTriggeredSubscriptions(Collections.emptyList(), assets, Collections.emptyList(), null, validAt, Collections.singleton(TriggerType.SCHEDULER));
 		assertTrue(result.isEmpty());
 		ArgumentCaptor<SubscriptionSearchCriteria> criteriaCaptor = ArgumentCaptor.forClass(SubscriptionSearchCriteria.class);
 		verify(dao).listSubscriptions(criteriaCaptor.capture());
@@ -167,6 +169,7 @@ public class SubscriptionFinderImplTest {
 		assertEquals(1, criteriaCaptor.getValue().getWithAnyTriggerType().size());
 		assertEquals(TriggerType.SCHEDULER, criteriaCaptor.getValue().getWithAnyTriggerType().iterator().next());
 		assertTrue(criteriaCaptor.getValue().getAllowWithNoArea());
+		assertTrue(criteriaCaptor.getValue().getAllowWithNoStartActivity());
 		assertNull(criteriaCaptor.getValue().getAllowWithNoAsset());
 	}
 
@@ -176,7 +179,7 @@ public class SubscriptionFinderImplTest {
 		ZonedDateTime validAt = ZonedDateTime.now();
 		List<SubscriptionEntity> mockResult = Collections.emptyList();
 		when(dao.listSubscriptions(any(SubscriptionSearchCriteria.class))).thenReturn(mockResult);
-		List<SubscriptionEntity> result = sut.findTriggeredSubscriptions(Collections.emptyList(), Collections.emptyList(), senders, validAt, Collections.singleton(TriggerType.SCHEDULER));
+		List<SubscriptionEntity> result = sut.findTriggeredSubscriptions(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), senders, validAt, Collections.singleton(TriggerType.SCHEDULER));
 		assertTrue(result.isEmpty());
 		ArgumentCaptor<SubscriptionSearchCriteria> criteriaCaptor = ArgumentCaptor.forClass(SubscriptionSearchCriteria.class);
 		verify(dao).listSubscriptions(criteriaCaptor.capture());
@@ -195,5 +198,25 @@ public class SubscriptionFinderImplTest {
 		SubscriptionEntity result = sut.findSubscriptionById(ID);
 		verify(dao).findById(ID);
 		assertSame(subscription, result);
+	}
+
+	@Test
+	void testFindSubscriptionsTriggeredByStartActivities() {
+		List<ActivityCriterion> startActivityCriteria = Arrays.asList(new ActivityCriterion(SubscriptionFaReportDocumentType.DECLARATION, "ARRIVAL"), new ActivityCriterion(SubscriptionFaReportDocumentType.DECLARATION, "AREA_ENTRY"));
+		ZonedDateTime validAt = ZonedDateTime.now();
+		List<SubscriptionEntity> mockResult = Collections.emptyList();
+		when(dao.listSubscriptions(any(SubscriptionSearchCriteria.class))).thenReturn(mockResult);
+		List<SubscriptionEntity> result = sut.findTriggeredSubscriptions(Collections.emptyList(), Collections.emptyList(), startActivityCriteria, null, validAt, Collections.singleton(TriggerType.SCHEDULER));
+		assertTrue(result.isEmpty());
+		ArgumentCaptor<SubscriptionSearchCriteria> criteriaCaptor = ArgumentCaptor.forClass(SubscriptionSearchCriteria.class);
+		verify(dao).listSubscriptions(criteriaCaptor.capture());
+		assertTrue(criteriaCaptor.getValue().getActive());
+		assertEquals(startActivityCriteria, criteriaCaptor.getValue().getWithAnyStartActivity());
+		assertEquals(validAt, criteriaCaptor.getValue().getValidAt());
+		assertEquals(2, criteriaCaptor.getValue().getWithAnyStartActivity().size());
+		assertEquals("ARRIVAL", criteriaCaptor.getValue().getWithAnyStartActivity().iterator().next().getValue());
+		assertTrue(criteriaCaptor.getValue().getAllowWithNoArea());
+		assertTrue(criteriaCaptor.getValue().getAllowWithNoAsset());
+		assertNull(criteriaCaptor.getValue().getAllowWithNoStartActivity());
 	}
 }
