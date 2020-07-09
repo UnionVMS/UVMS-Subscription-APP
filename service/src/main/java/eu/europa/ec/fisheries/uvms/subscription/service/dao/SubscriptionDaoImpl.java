@@ -52,6 +52,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecu
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecution_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionFishingActivity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionFishingActivity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber_;
@@ -60,6 +62,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscrip
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.OrderByData;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ActivityCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
@@ -218,6 +221,13 @@ class SubscriptionDaoImpl implements SubscriptionDao {
                 predicates.add(predicate);
             });
         }
+        if(criteria.getWithAnyStartActivity() != null && !criteria.getWithAnyStartActivity().isEmpty()) {
+            Predicate predicate = makeStartActivitiesSubquery(query, subscription, cb, criteria.getWithAnyStartActivity());
+            if (TRUE.equals(criteria.getAllowWithNoStartActivity())) {
+                predicate = cb.or(cb.equal(cb.coalesce().value(subscription.get(SubscriptionEntity_.hasStartActivities)).value(false), false), predicate);
+            }
+            predicates.add(predicate);
+        }
         if (criteria.getSender() != null) {
             Predicate predicate = makeSenderPredicate(query, subscription, cb, criteria.getSender());
             if (TRUE.equals(criteria.getAllowWithNoSenders())) {
@@ -262,6 +272,18 @@ class SubscriptionDaoImpl implements SubscriptionDao {
                 .map(AssetCriterion::getGuid)
                 .collect(Collectors.toList());
         subquery.where(assetRoot.get(guid).in(ids));
+        return cb.exists(subquery);
+    }
+
+    private Predicate makeStartActivitiesSubquery(CriteriaQuery<?> query, Root<SubscriptionEntity> subscription, CriteriaBuilder cb, Collection<ActivityCriterion> activities) {
+        Subquery<Long> subquery = query.subquery(Long.class);
+        Root<SubscriptionEntity> correlatedRoot = subquery.correlate(subscription);
+        SetJoin<SubscriptionEntity, SubscriptionFishingActivity> startActivityJoin = correlatedRoot.join(SubscriptionEntity_.startActivities);
+        subquery.select(cb.literal(1L));
+        Predicate[] predicates = activities.stream()
+                .map(a -> cb.and(cb.equal(startActivityJoin.get(SubscriptionFishingActivity_.type), a.getType()), cb.equal(startActivityJoin.get(SubscriptionFishingActivity_.value), a.getValue())))
+                .toArray(Predicate[]::new);
+        subquery.where(cb.or(predicates));
         return cb.exists(subquery);
     }
 

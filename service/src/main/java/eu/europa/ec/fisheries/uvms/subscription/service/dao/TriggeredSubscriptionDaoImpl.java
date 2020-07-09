@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.SetJoin;
@@ -36,10 +37,13 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionFishingActivity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionFishingActivity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity_;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity_;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ActivityCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.TriggeredSubscriptionSearchCriteria;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
@@ -122,18 +126,19 @@ class TriggeredSubscriptionDaoImpl implements TriggeredSubscriptionDao {
 		if (criteria.getWithStatus() != null) {
 			predicates.add(root.get(TriggeredSubscriptionEntity_.status).in(criteria.getWithStatus()));
 		}
-		if (criteria.getSubscriptionQuitArea() != null) {
-			predicates.add(cb.equal(root.get(TriggeredSubscriptionEntity_.subscription).get(SubscriptionEntity_.stopWhenQuitArea), criteria.getSubscriptionQuitArea()));
-		}
 		if (criteria.getNotInAreas() != null) {
 			predicates.addAll(makeNotInAreasSubquery(query, root, cb, criteria.getNotInAreas()));
+			if (criteria.getSubscriptionQuitArea() != null) {
+				predicates.add(cb.equal(root.get(TriggeredSubscriptionEntity_.subscription).get(SubscriptionEntity_.stopWhenQuitArea), criteria.getSubscriptionQuitArea()));
+			}
 		}
 		if (criteria.getTriggeredSubscriptionData() != null) {
 			predicates.add(makeDataSubquery(query, root, cb, criteria.getTriggeredSubscriptionData()));
 		}
-
+		if(criteria.getWithAnyStopActivities() != null) {
+			predicates.addAll(makeStopActivitiesSubquery(query, root, cb, criteria.getWithAnyStopActivities()));
+		}
 		query.select(root).where(predicates.toArray(new Predicate[0]));
-
 		return em.createQuery(query).getResultList().stream(); // TODO Just stream, when we finally sort out the mess with dependencies that is bringing JPA 1.x
 	}
 
@@ -162,4 +167,21 @@ class TriggeredSubscriptionDaoImpl implements TriggeredSubscriptionDao {
 		subquery.where(cb.or(predicates));
 		return cb.exists(subquery);
 	}
+
+	private List<Predicate> makeStopActivitiesSubquery(CriteriaQuery<?> query, Root<TriggeredSubscriptionEntity> root, CriteriaBuilder cb, Collection<ActivityCriterion> activities) {
+		List<Predicate> outcome = new ArrayList<>();
+		outcome.add(cb.isTrue(root.get(TriggeredSubscriptionEntity_.subscription).get(SubscriptionEntity_.hasStopActivities)));
+		Subquery<Long> subquery = query.subquery(Long.class);
+		subquery.from(SubscriptionEntity.class);
+		Join<TriggeredSubscriptionEntity, SubscriptionEntity> subscription = root.join(TriggeredSubscriptionEntity_.subscription);
+		SetJoin<SubscriptionEntity, SubscriptionFishingActivity> startActivityJoin = subscription.join(SubscriptionEntity_.stopActivities);
+		subquery.select(cb.literal(1L));
+		Predicate[] predicates = activities.stream()
+				.map(a -> cb.and(cb.equal(startActivityJoin.get(SubscriptionFishingActivity_.type), a.getType()), cb.equal(startActivityJoin.get(SubscriptionFishingActivity_.value), a.getValue())))
+				.toArray(Predicate[]::new);
+		subquery.where(cb.and(cb.equal(subscription, root.get(TriggeredSubscriptionEntity_.subscription)), cb.or(predicates)));
+		outcome.add(cb.exists(subquery));
+		return outcome;
+	}
+
 }

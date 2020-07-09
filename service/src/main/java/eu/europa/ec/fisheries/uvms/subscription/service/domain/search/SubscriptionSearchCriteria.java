@@ -32,6 +32,10 @@ public interface SubscriptionSearchCriteria {
 	Collection<AssetCriterion> getWithAnyAsset();
 	/** Return subscriptions that have no asset (i.e. {@code hasAssets = false}), even if there are assets in the {@link #getWithAnyAsset()} criterion. */
 	Boolean getAllowWithNoAsset();
+	/** Demand that the subscription fulfills any of the given activity criteria. */
+	Collection<ActivityCriterion> getWithAnyStartActivity();
+	/** Return subscriptions that have no start activities (i.e. {@code hasStartActivities = false}), even if there are activities in the {@link #getWithAnyStartActivity()} criterion. */
+	Boolean getAllowWithNoStartActivity();
 	/** Demand that the subscription trigger is any of these. */
 	Collection<TriggerType> getWithAnyTriggerType();
 	/** Return subscriptions that have no senders  */

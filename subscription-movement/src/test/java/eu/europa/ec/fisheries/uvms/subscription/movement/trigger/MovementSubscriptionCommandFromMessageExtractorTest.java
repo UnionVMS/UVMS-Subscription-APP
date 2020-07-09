@@ -143,7 +143,7 @@ public class MovementSubscriptionCommandFromMessageExtractorTest {
 	@Test
 	void testOK() {
 		SubscriptionEntity subscription = new SubscriptionEntity();
-		when(subscriptionFinder.findTriggeredSubscriptions(any(), any(), any(), any(), any())).thenReturn(Collections.singletonList(subscription));
+		when(subscriptionFinder.findTriggeredSubscriptions(any(), any(), any(), any(), any(), any())).thenReturn(Collections.singletonList(subscription));
 		String representation = readResource("CreateMovementBatchResponse-OK.xml");
 		dateTimeService.setNow(NOW);
 		SenderCriterion senderCriterion = new SenderCriterion(1L, 2L, 3L);
@@ -168,7 +168,7 @@ public class MovementSubscriptionCommandFromMessageExtractorTest {
 		ArgumentCaptor<SenderCriterion> senderCaptor = ArgumentCaptor.forClass(SenderCriterion.class);
 		@SuppressWarnings("unchecked")
 		ArgumentCaptor<Collection<TriggerType>> triggerTypeCaptor = ArgumentCaptor.forClass(Collection.class);
-		verify(subscriptionFinder).findTriggeredSubscriptions(areasCaptor.capture(), assetsCaptor.capture(), senderCaptor.capture(), any(), triggerTypeCaptor.capture());
+		verify(subscriptionFinder).findTriggeredSubscriptions(areasCaptor.capture(), assetsCaptor.capture(), any(), senderCaptor.capture(), any(), triggerTypeCaptor.capture());
 		String areaCriteria = areasCaptor.getValue().stream().map(ac -> ac.getType().toString() + '-' + ac.getGid()).sorted().collect(Collectors.joining(","));
 		String assetsCriteria = assetsCaptor.getValue().stream().map(ac -> ac.getType().toString() + '-' + ac.getGuid()).collect(Collectors.joining(","));
 		assertEquals("FMZ-270,STATRECT-14,STATRECT-73", areaCriteria, "includes all movements except EXI");

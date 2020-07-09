@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns4:ForwardReportToSubscriptionRequest xmlns:ns2="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20" xmlns:ns4="http://europa.eu/ec/fisheries/uvms/activity/model/schemas" xmlns:ns3="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">
+    <faReports>
+        <fluxFaReportMessageIds>
+            <id>d4bea800-a316-4665-8958-aa4a1fb1fe8d</id>
+            <schemeId>UUID</schemeId>
+        </fluxFaReportMessageIds>
+        <fishingActivities>
+            <ns2:TypeCode listID="FLUX_FA_TYPE">AREA_EXIT</ns2:TypeCode>
+            <ns2:OccurrenceDateTime/>
+            <ns2:SpeciesTargetCode listID="FAO_SPECIES">ALF</ns2:SpeciesTargetCode>
+            <ns2:SpecifiedFACatch>
+                <ns2:SpeciesCode listID="FAO_SPECIES">COD</ns2:SpeciesCode>
+                <ns2:WeightMeasure unitCode="KGM">3000</ns2:WeightMeasure>
+                <ns2:TypeCode listID="FA_CATCH_TYPE">ONBOARD</ns2:TypeCode>
+                <ns2:SpecifiedSizeDistribution>
+                    <ns2:ClassCode listID="FISH_SIZE_CLASS">LSC</ns2:ClassCode>
+                </ns2:SpecifiedSizeDistribution>
+            </ns2:SpecifiedFACatch>
+            <ns2:SpecifiedFACatch>
+                <ns2:SpeciesCode listID="FAO_SPECIES">WHG</ns2:SpeciesCode>
+                <ns2:WeightMeasure unitCode="KGM">8500</ns2:WeightMeasure>
+                <ns2:TypeCode listID="FA_CATCH_TYPE">ONBOARD</ns2:TypeCode>
+                <ns2:SpecifiedSizeDistribution>
+                    <ns2:ClassCode listID="FISH_SIZE_CLASS">LSC</ns2:ClassCode>
+                </ns2:SpecifiedSizeDistribution>
+            </ns2:SpecifiedFACatch>
+            <ns2:RelatedFLUXLocation>
+                <ns2:TypeCode listID="FLUX_LOCATION_TYPE">AREA</ns2:TypeCode>
+                <ns2:ID schemeID="EFFORT_ZONE">A</ns2:ID>
+            </ns2:RelatedFLUXLocation>
+            <ns2:RelatedFLUXLocation>
+                <ns2:TypeCode listID="FLUX_LOCATION_TYPE">POSITION</ns2:TypeCode>
+                <ns2:SpecifiedPhysicalFLUXGeographicalCoordinate>
+                    <ns2:LongitudeMeasure>-14.616</ns2:LongitudeMeasure>
+                    <ns2:LatitudeMeasure>46.678</ns2:LatitudeMeasure>
+                </ns2:SpecifiedPhysicalFLUXGeographicalCoordinate>
+            </ns2:RelatedFLUXLocation>
+            <ns2:SpecifiedFishingTrip>
+                <ns2:ID schemeID="EU_TRIP_ID">SRC-TRP-TTT20200617123256104</ns2:ID>
+            </ns2:SpecifiedFishingTrip>
+        </fishingActivities>
+        <faReportType>DECLARATION</faReportType>
+        <activityAreas>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>38</remoteId>
+                <name>ICES IIId (Baltic Sea) Subdivision 28.2</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>270</remoteId>
+                <name>Union waters of ICES III and IV</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>346</remoteId>
+                <name>North of 56°30'N</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>73</remoteId>
+                <name>Union waters</name>
+            </area>
+            <area>
+                <areaType>STATRECT</areaType>
+                <remoteId>6268</remoteId>
+                <name>ICES</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>241</remoteId>
+                <name>Union and international waters of ICES III, IV, V, VI, VII, VIII, IX, X, XII and XIV</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>300</remoteId>
+                <name>ICES IIIa and IV; Union waters of ICES IIa, IIIb, IIIc and IIId (= and Subdivisions 22-32)</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>349</remoteId>
+                <name>ICES IIIa subdivisions 25 to 28</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>314</remoteId>
+                <name>Union waters of ICES III 25-27, 28.2, 29 and 32</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>13</remoteId>
+                <name>Union and international waters of ICES I, II, III, IV, V, VI, VII, VIIIa, VIIIb, VIIId, VIIIe, XII and XIV</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>307</remoteId>
+                <name>Union waters of ICES III subdivisions 22-31</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>228</remoteId>
+                <name>Atlantic Ocean east of 45°W</name>
+            </area>
+            <area>
+                <areaType>EEZ</areaType>
+                <remoteId>234</remoteId>
+                <name>Swedish Exclusive Economic Zone</name>
+            </area>
+            <area>
+                <areaType>FAO</areaType>
+                <remoteId>56</remoteId>
+                <name>ATLANTIC, NORTHEAST</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>16</remoteId>
+                <name>Union and international waters of ICES I, II, III and IV</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>233</remoteId>
+                <name>Atlantic Ocean north of 5°N</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>115</remoteId>
+                <name>ICES IIId (Baltic Sea) Subdivision 28</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>41</remoteId>
+                <name>Union waters of ICES</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>184</remoteId>
+                <name>Union waters of ICES III (= Union and international waters of)</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>304</remoteId>
+                <name>ICES IIIa; Union waters of ICES IIIbcd (= of Subdivisions 22-32)</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>316</remoteId>
+                <name>Union waters of ICES III 25-32</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>328</remoteId>
+                <name>Union waters of ICES III subdivisions 22-32 (= bcd)</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>23</remoteId>
+                <name>French Guiana waters, Union waters of ICES, CECAF 34.1.1, 34.1.2 and 34.2</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>18</remoteId>
+                <name>Union and international waters of ICES I, II, III, IV, V, VIII, IX, X, XII and XIV</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>338</remoteId>
+                <name>Union and international waters of ICES III, IV, V, VI, VII, VIII, IX, X and XII</name>
+            </area>
+            <area>
+                <areaType>RFMO</areaType>
+                <remoteId>14</remoteId>
+                <name>International Commission for the Conservation of Atlantic Tuna</name>
+            </area>
+            <area>
+                <areaType>FMZ</areaType>
+                <remoteId>224</remoteId>
+                <name>Atlantic Ocean</name>
+            </area>
+        </activityAreas>
+        <assetHistoryGuids>97fbdcf8-45ea-11e7-bec7-4c32759615eb</assetHistoryGuids>
+    </faReports>
+</ns4:ForwardReportToSubscriptionRequest>

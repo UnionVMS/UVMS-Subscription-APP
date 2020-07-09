@@ -29,6 +29,7 @@ public class TriggeredSubscriptionSearchCriteria {
 	private Boolean subscriptionQuitArea;
 	private Map<String,String> triggeredSubscriptionData;
 	private Set<AreaCriterion> notInAreas;
+	private Set<ActivityCriterion> withAnyStopActivities;
 
 	public void setSingleStatus(TriggeredSubscriptionStatus singleStatus) {
 		setWithStatus(Collections.singleton(singleStatus));

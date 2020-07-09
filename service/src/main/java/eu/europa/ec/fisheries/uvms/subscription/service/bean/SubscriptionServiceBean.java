@@ -232,6 +232,7 @@ class SubscriptionServiceBean implements SubscriptionService {
         entity.setHasAssets(subscription.getAssets() != null && !subscription.getAssets().isEmpty());
         entity.setHasSenders(subscription.getSenders() != null && !subscription.getSenders().isEmpty());
         entity.setHasStartActivities(subscription.getStartActivities() != null && !subscription.getStartActivities().isEmpty());
+        entity.setHasStopActivities(subscription.getStopActivities() != null && !subscription.getStopActivities().isEmpty());
         setNextScheduleExecutionIfApplicable(entity);
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
         EmailBodyEntity emailBodyEntity = null;
@@ -259,6 +260,7 @@ class SubscriptionServiceBean implements SubscriptionService {
         entityById.setHasAssets(subscription.getAssets() != null && !subscription.getAssets().isEmpty());
         entityById.setHasSenders(subscription.getSenders() != null && !subscription.getSenders().isEmpty());
         entityById.setHasStartActivities(subscription.getStartActivities() != null && !subscription.getStartActivities().isEmpty());
+        entityById.setHasStopActivities(subscription.getStopActivities() != null && !subscription.getStopActivities().isEmpty());
         SubscriptionEntity subscriptionEntity = subscriptionDAO.update(entityById);
         EmailBodyEntity emailBodyEntity = null;
         if (TRUE.equals(subscription.getOutput().getHasEmail())) {

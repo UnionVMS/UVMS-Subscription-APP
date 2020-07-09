@@ -36,10 +36,12 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dao.TriggeredSubscriptio
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ActivityCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.TriggeredSubscriptionSearchCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionFaReportDocumentType;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -90,7 +92,7 @@ public class TriggeredSubscriptionServiceImplTest {
 	void testFindByStopConditionCriteria() {
 		StopConditionCriteria criteria = new StopConditionCriteria();
 		criteria.setConnectId(CONNECT_ID1);
-		criteria.setActivities(Collections.singleton("ACTIVITY1"));
+		criteria.setActivities(Collections.singleton(new ActivityCriterion(SubscriptionFaReportDocumentType.DECLARATION, "AREA_ENTRY")));
 		criteria.setAreas(Collections.singleton(new AreaCriterion(AreaType.USERAREA, AREA_GID1)));
 		TriggeredSubscriptionEntity result = new TriggeredSubscriptionEntity();
 		when(triggeredSubscriptionDao.find(any())).thenReturn(Stream.of(result));

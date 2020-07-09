@@ -151,7 +151,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		assets.add(new AssetCriterion(AssetType.ASSET, movement.getConnectId()));
 		List<String> assetGroupsForAsset = assetSender.findAssetGroupsForAsset(movement.getConnectId(), movement.getPositionTime());
 		assets.addAll(assetGroupsForAsset.stream().map(a -> new AssetCriterion(AssetType.VGROUP, a)).collect(Collectors.toList()));
-		return subscriptionFinder.findTriggeredSubscriptions(areas, assets, senderCriterion, validAt, Collections.singleton(TriggerType.INC_POSITION)).stream()
+		return subscriptionFinder.findTriggeredSubscriptions(areas, assets, null, senderCriterion, validAt, Collections.singleton(TriggerType.INC_POSITION)).stream()
 				.map(subscription -> new MovementAndSubscription(movement, subscription));
 	}
 

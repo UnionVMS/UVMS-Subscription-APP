@@ -3,6 +3,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.dto.search;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ActivityCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
@@ -29,6 +30,8 @@ public class SubscriptionSearchCriteriaImpl implements SubscriptionSearchCriteri
     private Boolean allowWithNoArea;
     private Collection<AssetCriterion> withAnyAsset;
     private Boolean allowWithNoAsset;
+    private Collection<ActivityCriterion> withAnyStartActivity;
+    private Boolean allowWithNoStartActivity;
     private SenderCriterion sender;
     private Boolean allowWithNoSenders;
     private Collection<TriggerType> withAnyTriggerType;

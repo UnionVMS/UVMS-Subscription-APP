@@ -65,6 +65,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubsc
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ActivityCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
@@ -115,7 +116,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     @BeforeEach
     public void prepare(){
         Operation operation = sequenceOf(
-                DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_AREA, INSERT_ASSET, INSERT_ASSET_GROUP
+                DELETE_ALL, INSERT_SUBSCRIPTION, INSERT_AREA, INSERT_ASSET, INSERT_ASSET_GROUP, INSERT_START_ACTIVITIES
         );
 
         DbSetup dbSetup = new DbSetup(new DataSourceDestination(ds), operation);
@@ -293,6 +294,28 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
     }
 
     @Test
+    void testFindByStartActivities() {
+        SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
+        List<ActivityCriterion> startActivities = Arrays.asList(new ActivityCriterion(DECLARATION, "ARRIVAL"), new ActivityCriterion(DECLARATION, "AREA_ENTRY"));
+        criteria.setActive(true);
+        criteria.setWithAnyStartActivity(startActivities);
+        List<SubscriptionEntity> results = sut.listSubscriptions(criteria);
+        assertEquals(1, results.size());
+        assertEquals(2L, results.get(0).getId());
+    }
+
+
+    @Test
+    void testFindWithEmptyStartActivityCriteria() {
+        SubscriptionSearchCriteriaImpl criteria = new SubscriptionSearchCriteriaImpl();
+        List<ActivityCriterion> startActivities = java.util.Collections.emptyList();
+        criteria.setWithAnyStartActivity(startActivities);
+        List<SubscriptionEntity> results = sut.listSubscriptions(criteria);
+        Integer numberOfSavedSubscriptions = findAllSubscriptions().size();
+        assertEquals(numberOfSavedSubscriptions, results.size());
+    }
+
+    @Test
     public void createSubscriptionWithAreas() {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
@@ -370,6 +393,28 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         assertTrue(createdSubscription.getAssetGroups().contains(assetGroup2));
     }
 
+
+    @Test
+    public void createSubscriptionWithStartActivities() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        SubscriptionFishingActivity activity1 = new SubscriptionFishingActivity(DECLARATION, "ARRIVAL");
+        SubscriptionFishingActivity activity2 = new SubscriptionFishingActivity(DECLARATION, "AREA_ENTRY");
+
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setStartActivities(Collections.asSet(activity1, activity2));
+
+        Long id = sut.createEntity(subscription).getId();
+        em.flush();
+
+        SubscriptionEntity createdSubscription = sut.findById(id);
+        assertNotNull(createdSubscription.getStartActivities());
+        assertEquals(2, createdSubscription.getStartActivities().size());
+        assertTrue(createdSubscription.getStartActivities().contains(activity1));
+        assertTrue(createdSubscription.getStartActivities().contains(activity2));
+    }
+
     @Test
     public void createSubscriptionWithEmptyAreas() {
         EntityTransaction tx = em.getTransaction();
@@ -383,6 +428,22 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
         SubscriptionEntity createdSubscription = sut.findById(id);
         assertTrue(createdSubscription.getAreas().isEmpty());
+    }
+
+    @Test
+    public void createSubscriptionWithEmptyStartActivities() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setStartActivities(java.util.Collections.emptySet());
+
+        Long id = sut.createEntity(subscription).getId();
+        em.flush();
+
+        SubscriptionEntity createdSubscription = sut.findById(id);
+        assertNotNull(createdSubscription.getStartActivities());
+        assertEquals(0, createdSubscription.getStartActivities().size());
     }
 
     @Test
@@ -444,6 +505,41 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         assertTrue(updatedSubscription.getAreas().contains(newArea3));
         assertFalse(updatedSubscription.getAreas().contains(area1));
         assertFalse(updatedSubscription.getAreas().contains(area2));
+    }
+
+    @Test
+    public void updateSubscriptionWithNewStartActivities() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        //create entity
+        SubscriptionFishingActivity activity1 = new SubscriptionFishingActivity(DECLARATION, "ARRIVAL");
+        SubscriptionFishingActivity activity2 = new SubscriptionFishingActivity(DECLARATION, "AREA_ENTRY");
+
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setStartActivities(Collections.asSet(activity1, activity2));
+        Long id = sut.createEntity(subscription).getId();
+        SubscriptionEntity createdSubscription = sut.findById(id);
+
+
+        //update entity areas
+        SubscriptionFishingActivity newActivity1 = new SubscriptionFishingActivity(DECLARATION, "TRANSHIPMENT");
+        SubscriptionFishingActivity newActivity2 = new SubscriptionFishingActivity(NOTIFICATION, "AREA_ENTRY");
+        SubscriptionFishingActivity newActivity3 = new SubscriptionFishingActivity(NOTIFICATION, "AREA_EXIT");
+
+        createdSubscription.setStartActivities(Collections.asSet(newActivity1, newActivity2, newActivity3));
+        Long updatedId = sut.update(createdSubscription).getId();
+
+        em.flush();
+
+        SubscriptionEntity updatedSubscription = sut.findById(updatedId);
+        assertNotNull(updatedSubscription.getStartActivities());
+        assertEquals(3, updatedSubscription.getStartActivities().size());
+        assertTrue(updatedSubscription.getStartActivities().contains(newActivity1));
+        assertTrue(updatedSubscription.getStartActivities().contains(newActivity2));
+        assertTrue(updatedSubscription.getStartActivities().contains(newActivity3));
+        assertFalse(updatedSubscription.getStartActivities().contains(activity1));
+        assertFalse(updatedSubscription.getStartActivities().contains(activity2));
     }
 
     @Test
@@ -572,6 +668,39 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         assertTrue(updatedSubscription.getAreas().contains(newArea1));
         assertTrue(updatedSubscription.getAreas().contains(area1));
         assertFalse(updatedSubscription.getAreas().contains(area2));
+    }
+
+    @Test
+    public void updateSubscriptionStartActivities() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        //create entity
+        SubscriptionFishingActivity activity1 = new SubscriptionFishingActivity(DECLARATION, "ARRIVAL");
+        SubscriptionFishingActivity activity2 = new SubscriptionFishingActivity(DECLARATION, "AREA_ENTRY");
+
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setStartActivities(Collections.asSet(activity1, activity2));
+        Long id = sut.createEntity(subscription).getId();
+        SubscriptionEntity createdSubscription = sut.findById(id);
+
+
+        //update entity areas
+        SubscriptionFishingActivity newActivity1 = new SubscriptionFishingActivity(DECLARATION, "TRANSHIPMENT");
+        SubscriptionFishingActivity newActivity2 = new SubscriptionFishingActivity(NOTIFICATION, "AREA_ENTRY");
+
+        createdSubscription.setStartActivities(Collections.asSet(newActivity1, activity1, newActivity2));
+        Long updatedId = sut.update(createdSubscription).getId();
+
+        em.flush();
+
+        SubscriptionEntity updatedSubscription = sut.findById(updatedId);
+        assertNotNull(updatedSubscription.getStartActivities());
+        assertEquals(3, updatedSubscription.getStartActivities().size());
+        assertTrue(updatedSubscription.getStartActivities().contains(newActivity1));
+        assertTrue(updatedSubscription.getStartActivities().contains(newActivity2));
+        assertTrue(updatedSubscription.getStartActivities().contains(activity1));
+        assertFalse(updatedSubscription.getStartActivities().contains(activity2));
     }
 
     @Test
@@ -772,6 +901,20 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
         em.flush();
         Integer numberOfSavedAssetGroups = findAllAssetGroups().size();
         assertEquals(originalNumberOfSavedAssetGroups, numberOfSavedAssetGroups);
+    }
+
+    @Test
+    public void deleteSubscriptionWithStartActivities() {
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+
+        //create subscription
+        SubscriptionEntity subscription = SubscriptionTestHelper.random();
+        subscription.setStartActivities(Collections.asSet(new SubscriptionFishingActivity(DECLARATION, "ARRIVAL"), new SubscriptionFishingActivity(DECLARATION, "AREA_ENTRY")));
+        Long id = sut.createEntity(subscription).getId();
+
+        sut.delete(id);
+        em.flush();
     }
 
     @Test
