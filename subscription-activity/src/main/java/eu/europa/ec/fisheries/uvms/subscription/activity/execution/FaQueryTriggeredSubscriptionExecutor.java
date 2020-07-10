@@ -31,6 +31,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecu
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionExecutor;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.SubscriptionDateTimeService;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
@@ -42,9 +43,6 @@ import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
  */
 @ApplicationScoped
 public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecutor {
-
-	private static final String KEY_CONNECT_ID = "connectId";
-	private static final String KEY_OCCURRENCE = "occurrence";
 
 	private ActivitySender activitySender;
 	private UsmSender usmSender;
@@ -101,7 +99,7 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 	}
 
 	private VesselIdentifiersHolder extractVesselIds(TriggeredSubscriptionEntity triggeredSubscription, Map<String, String> dataMap) {
-		String connectId = dataMap.get(KEY_CONNECT_ID); // TODO extract these constants in another i.e static class (?)
+		String connectId = dataMap.get(TriggeredSubscriptionDataUtil.KEY_CONNECT_ID);
 		Objects.requireNonNull(connectId, "connectId not found in data of " + triggeredSubscription.getId());
 		return isManualSubscription(triggeredSubscription.getSubscription()) ?
 				createVesselIdentifierHolderFrom(dataMap) : assetSender.findVesselIdentifiers(connectId);
@@ -138,7 +136,7 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 	private ZonedDateTime calculateEndDate(TriggeredSubscriptionEntity triggeredSubscription, Map<String, String> dataMap) {
 		String occurrence = null;
 		if (triggeredSubscription.getSubscription().getOutput().getQueryPeriod() == null) {
-			occurrence = dataMap.get(KEY_OCCURRENCE);
+			occurrence = dataMap.get(TriggeredSubscriptionDataUtil.KEY_OCCURRENCE);
 			Objects.requireNonNull(occurrence, "occurrence not found in data of " + triggeredSubscription.getId());
 		}
 		return subscriptionDateTimeService.calculateEndDate(triggeredSubscription.getSubscription().getOutput(),occurrence);

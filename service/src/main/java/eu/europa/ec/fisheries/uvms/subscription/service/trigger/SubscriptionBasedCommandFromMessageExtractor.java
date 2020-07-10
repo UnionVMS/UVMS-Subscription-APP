@@ -43,14 +43,6 @@ import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdent
  */
 public abstract class SubscriptionBasedCommandFromMessageExtractor implements SubscriptionCommandFromMessageExtractor {
 
-    private static final String KEY_CONNECT_ID = "connectId";
-    private static final String KEY_OCCURRENCE = "occurrence";
-
-    private static final Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> TRIGGERED_SUBSCRIPTION_DATA_FOR_DUPLICATES = entity ->
-            entity.getData().stream()
-                    .filter(d -> KEY_CONNECT_ID.equals(d.getKey()))
-                    .collect(Collectors.toSet());
-
     private SubscriptionFinder subscriptionFinder;
     private TriggerCommandsFactory triggerCommandsFactory;
     private DatatypeFactory datatypeFactory;
@@ -82,7 +74,7 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
 
     @Override
     public Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> getDataForDuplicatesExtractor() {
-        return TRIGGERED_SUBSCRIPTION_DATA_FOR_DUPLICATES;
+        return TriggeredSubscriptionDataUtil::extractConnectId;
     }
 
     @Override
@@ -129,12 +121,12 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
     }
 
     private void addConnectIdData(TriggeredSubscriptionEntity triggeredSubscription, AssetAndSubscriptionData data, Set<TriggeredSubscriptionDataEntity> result) {
-        result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_CONNECT_ID, data.getAssetEntity().getGuid()));
+        result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_CONNECT_ID, data.getAssetEntity().getGuid()));
     }
 
     private void addOccurrenceDataIfRequired(TriggeredSubscriptionEntity triggeredSubscription,AssetAndSubscriptionData data, Set<TriggeredSubscriptionDataEntity> result) {
         if (triggeredSubscription.getSubscription().getOutput().getQueryPeriod() == null) {
-            result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_OCCURRENCE, data.getOccurrenceKeyData()));
+            result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_OCCURRENCE, data.getOccurrenceKeyData()));
         }
     }
 
@@ -155,7 +147,7 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
     }
 
     private Command makeCommandForSubscription(TriggeredSubscriptionEntity triggeredSubscription) {
-        return triggerCommandsFactory.createTriggerSubscriptionCommand(triggeredSubscription, TRIGGERED_SUBSCRIPTION_DATA_FOR_DUPLICATES);
+        return triggerCommandsFactory.createTriggerSubscriptionCommand(triggeredSubscription, getDataForDuplicatesExtractor());
     }
 
     private List<AssetEntity> handleAssetGroup(AssetPageRetrievalMessage assetPageRetrievalMessage) {
