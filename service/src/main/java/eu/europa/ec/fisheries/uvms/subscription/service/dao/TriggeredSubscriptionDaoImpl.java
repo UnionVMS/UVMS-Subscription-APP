@@ -91,6 +91,10 @@ class TriggeredSubscriptionDaoImpl implements TriggeredSubscriptionDao {
 
 	@Override
 	public boolean activeExists(SubscriptionEntity subscription, Set<TriggeredSubscriptionDataEntity> dataCriteria) {
+		return !em.createQuery(makeQueryForActivatedTriggerings(subscription, dataCriteria)).setMaxResults(1).getResultList().isEmpty();
+	}
+
+	private CriteriaQuery<TriggeredSubscriptionEntity> makeQueryForActivatedTriggerings(SubscriptionEntity subscription, Set<TriggeredSubscriptionDataEntity> dataCriteria) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 		CriteriaQuery<TriggeredSubscriptionEntity> query = cb.createQuery(TriggeredSubscriptionEntity.class);
 		Root<TriggeredSubscriptionEntity> root = query.from(TriggeredSubscriptionEntity.class);
@@ -113,7 +117,12 @@ class TriggeredSubscriptionDaoImpl implements TriggeredSubscriptionDao {
 				)))
 		);
 
-		return !em.createQuery(query).setMaxResults(1).getResultList().isEmpty();
+		return query;
+	}
+
+	@Override
+	public Stream<TriggeredSubscriptionEntity> findAlreadyActivated(SubscriptionEntity subscription, Set<TriggeredSubscriptionDataEntity> dataCriteria) {
+		return em.createQuery(makeQueryForActivatedTriggerings(subscription, dataCriteria)).getResultList().stream(); // TODO Just stream, when we finally sort out the mess with dependencies that is bringing JPA 1.x
 	}
 
 	@Override

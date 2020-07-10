@@ -16,6 +16,7 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
@@ -66,6 +67,16 @@ public class TriggerCommandsFactoryImplTest {
 		Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> extractTriggeredSubscriptionDataForDuplicates = t -> Collections.emptySet();
 		Command result = sut.createTriggerSubscriptionCommand(triggeredSubscription, extractTriggeredSubscriptionDataForDuplicates);
 		assertTrue(result instanceof TriggerSubscriptionCommand);
+		result.execute();
+	}
+
+	@Test
+	void testCreateTriggerSubscriptionFromSpecificMessageCommand() {
+		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
+		Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> extractTriggeredSubscriptionDataForDuplicates = t -> Collections.emptySet();
+		BiPredicate<TriggeredSubscriptionEntity, TriggeredSubscriptionEntity> processTriggering = (t, u) -> false;
+		Command result = sut.createTriggerSubscriptionFromSpecificMessageCommand(triggeredSubscription, extractTriggeredSubscriptionDataForDuplicates, processTriggering);
+		assertTrue(result instanceof TriggerSubscriptionFromSpecificMessageCommand);
 		result.execute();
 	}
 

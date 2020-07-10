@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
@@ -109,7 +110,7 @@ public class TriggeredSubscriptionDaoImplTest extends BaseSubscriptionInMemoryTe
 	}
 
 	@Test
-	void testActiveExists() {
+	void testActiveExistsAndFindAlreadyActivated() {
 		em.getTransaction().begin();
 		SubscriptionEntity subscription2 = subscriptionDao.findById(2L);
 		TriggeredSubscriptionEntity trig2 = makeTriggeredSubscription(subscription2);
@@ -124,8 +125,13 @@ public class TriggeredSubscriptionDaoImplTest extends BaseSubscriptionInMemoryTe
 		em.getTransaction().commit();
 		em.clear();
 
-		assertTrue(sut.activeExists(subscription2, Collections.singleton(new TriggeredSubscriptionDataEntity(null, "key1", "value1"))));
-		assertFalse(sut.activeExists(subscription3, Collections.singleton(new TriggeredSubscriptionDataEntity(null, "key1", "value1"))));
+		Set<TriggeredSubscriptionDataEntity> dataCriteria = Collections.singleton(new TriggeredSubscriptionDataEntity(null, "key1", "value1"));
+		assertTrue(sut.activeExists(subscription2, dataCriteria));
+		assertFalse(sut.activeExists(subscription3, dataCriteria));
+
+		List<Long> result = sut.findAlreadyActivated(subscription2, dataCriteria).map(TriggeredSubscriptionEntity::getId).sorted().collect(Collectors.toList());
+		assertEquals(Collections.singletonList(trig2.getId()), result);
+		assertEquals(0L, sut.findAlreadyActivated(subscription3, dataCriteria).count());
 	}
 
 	private TriggeredSubscriptionEntity makeTriggeredSubscription(SubscriptionEntity subscription) {

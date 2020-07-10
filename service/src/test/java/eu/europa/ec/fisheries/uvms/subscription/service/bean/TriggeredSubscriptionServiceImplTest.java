@@ -89,6 +89,19 @@ public class TriggeredSubscriptionServiceImplTest {
 	}
 
 	@Test
+	void testFindAlreadyActivated() {
+		SubscriptionEntity subscription = new SubscriptionEntity();
+		TriggeredSubscriptionEntity entity = new TriggeredSubscriptionEntity();
+		entity.setSubscription(subscription);
+		Set<TriggeredSubscriptionDataEntity > dataForDuplicates = new HashSet<>();
+		Stream<TriggeredSubscriptionEntity> output = Stream.empty();
+		when(triggeredSubscriptionDao.findAlreadyActivated(any(), any())).thenReturn(output);
+		Stream<TriggeredSubscriptionEntity> result = sut.findAlreadyActivated(entity, dataForDuplicates);
+		assertSame(output, result);
+		verify(triggeredSubscriptionDao).findAlreadyActivated(subscription, dataForDuplicates);
+	}
+
+	@Test
 	void testFindByStopConditionCriteria() {
 		StopConditionCriteria criteria = new StopConditionCriteria();
 		criteria.setConnectId(CONNECT_ID1);

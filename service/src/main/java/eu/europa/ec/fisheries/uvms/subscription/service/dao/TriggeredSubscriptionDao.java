@@ -48,6 +48,15 @@ public interface TriggeredSubscriptionDao {
 	boolean activeExists(SubscriptionEntity subscription, Set<TriggeredSubscriptionDataEntity> dataCriteria);
 
 	/**
+	 * Retrieve all active triggerings of the given subscription for the given data.
+	 *
+	 * @param subscription The subscription
+	 * @param dataCriteria The data to be used for querying
+	 * @return All active triggerings of the given subscription
+	 */
+	Stream<TriggeredSubscriptionEntity> findAlreadyActivated(SubscriptionEntity subscription, Set<TriggeredSubscriptionDataEntity> dataCriteria);
+
+	/**
 	 * Search for triggered subscriptions with the given criteria.
 	 *
 	 * @param criteria The criteria

@@ -39,6 +39,17 @@ public interface TriggeredSubscriptionService {
 	boolean isDuplicate(TriggeredSubscriptionEntity entity, Set<TriggeredSubscriptionDataEntity> dataForDuplicates);
 
 	/**
+	 * Retrieve all active triggerings of the subscription of the given {@code TriggeredSubscriptionEntity}
+	 * for the given criteria. For the usual criteria, i.e. the asset history GUID/connect id,
+	 * there should be at most one.
+	 *
+	 * @param entity            The triggered subscription to check if there are already activated peers
+	 * @param dataForDuplicates The data to use as criteria
+	 * @return All activated peers
+	 */
+	Stream<TriggeredSubscriptionEntity> findAlreadyActivated(TriggeredSubscriptionEntity entity, Set<TriggeredSubscriptionDataEntity> dataForDuplicates);
+
+	/**
 	 * Find triggered subscriptions that fulfill the given criteria.
 	 *
 	 * @param criteria The criteria
