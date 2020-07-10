@@ -107,6 +107,11 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	}
 
 	@Override
+	public void preserveDataFromSupersededTriggering(TriggeredSubscriptionEntity superseded, TriggeredSubscriptionEntity replacement) {
+		// NOOP
+	}
+
+	@Override
 	public Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion) {
 		return Stream.of(unmarshal(representation))
 				.filter(message -> message.getResponse() == SimpleResponse.OK)

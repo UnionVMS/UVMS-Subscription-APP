@@ -113,6 +113,7 @@ public class SubscriptionExecutionServiceImplTest {
 		verify(dao).create(entity);
 		assertEquals(STOPPED, pendingExecution.getStatus());
 		assertEquals(INACTIVE, triggeringOfPending.getStatus());
+		verify(subscriptionCommandFromMessageExtractor).preserveDataFromSupersededTriggering(triggeringOfPending, triggeredSubscription);
 	}
 
 	@Test

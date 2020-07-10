@@ -10,6 +10,7 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
 import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -112,6 +113,11 @@ class ScheduledSubscriptionCommandFromMessageExtractorTest {
     @Test
     void getEligibleSubscriptionSource() {
         assertEquals(SOURCE, sut.getEligibleSubscriptionSource());
+    }
+
+    @Test
+    void testPreserveDataFromSupersededTriggering() {
+        assertDoesNotThrow(() -> sut.preserveDataFromSupersededTriggering(null, null));
     }
 
     @ParameterizedTest

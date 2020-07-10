@@ -127,6 +127,7 @@ class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 		dao.findPendingBy(triggeredSubscription.getSubscription(), dataForDuplicates).forEach(pendingExecution -> {
 			pendingExecution.setStatus(STOPPED);
 			pendingExecution.getTriggeredSubscription().setStatus(INACTIVE);
+			extractors.values().forEach(extractor -> extractor.preserveDataFromSupersededTriggering(pendingExecution.getTriggeredSubscription(), execution.getTriggeredSubscription()));
 		});
 	}
 

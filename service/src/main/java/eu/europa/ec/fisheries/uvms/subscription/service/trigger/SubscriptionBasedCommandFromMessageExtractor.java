@@ -73,6 +73,11 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
     public abstract String getEligibleSubscriptionSource();
 
     @Override
+    public void preserveDataFromSupersededTriggering(TriggeredSubscriptionEntity superseded, TriggeredSubscriptionEntity replacement) {
+        // NOOP
+    }
+
+    @Override
     public Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> getDataForDuplicatesExtractor() {
         return TriggeredSubscriptionDataUtil::extractConnectId;
     }
