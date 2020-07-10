@@ -23,6 +23,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscrip
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.TriggeredSubscriptionSearchCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil;
 
 /**
  * Implementation of the {@link TriggeredSubscriptionService}.
@@ -65,7 +66,7 @@ class TriggeredSubscriptionServiceImpl implements TriggeredSubscriptionService {
 	public Stream<TriggeredSubscriptionEntity> findByStopConditionCriteria(StopConditionCriteria criteria) {
 		TriggeredSubscriptionSearchCriteria searchCriteriaForAreas = new TriggeredSubscriptionSearchCriteria();
 		searchCriteriaForAreas.setSingleStatus(ACTIVE);
-		searchCriteriaForAreas.setTriggeredSubscriptionData(Collections.singletonMap("connectId", criteria.getConnectId()));
+		searchCriteriaForAreas.setTriggeredSubscriptionData(Collections.singletonMap(TriggeredSubscriptionDataUtil.KEY_CONNECT_ID, criteria.getConnectId()));
 		searchCriteriaForAreas.setNotInAreas(criteria.getAreas());
 		searchCriteriaForAreas.setSubscriptionQuitArea(criteria.getAreas() != null);
 		searchCriteriaForAreas.setWithAnyStopActivities(criteria.getActivities());

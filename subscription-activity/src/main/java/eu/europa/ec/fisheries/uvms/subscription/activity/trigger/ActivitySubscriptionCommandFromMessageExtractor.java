@@ -52,6 +52,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSen
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SubscriptionCommandFromMessageExtractor;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsFactory;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
@@ -74,14 +75,7 @@ import un.unece.uncefact.data.standard.unqualifieddatatype._20.DateTimeType;
 @ApplicationScoped
 public class ActivitySubscriptionCommandFromMessageExtractor implements SubscriptionCommandFromMessageExtractor {
 
-	private static final String KEY_CONNECT_ID = "connectId";
-	private static final String KEY_OCCURRENCE = "occurrence";
 	private static final String KEY_MESSAGE_ID_PREFIX = "messageId_";
-
-	private static final Function<TriggeredSubscriptionEntity,Set<TriggeredSubscriptionDataEntity>> TRIGGERED_SUBSCRIPTION_DATA_FOR_DUPLICATES = entity ->
-		entity.getData().stream()
-				.filter(d -> KEY_CONNECT_ID.equals(d.getKey()))
-				.collect(Collectors.toSet());
 
 	private static final String SOURCE = "activity";
 
@@ -124,7 +118,7 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 
 	@Override
 	public Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> getDataForDuplicatesExtractor() {
-		return TRIGGERED_SUBSCRIPTION_DATA_FOR_DUPLICATES;
+		return TriggeredSubscriptionDataUtil::extractConnectId;
 	}
 
 	@Override
@@ -268,14 +262,14 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 	private void makeTriggeredSubscriptionData(TriggeredSubscriptionEntity triggeredSubscription, ReportAndSubscription input) {
 		Set<TriggeredSubscriptionDataEntity> result = new HashSet<>();
 		Optional.ofNullable(input.getReport().getAssetHistGuid()).ifPresent(connectId ->
-			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_CONNECT_ID, connectId))
+			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_CONNECT_ID, connectId))
 		);
 		Optional.ofNullable(input.getReport().getOccurrenceDate()).ifPresent(positionTime -> {
 			// XXX This probably needs to use the message report time, not the occurrence time
 			GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
 			calendar.setTime(positionTime);
 			XMLGregorianCalendar xmlCalendar = datatypeFactory.newXMLGregorianCalendar(calendar);
-			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_OCCURRENCE, xmlCalendar.toXMLFormat()));
+			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_OCCURRENCE, xmlCalendar.toXMLFormat()));
 		});
 		addFaReportMessageId(input, result, triggeredSubscription);
 		triggeredSubscription.setData(result);
@@ -290,7 +284,7 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 	}
 
 	private Command makeTriggerSubscriptionCommand(TriggeredSubscriptionEntity triggeredSubscription) {
-		return triggerCommandsFactory.createTriggerSubscriptionCommand(triggeredSubscription, TRIGGERED_SUBSCRIPTION_DATA_FOR_DUPLICATES);
+		return triggerCommandsFactory.createTriggerSubscriptionCommand(triggeredSubscription, getDataForDuplicatesExtractor());
 	}
 
 	private Stream<StopConditionCriteria> makeStopConditionCriteria(Report report) {

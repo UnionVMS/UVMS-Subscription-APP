@@ -47,6 +47,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSen
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SubscriptionCommandFromMessageExtractor;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsFactory;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
@@ -60,14 +61,6 @@ import lombok.Getter;
  */
 @ApplicationScoped
 public class MovementSubscriptionCommandFromMessageExtractor implements SubscriptionCommandFromMessageExtractor {
-
-	private static final String KEY_CONNECT_ID = "connectId";
-	private static final String KEY_OCCURRENCE = "occurrence";
-
-	private static final Function<TriggeredSubscriptionEntity,Set<TriggeredSubscriptionDataEntity>> TRIGGERED_SUBSCRIPTION_DATA_FOR_DUPLICATES = entity ->
-		entity.getData().stream()
-				.filter(d -> KEY_CONNECT_ID.equals(d.getKey()))
-				.collect(Collectors.toSet());
 
 	private static final String SOURCE = "movement";
 
@@ -110,7 +103,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 
 	@Override
 	public Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> getDataForDuplicatesExtractor() {
-		return TRIGGERED_SUBSCRIPTION_DATA_FOR_DUPLICATES;
+		return TriggeredSubscriptionDataUtil::extractConnectId;
 	}
 
 	@Override
@@ -175,19 +168,19 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	private Set<TriggeredSubscriptionDataEntity> makeTriggeredSubscriptionData(TriggeredSubscriptionEntity triggeredSubscription, MovementAndSubscription input) {
 		Set<TriggeredSubscriptionDataEntity> result = new HashSet<>();
 		Optional.ofNullable(input.getMovement().getConnectId()).ifPresent(connectId ->
-			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_CONNECT_ID, connectId))
+			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_CONNECT_ID, connectId))
 		);
 		Optional.ofNullable(input.getMovement().getPositionTime()).ifPresent(positionTime -> {
 			GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
 			calendar.setTime(positionTime);
 			XMLGregorianCalendar xmlCalendar = datatypeFactory.newXMLGregorianCalendar(calendar);
-			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_OCCURRENCE, xmlCalendar.toXMLFormat()));
+			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_OCCURRENCE, xmlCalendar.toXMLFormat()));
 		});
 		return result;
 	}
 
 	private Command makeTriggerSubscriptionCommand(TriggeredSubscriptionEntity triggeredSubscription) {
-		return triggerCommandsFactory.createTriggerSubscriptionCommand(triggeredSubscription, TRIGGERED_SUBSCRIPTION_DATA_FOR_DUPLICATES);
+		return triggerCommandsFactory.createTriggerSubscriptionCommand(triggeredSubscription, getDataForDuplicatesExtractor());
 	}
 
 	private StopConditionCriteria makeStopConditionCriteria(MovementType movement) {
