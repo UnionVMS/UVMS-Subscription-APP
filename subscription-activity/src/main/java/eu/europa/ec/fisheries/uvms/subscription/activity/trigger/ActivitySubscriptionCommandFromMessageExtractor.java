@@ -32,6 +32,7 @@ import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -77,8 +78,8 @@ import un.unece.uncefact.data.standard.unqualifieddatatype._20.DateTimeType;
 public class ActivitySubscriptionCommandFromMessageExtractor implements SubscriptionCommandFromMessageExtractor {
 
 	private static final String KEY_REPORT_ID_PREFIX = "reportId_";
-
 	private static final String SOURCE = "activity";
+	private static final Predicate<TriggeredSubscriptionDataEntity> BY_KEY_REPORT_ID_PREFIX = d -> d.getKey().startsWith(KEY_REPORT_ID_PREFIX);
 
 	private SubscriptionFinder subscriptionFinder;
 	private DatatypeFactory datatypeFactory;
@@ -120,6 +121,11 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 	@Override
 	public Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> getDataForDuplicatesExtractor() {
 		return TriggeredSubscriptionDataUtil::extractConnectId;
+	}
+
+	@Override
+	public void preserveDataFromSupersededTriggering(TriggeredSubscriptionEntity superseded, TriggeredSubscriptionEntity replacement) {
+		processTriggering(superseded, replacement);
 	}
 
 	@Override
@@ -278,9 +284,7 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 	}
 
 	private void addFaReportMessageId(ReportAndSubscription reportAndSubscription, Set<TriggeredSubscriptionDataEntity> triggeredSubscriptionData, TriggeredSubscriptionEntity triggeredSubscription) {
-		long nextIndex = triggeredSubscriptionData.stream()
-				.filter(data -> data.getKey().startsWith(KEY_REPORT_ID_PREFIX))
-				.count();
+		long nextIndex = triggeredSubscriptionData.stream().filter(BY_KEY_REPORT_ID_PREFIX).count();
 		Optional.ofNullable(reportAndSubscription.getReportContext().getFluxFaReportMessageIds()).map(List::stream).flatMap(Stream::findFirst)
 				.ifPresent(faReportMessageId -> triggeredSubscriptionData.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_REPORT_ID_PREFIX + nextIndex, faReportMessageId.getSchemeId() + ':' + faReportMessageId.getId())));
 	}
@@ -290,9 +294,9 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 	}
 
 	private boolean processTriggering(TriggeredSubscriptionEntity triggeredSubscriptionCandidate, TriggeredSubscriptionEntity existingTriggeredSubscription) {
-		Sequence indexes = new Sequence((int) existingTriggeredSubscription.getData().stream().filter(d -> d.getKey().startsWith(KEY_REPORT_ID_PREFIX)).count());
+		Sequence indexes = new Sequence((int) existingTriggeredSubscription.getData().stream().filter(BY_KEY_REPORT_ID_PREFIX).count());
 		triggeredSubscriptionCandidate.getData().stream()
-				.filter(data -> data.getKey().startsWith(KEY_REPORT_ID_PREFIX))
+				.filter(BY_KEY_REPORT_ID_PREFIX)
 				.map(data -> new TriggeredSubscriptionDataEntity(existingTriggeredSubscription, KEY_REPORT_ID_PREFIX + indexes.nextInt(), data.getValue()))
 				.forEach(existingTriggeredSubscription.getData()::add);
 		return true;
@@ -337,9 +341,9 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 	@AllArgsConstructor
 	private static class TriggeredSubscriptionAndRequestContext {
 		/** The message that has triggered us. */
-		private ForwardReportToSubscriptionRequest unmarshalledMessage;
+		private final ForwardReportToSubscriptionRequest unmarshalledMessage;
 		/** The triggered subscription. */
-		private TriggeredSubscriptionEntity triggeredSubscription;
+		private final TriggeredSubscriptionEntity triggeredSubscription;
 	}
 
 	@AllArgsConstructor

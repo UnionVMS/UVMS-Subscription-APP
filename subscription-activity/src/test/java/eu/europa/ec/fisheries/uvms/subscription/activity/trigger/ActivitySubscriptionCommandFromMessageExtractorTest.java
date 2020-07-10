@@ -104,6 +104,26 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
     }
 
     @Test
+    void testPreserveDataFromSupersededTriggering() {
+        TriggeredSubscriptionEntity superseded = new TriggeredSubscriptionEntity();
+        TriggeredSubscriptionEntity replacement = new TriggeredSubscriptionEntity();
+        superseded.getData().add(new TriggeredSubscriptionDataEntity(superseded, "reportId_12", "value"));
+        superseded.getData().add(new TriggeredSubscriptionDataEntity(superseded, "irrelevant", "42"));
+        replacement.getData().add(new TriggeredSubscriptionDataEntity(replacement, "irrelevant", "43"));
+
+        sut.preserveDataFromSupersededTriggering(superseded, replacement);
+
+        assertEquals(2, replacement.getData().size());
+        assertEquals(2, superseded.getData().size());
+        TriggeredSubscriptionDataEntity copiedData = replacement.getData().stream().filter(x -> x.getKey().startsWith("reportId_")).findFirst().get();
+        assertSame(replacement, copiedData.getTriggeredSubscription());
+        assertEquals("reportId_0", copiedData.getKey());
+        assertEquals("value", copiedData.getValue());
+        TriggeredSubscriptionDataEntity originalData = superseded.getData().stream().filter(x -> x.getKey().startsWith("reportId_")).findFirst().get();
+        assertSame(superseded, originalData.getTriggeredSubscription());
+    }
+
+    @Test
     void testJAXBExceptionResultsInApplicationException() {
         assertThrows(MessageFormatException.class, () -> sut.extractCommands("bad",null));
     }

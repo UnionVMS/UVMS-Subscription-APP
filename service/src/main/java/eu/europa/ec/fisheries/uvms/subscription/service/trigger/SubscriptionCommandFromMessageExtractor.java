@@ -19,8 +19,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscrip
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
 
 /**
- * Translates a textual message representation from a specific source to a
- * stream of commands.
+ * Responsible for translating a textual message representation from a specific source to a stream of commands
+ * and managing the resulting triggerings.
  * <p>
  * The purpose of this class is to allow a message to be handled as a stream and to
  * abstract the handling of messages from a specific source.
@@ -49,4 +49,17 @@ public interface SubscriptionCommandFromMessageExtractor {
 	 * @return The equivalence function
 	 */
 	Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> getDataForDuplicatesExtractor();
+
+	/**
+	 * Git the extractor the opportunity to preserve data from a superseded subscription.
+	 * <p>
+	 * The use case has to do with stopping a subscription that has a pending execution and then triggering the same
+	 * subscription before the execution has the opportunity to run.
+	 * In some cases we need to preserve some data in the new subscription, e.g. when the trigger is activity we want
+	 * to preserve the report ids from the superseded triggering.
+	 *
+	 * @param superseded  The old triggering, copy data from it
+	 * @param replacement The new triggering, copy data to it
+	 */
+	void preserveDataFromSupersededTriggering(TriggeredSubscriptionEntity superseded, TriggeredSubscriptionEntity replacement);
 }

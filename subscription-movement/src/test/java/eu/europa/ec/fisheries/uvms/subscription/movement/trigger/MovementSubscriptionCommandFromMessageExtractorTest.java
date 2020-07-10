@@ -9,6 +9,7 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.movement.trigger;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -96,6 +97,11 @@ public class MovementSubscriptionCommandFromMessageExtractorTest {
 	@Test
 	void testGetEligibleSubscriptionSource() {
 		assertEquals("movement", sut.getEligibleSubscriptionSource());
+	}
+
+	@Test
+	void testPreserveDataFromSupersededTriggering() {
+		assertDoesNotThrow(() -> sut.preserveDataFromSupersededTriggering(null, null));
 	}
 
 	@Test
