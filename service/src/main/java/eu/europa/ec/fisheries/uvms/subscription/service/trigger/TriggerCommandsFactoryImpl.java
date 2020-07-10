@@ -12,6 +12,7 @@ package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
@@ -20,7 +21,6 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscrip
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.execution.SubscriptionExecutionService;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.AssetPageRetrievalMessage;
-import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionManualProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
 
@@ -62,6 +62,11 @@ class TriggerCommandsFactoryImpl implements TriggerCommandsFactory {
 	@Override
 	public Command createTriggerSubscriptionCommand(TriggeredSubscriptionEntity triggeredSubscription, Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> extractTriggeredSubscriptionDataForDuplicates) {
 		return new TriggerSubscriptionCommand(extractTriggeredSubscriptionDataForDuplicates, triggeredSubscriptionService, subscriptionExecutionScheduler, subscriptionExecutionService, triggeredSubscription);
+	}
+
+	@Override
+	public Command createTriggerSubscriptionFromSpecificMessageCommand(TriggeredSubscriptionEntity triggeredSubscription, Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> extractTriggeredSubscriptionDataForDuplicates, BiPredicate<TriggeredSubscriptionEntity, TriggeredSubscriptionEntity> processTriggering) {
+		return new TriggerSubscriptionFromSpecificMessageCommand(extractTriggeredSubscriptionDataForDuplicates, triggeredSubscriptionService, subscriptionExecutionScheduler, subscriptionExecutionService, triggeredSubscription, processTriggering);
 	}
 
 	@Override

@@ -10,6 +10,7 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
@@ -30,6 +31,21 @@ public interface TriggerCommandsFactory {
 	 * @return The command
 	 */
 	Command createTriggerSubscriptionCommand(TriggeredSubscriptionEntity triggeredSubscription, Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> extractTriggeredSubscriptionDataForDuplicates);
+
+	/**
+	 * Create a command for activating the given triggered subscription, if not already triggered, but if
+	 * previous triggerings already exist, enrich them using the given function, {@code processTriggering}.
+	 *
+	 * @param triggeredSubscription A candidate triggered subscription
+	 * @param extractTriggeredSubscriptionDataForDuplicates Function to extract the set of triggered subscription data for the given
+	 *                              {@code TriggeredSubscriptionEntity} to check if there is another active instance of the same subscription
+	 * @param processTriggering     The function to add message-specific data to already activated triggerings;
+	 *                              it has the chance to decide if that triggering should not be considered as a
+	 *                              duplicate by returing {@code false}; first argument is the candidate {@code TriggeredSubscriptionEntity}
+	 *                              and the second argument is the existing
+	 * @return The command
+	 */
+	Command createTriggerSubscriptionFromSpecificMessageCommand(TriggeredSubscriptionEntity triggeredSubscription, Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>> extractTriggeredSubscriptionDataForDuplicates, BiPredicate<TriggeredSubscriptionEntity, TriggeredSubscriptionEntity> processTriggering);
 
 	/**
 	 * Make a command to stop all triggered subscriptions that match the criteria.

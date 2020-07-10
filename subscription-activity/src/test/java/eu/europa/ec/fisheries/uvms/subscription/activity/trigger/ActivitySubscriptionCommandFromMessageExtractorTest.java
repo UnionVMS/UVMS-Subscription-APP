@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -36,6 +37,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -136,7 +138,9 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
         ArgumentCaptor<TriggeredSubscriptionEntity> triggeredSubscriptionCaptor = ArgumentCaptor.forClass(TriggeredSubscriptionEntity.class);
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>>> dataExtractorCaptor = ArgumentCaptor.forClass(Function.class);
-        verify(triggerCommandsFactory, times(2)).createTriggerSubscriptionCommand(triggeredSubscriptionCaptor.capture(), dataExtractorCaptor.capture());
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<BiPredicate<TriggeredSubscriptionEntity, TriggeredSubscriptionEntity>> processTriggeringsCaptor = ArgumentCaptor.forClass(BiPredicate.class);
+        verify(triggerCommandsFactory, times(2)).createTriggerSubscriptionFromSpecificMessageCommand(triggeredSubscriptionCaptor.capture(), dataExtractorCaptor.capture(), processTriggeringsCaptor.capture());
         TriggeredSubscriptionEntity triggeredSubscription1 = triggeredSubscriptionCaptor.getAllValues().get(0);
         assertSame(subscription, triggeredSubscription1.getSubscription());
         assertNotNull(triggeredSubscription1.getCreationDate());
@@ -210,6 +214,22 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
         e.getData().add(new TriggeredSubscriptionDataEntity(e, "somethingElse", "XXX"));
         Set<TriggeredSubscriptionDataEntity> result = dataExtractorCaptor.getAllValues().get(0).apply(e);
         assertEquals(Collections.singleton(new TriggeredSubscriptionDataEntity(e, "connectId", "CONNECT ID")), result);
+
+        BiPredicate<TriggeredSubscriptionEntity, TriggeredSubscriptionEntity> processTriggerings = processTriggeringsCaptor.getValue();
+        TriggeredSubscriptionEntity triggeredSubscriptionCandidate = new TriggeredSubscriptionEntity();
+        TriggeredSubscriptionEntity existingTriggeredSubscription = new TriggeredSubscriptionEntity();
+        triggeredSubscriptionCandidate.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscriptionCandidate, "reportId_12", "value"));
+        triggeredSubscriptionCandidate.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscriptionCandidate, "irrelevant", "42"));
+        existingTriggeredSubscription.getData().add(new TriggeredSubscriptionDataEntity(existingTriggeredSubscription, "irrelevant", "43"));
+        assertTrue(processTriggerings.test(triggeredSubscriptionCandidate, existingTriggeredSubscription));
+        assertEquals(2, existingTriggeredSubscription.getData().size());
+        assertEquals(2, triggeredSubscriptionCandidate.getData().size());
+        TriggeredSubscriptionDataEntity copiedData = existingTriggeredSubscription.getData().stream().filter(x -> x.getKey().startsWith("reportId_")).findFirst().get();
+        assertSame(existingTriggeredSubscription, copiedData.getTriggeredSubscription());
+        assertEquals("reportId_0", copiedData.getKey());
+        assertEquals("value", copiedData.getValue());
+        TriggeredSubscriptionDataEntity originalData = triggeredSubscriptionCandidate.getData().stream().filter(x -> x.getKey().startsWith("reportId_")).findFirst().get();
+        assertSame(triggeredSubscriptionCandidate, originalData.getTriggeredSubscription());
     }
 
     @Test
@@ -227,7 +247,9 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
         ArgumentCaptor<TriggeredSubscriptionEntity> triggeredSubscriptionCaptor = ArgumentCaptor.forClass(TriggeredSubscriptionEntity.class);
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Function<TriggeredSubscriptionEntity, Set<TriggeredSubscriptionDataEntity>>> dataExtractorCaptor = ArgumentCaptor.forClass(Function.class);
-        verify(triggerCommandsFactory).createTriggerSubscriptionCommand(triggeredSubscriptionCaptor.capture(), dataExtractorCaptor.capture());
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<BiPredicate<TriggeredSubscriptionEntity, TriggeredSubscriptionEntity>> processTriggeringsCaptor = ArgumentCaptor.forClass(BiPredicate.class);
+        verify(triggerCommandsFactory).createTriggerSubscriptionFromSpecificMessageCommand(triggeredSubscriptionCaptor.capture(), dataExtractorCaptor.capture(), processTriggeringsCaptor.capture());
         TriggeredSubscriptionEntity triggeredSubscription1 = triggeredSubscriptionCaptor.getValue();
         assertSame(subscription, triggeredSubscription1.getSubscription());
         assertNotNull(triggeredSubscription1.getCreationDate());

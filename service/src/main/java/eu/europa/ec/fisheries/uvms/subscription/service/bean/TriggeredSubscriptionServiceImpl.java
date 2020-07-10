@@ -63,6 +63,11 @@ class TriggeredSubscriptionServiceImpl implements TriggeredSubscriptionService {
 	}
 
 	@Override
+	public Stream<TriggeredSubscriptionEntity> findAlreadyActivated(TriggeredSubscriptionEntity entity, Set<TriggeredSubscriptionDataEntity> dataForDuplicates) {
+		return triggeredSubscriptionDao.findAlreadyActivated(entity.getSubscription(), dataForDuplicates);
+	}
+
+	@Override
 	public Stream<TriggeredSubscriptionEntity> findByStopConditionCriteria(StopConditionCriteria criteria) {
 		TriggeredSubscriptionSearchCriteria searchCriteriaForAreas = new TriggeredSubscriptionSearchCriteria();
 		searchCriteriaForAreas.setSingleStatus(ACTIVE);

@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Function;
@@ -75,7 +76,7 @@ import un.unece.uncefact.data.standard.unqualifieddatatype._20.DateTimeType;
 @ApplicationScoped
 public class ActivitySubscriptionCommandFromMessageExtractor implements SubscriptionCommandFromMessageExtractor {
 
-	private static final String KEY_MESSAGE_ID_PREFIX = "messageId_";
+	private static final String KEY_REPORT_ID_PREFIX = "reportId_";
 
 	private static final String SOURCE = "activity";
 
@@ -137,7 +138,7 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 		}
 	}
 
-	private Stream<Report> extractReportsFromRequest(ForwardReportToSubscriptionRequest request) {
+	private Stream<ReportContext> extractReportsFromRequest(ForwardReportToSubscriptionRequest request) {
 		return request.getFaReports().stream()
 				.filter(reportToSubscription -> {
 					if (reportToSubscription.getAssetHistoryGuids() == null) {
@@ -153,7 +154,7 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 				.flatMap(reportToSubscription -> {
 					Iterator<ActivityAreas> activityAreas = reportToSubscription.getActivityAreas().iterator();
 					return reportToSubscription.getFishingActivities().stream()
-							.map(fishingActivity -> new Report(reportToSubscription.getFluxFaReportMessageIds(), fishingActivity, reportToSubscription.getFaReportType(), activityAreas.next(), null, reportToSubscription.getAssetHistoryGuids().get(0)))
+							.map(fishingActivity -> new ReportContext(request, reportToSubscription.getFluxFaReportMessageIds(), fishingActivity, reportToSubscription.getFaReportType(), activityAreas.next(), null, reportToSubscription.getAssetHistoryGuids().get(0)))
 							.filter(this::handleOccurrenceDate);
 				});
 	}
@@ -162,41 +163,42 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 		return reportToSubscription.getFluxFaReportMessageIds().stream().map(id -> id.getSchemeId() + ':' + id.getId()).collect(Collectors.joining(","));
 	}
 
-	private boolean handleOccurrenceDate(Report report) {
-		FishingActivity fishingActivity = report.getFishingActivity();
+	private boolean handleOccurrenceDate(ReportContext reportContext) {
+		FishingActivity fishingActivity = reportContext.getFishingActivity();
 		DateTimeType activityDateTimeType = fishingActivity.getOccurrenceDateTime() != null ? fishingActivity.getOccurrenceDateTime() : getFirstDateFromDelimitedPeriods(fishingActivity.getSpecifiedDelimitedPeriods());
 		if (activityDateTimeType == null || activityDateTimeType.getDateTime() == null) {
 			return false;
 		}
-		report.setOccurrenceDate(activityDateTimeType.getDateTime().toGregorianCalendar().getTime());
+		reportContext.setOccurrenceDate(activityDateTimeType.getDateTime().toGregorianCalendar().getTime());
 		return true;
 	}
 
-	private Function<Report, Stream<Command>> makeCommandsForReport(Map<String, Map<Long, TriggeredSubscriptionEntity>> assetHistoryGuidToTriggeringsMap, SenderCriterion senderCriterion) {
-		return report -> Stream.concat(
-				Stream.of(report)
+	private Function<ReportContext, Stream<Command>> makeCommandsForReport(Map<String, Map<Long, TriggeredSubscriptionEntity>> assetHistoryGuidToTriggeringsMap, SenderCriterion senderCriterion) {
+		return reportContext -> Stream.concat(
+				Stream.of(reportContext)
 						.flatMap(r -> findTriggeredSubscriptions(r, senderCriterion))
 						.flatMap(makeTriggeredSubscriptionEntity(assetHistoryGuidToTriggeringsMap))
 						.map(this::makeTriggerSubscriptionCommand),
-				Stream.of(report)
+				Stream.of(reportContext)
 						.flatMap(this::makeStopConditionCriteria)
-						.map(triggerCommandsFactory::createStopSubscriptionCommand));
+						.map(triggerCommandsFactory::createStopSubscriptionCommand)
+		);
 	}
 
-	private Stream<ReportAndSubscription> findTriggeredSubscriptions(Report report, SenderCriterion senderCriterion) {
-		FishingActivity fishingActivity = report.getFishingActivity();
-		ZonedDateTime validAt = ZonedDateTime.ofInstant(report.occurrenceDate.toInstant(), ZoneId.of("UTC"));
+	private Stream<ReportAndSubscription> findTriggeredSubscriptions(ReportContext reportContext, SenderCriterion senderCriterion) {
+		FishingActivity fishingActivity = reportContext.getFishingActivity();
+		ZonedDateTime validAt = ZonedDateTime.ofInstant(reportContext.occurrenceDate.toInstant(), ZoneId.of("UTC"));
 
-		List<AreaCriterion> areas = extractAreas(report).collect(Collectors.toList());
+		List<AreaCriterion> areas = extractAreas(reportContext).collect(Collectors.toList());
 
 		List<AssetCriterion> assets = new ArrayList<>();
-		assets.add(makeAssetCriteria(report.getAssetHistGuid()));
-		assets.addAll(makeAssetGroupCriteria(report.occurrenceDate, report.getAssetHistGuid()));
+		assets.add(makeAssetCriteria(reportContext.getAssetHistGuid()));
+		assets.addAll(makeAssetGroupCriteria(reportContext.occurrenceDate, reportContext.getAssetHistGuid()));
 
-		List<ActivityCriterion> startActivityCriteria = Collections.singletonList(new ActivityCriterion(SubscriptionFaReportDocumentType.valueOf(report.getFaReportType()), fishingActivity.getTypeCode().getValue()));
+		List<ActivityCriterion> startActivityCriteria = Collections.singletonList(new ActivityCriterion(SubscriptionFaReportDocumentType.valueOf(reportContext.getFaReportType()), fishingActivity.getTypeCode().getValue()));
 
 		return subscriptionFinder.findTriggeredSubscriptions(areas, assets, startActivityCriteria, senderCriterion, validAt, Collections.singleton(TriggerType.INC_FA_REPORT)).stream()
-				.map(subscription -> new ReportAndSubscription(report, subscription));
+				.map(subscription -> new ReportAndSubscription(reportContext, subscription));
 	}
 
 	private DateTimeType getFirstDateFromDelimitedPeriods(Collection<DelimitedPeriod> delimitedPeriods) {
@@ -207,8 +209,8 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 				.orElse(null);
 	}
 
-	private Stream<AreaCriterion> extractAreas(Report report) {
-		return report.getActivityAreas().getAreas().stream()
+	private Stream<AreaCriterion> extractAreas(ReportContext reportContext) {
+		return reportContext.getActivityAreas().getAreas().stream()
 				.map(area -> new AreaCriterion(AreaType.fromValue(area.getAreaType()), Long.valueOf(area.getRemoteId())));
 	}
 
@@ -223,22 +225,22 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 							.collect(Collectors.toList());
 	}
 
-	private Function<ReportAndSubscription, Stream<TriggeredSubscriptionEntity>> makeTriggeredSubscriptionEntity(Map<String, Map<Long, TriggeredSubscriptionEntity>> assetHistoryGuidToTriggeringsMap) {
+	private Function<ReportAndSubscription, Stream<TriggeredSubscriptionAndRequestContext>> makeTriggeredSubscriptionEntity(Map<String, Map<Long, TriggeredSubscriptionEntity>> assetHistoryGuidToTriggeringsMap) {
 		return reportAndSubscription -> {
 			TriggeredSubscriptionEntity result;
-			Map<Long, TriggeredSubscriptionEntity> triggerings = assetHistoryGuidToTriggeringsMap.get(reportAndSubscription.getReport().getAssetHistGuid());
+			Map<Long, TriggeredSubscriptionEntity> triggerings = assetHistoryGuidToTriggeringsMap.get(reportAndSubscription.getReportContext().getAssetHistGuid());
 			if (triggerings == null) {
 				result = createNewTriggeredSubscriptionEntity(reportAndSubscription);
 				triggerings = new HashMap<>();
 				triggerings.put(reportAndSubscription.getSubscription().getId(), result);
-				assetHistoryGuidToTriggeringsMap.put(reportAndSubscription.getReport().getAssetHistGuid(), triggerings);
-				return Stream.of(result);
+				assetHistoryGuidToTriggeringsMap.put(reportAndSubscription.getReportContext().getAssetHistGuid(), triggerings);
+				return Stream.of(new TriggeredSubscriptionAndRequestContext(reportAndSubscription.getReportContext().getUnmarshalledMessage(), result));
 			} else {
 				result = triggerings.get(reportAndSubscription.getSubscription().getId());
 				if (result == null) {
 					result = createNewTriggeredSubscriptionEntity(reportAndSubscription);
 					triggerings.put(reportAndSubscription.getSubscription().getId(), result);
-					return Stream.of(result);
+					return Stream.of(new TriggeredSubscriptionAndRequestContext(reportAndSubscription.getReportContext().getUnmarshalledMessage(), result));
 				} else {
 					addFaReportMessageId(reportAndSubscription, result.getData(), result);
 					return Stream.empty();
@@ -254,17 +256,17 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 		result.setSource(SOURCE);
 		result.setCreationDate(dateTimeService.getNowAsDate());
 		result.setStatus(TriggeredSubscriptionStatus.ACTIVE);
-		result.setEffectiveFrom(reportAndSubscription.getReport().getOccurrenceDate());
+		result.setEffectiveFrom(reportAndSubscription.getReportContext().getOccurrenceDate());
 		makeTriggeredSubscriptionData(result, reportAndSubscription);
 		return result;
 	}
 
 	private void makeTriggeredSubscriptionData(TriggeredSubscriptionEntity triggeredSubscription, ReportAndSubscription input) {
 		Set<TriggeredSubscriptionDataEntity> result = new HashSet<>();
-		Optional.ofNullable(input.getReport().getAssetHistGuid()).ifPresent(connectId ->
+		Optional.ofNullable(input.getReportContext().getAssetHistGuid()).ifPresent(connectId ->
 			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_CONNECT_ID, connectId))
 		);
-		Optional.ofNullable(input.getReport().getOccurrenceDate()).ifPresent(positionTime -> {
+		Optional.ofNullable(input.getReportContext().getOccurrenceDate()).ifPresent(positionTime -> {
 			// XXX This probably needs to use the message report time, not the occurrence time
 			GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
 			calendar.setTime(positionTime);
@@ -277,24 +279,33 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 
 	private void addFaReportMessageId(ReportAndSubscription reportAndSubscription, Set<TriggeredSubscriptionDataEntity> triggeredSubscriptionData, TriggeredSubscriptionEntity triggeredSubscription) {
 		long nextIndex = triggeredSubscriptionData.stream()
-				.filter(data -> data.getKey().startsWith(KEY_MESSAGE_ID_PREFIX))
+				.filter(data -> data.getKey().startsWith(KEY_REPORT_ID_PREFIX))
 				.count();
-		Optional.ofNullable(reportAndSubscription.getReport().getFluxFaReportMessageIds()).map(List::stream).flatMap(Stream::findFirst)
-				.ifPresent(faReportMessageId -> triggeredSubscriptionData.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_MESSAGE_ID_PREFIX + nextIndex, faReportMessageId.getSchemeId() + ':' + faReportMessageId.getId())));
+		Optional.ofNullable(reportAndSubscription.getReportContext().getFluxFaReportMessageIds()).map(List::stream).flatMap(Stream::findFirst)
+				.ifPresent(faReportMessageId -> triggeredSubscriptionData.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_REPORT_ID_PREFIX + nextIndex, faReportMessageId.getSchemeId() + ':' + faReportMessageId.getId())));
 	}
 
-	private Command makeTriggerSubscriptionCommand(TriggeredSubscriptionEntity triggeredSubscription) {
-		return triggerCommandsFactory.createTriggerSubscriptionCommand(triggeredSubscription, getDataForDuplicatesExtractor());
+	private Command makeTriggerSubscriptionCommand(TriggeredSubscriptionAndRequestContext context) {
+		return triggerCommandsFactory.createTriggerSubscriptionFromSpecificMessageCommand(context.getTriggeredSubscription(), getDataForDuplicatesExtractor(), this::processTriggering);
 	}
 
-	private Stream<StopConditionCriteria> makeStopConditionCriteria(Report report) {
+	private boolean processTriggering(TriggeredSubscriptionEntity triggeredSubscriptionCandidate, TriggeredSubscriptionEntity existingTriggeredSubscription) {
+		Sequence indexes = new Sequence((int) existingTriggeredSubscription.getData().stream().filter(d -> d.getKey().startsWith(KEY_REPORT_ID_PREFIX)).count());
+		triggeredSubscriptionCandidate.getData().stream()
+				.filter(data -> data.getKey().startsWith(KEY_REPORT_ID_PREFIX))
+				.map(data -> new TriggeredSubscriptionDataEntity(existingTriggeredSubscription, KEY_REPORT_ID_PREFIX + indexes.nextInt(), data.getValue()))
+				.forEach(existingTriggeredSubscription.getData()::add);
+		return true;
+	}
+
+	private Stream<StopConditionCriteria> makeStopConditionCriteria(ReportContext reportContext) {
 		StopConditionCriteria areaCriterion = new StopConditionCriteria();
-		areaCriterion.setConnectId(report.getAssetHistGuid());
-		areaCriterion.setAreas(extractAreas(report).collect(Collectors.toSet()));
+		areaCriterion.setConnectId(reportContext.getAssetHistGuid());
+		areaCriterion.setAreas(extractAreas(reportContext).collect(Collectors.toSet()));
 
 		StopConditionCriteria stopActivityCriterion = new StopConditionCriteria();
-		stopActivityCriterion.setConnectId(report.getAssetHistGuid());
-		stopActivityCriterion.setActivities(Collections.singleton(new ActivityCriterion(SubscriptionFaReportDocumentType.valueOf(report.getFaReportType()), report.getFishingActivity().getTypeCode().getValue())));
+		stopActivityCriterion.setConnectId(reportContext.getAssetHistGuid());
+		stopActivityCriterion.setActivities(Collections.singleton(new ActivityCriterion(SubscriptionFaReportDocumentType.valueOf(reportContext.getFaReportType()), reportContext.getFishingActivity().getTypeCode().getValue())));
 
 		return Stream.of(areaCriterion, stopActivityCriterion);
 	}
@@ -302,7 +313,9 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 	@Getter
 	@Setter
 	@AllArgsConstructor
-	private static class Report {
+	private static class ReportContext {
+		/** The message that has triggered us. */
+		private ForwardReportToSubscriptionRequest unmarshalledMessage;
 		private List<FluxReportIdentifier> fluxFaReportMessageIds;
 		private FishingActivity fishingActivity;
 		private String faReportType;
@@ -316,7 +329,29 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 	@Getter
 	@AllArgsConstructor
 	private static class ReportAndSubscription {
-		private final Report report;
+		private final ReportContext reportContext;
 		private final SubscriptionEntity subscription;
+	}
+
+	@Getter
+	@AllArgsConstructor
+	private static class TriggeredSubscriptionAndRequestContext {
+		/** The message that has triggered us. */
+		private ForwardReportToSubscriptionRequest unmarshalledMessage;
+		/** The triggered subscription. */
+		private TriggeredSubscriptionEntity triggeredSubscription;
+	}
+
+	@AllArgsConstructor
+	private static class Sequence implements PrimitiveIterator.OfInt {
+		private int curval;
+
+		@Override public int nextInt() {
+			return curval++;
+		}
+
+		@Override public boolean hasNext() {
+			return true;
+		}
 	}
 }
