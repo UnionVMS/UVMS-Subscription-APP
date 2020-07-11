@@ -10,29 +10,16 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.util;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.GregorianCalendar;
 
 /**
  * Implementation of {@link DateTimeService}.
  */
 @ApplicationScoped
 class DateTimeServiceImpl implements DateTimeService {
-
-	private DatatypeFactory datatypeFactory;
-
-	@Inject
-	public DateTimeServiceImpl(DatatypeFactory datatypeFactory){
-		this.datatypeFactory = datatypeFactory;
-	}
-
-
 	@Override
 	public LocalDateTime getNow() {
 		return LocalDateTime.now();
@@ -56,12 +43,5 @@ class DateTimeServiceImpl implements DateTimeService {
 	@Override
 	public long currentTimeMillis() {
 		return System.currentTimeMillis();
-	}
-
-	@Override
-	public XMLGregorianCalendar toXMLGregorianCalendar(Date date){
-		GregorianCalendar c = new GregorianCalendar();
-		c.setTime(date);
-		return datatypeFactory.newXMLGregorianCalendar(c);
 	}
 }

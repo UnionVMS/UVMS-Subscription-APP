@@ -7,14 +7,14 @@
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  details. You should have received a copy of the GNU General Public License along with the IFDM Suite. If not, see <http://www.gnu.org/licenses/>.
  */
-package eu.europa.ec.fisheries.uvms.subscription.service.email;
+package eu.europa.ec.fisheries.uvms.subscription.activity.execution;
 
 /**
- * Tests for the {@link EmailTriggerSubscriptionExecutor}.
+ * Tests for the {@link EmailSubscriptionExecutor}.
  */
 //@EnableAutoWeld
 //@ExtendWith(MockitoExtension.class)
-public class EmailTriggerSubscriptionExecutorTest {
+public class EmailSubscriptionExecutorTest {
 //
 //	private static final Long EXECUTION_ID = 111L;
 //

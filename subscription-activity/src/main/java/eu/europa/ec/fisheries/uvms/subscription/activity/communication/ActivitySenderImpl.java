@@ -15,6 +15,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityModuleMethod;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.AttachmentResponseObject;
@@ -26,6 +28,7 @@ import eu.europa.ec.fisheries.uvms.activity.model.schemas.GetAttachmentsForGuidA
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.GetAttachmentsForGuidAndQueryPeriodResponse;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.PluginType;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
+import eu.europa.ec.fisheries.uvms.subscription.service.email.EmailAttachment;
 
 /**
  * Implementation of {@link ActivitySender}.
@@ -68,7 +71,7 @@ class ActivitySenderImpl implements ActivitySender {
 	}
 
 	@Override
-	public List<AttachmentResponseObject> createAndSendRequestForAttachments(String guid, XMLGregorianCalendar startDate, XMLGregorianCalendar endDate, boolean pdf, boolean xml) {
+	public List<EmailAttachment> createAndSendRequestForAttachments(String guid, XMLGregorianCalendar startDate, XMLGregorianCalendar endDate, boolean logbook, boolean pdf, boolean xml, boolean consolidated) {
 		GetAttachmentsForGuidAndQueryPeriodRequest request = new GetAttachmentsForGuidAndQueryPeriodRequest();
 		request.setMethod(ActivityModuleMethod.FIND_ATTACHMENTS_FOR_GUID_AND_QUERY_PERIOD);
 		GetAttachmentsForGuidAndQueryPeriod query = new GetAttachmentsForGuidAndQueryPeriod();
@@ -76,9 +79,17 @@ class ActivitySenderImpl implements ActivitySender {
 		query.setGuid(guid);
 		query.setStartDate(startDate);
 		query.setEndDate(endDate);
+		query.setLogbook(logbook);
 		query.setPdf(pdf);
 		query.setXml(xml);
 		GetAttachmentsForGuidAndQueryPeriodResponse response = activityClient.sendRequest(request,GetAttachmentsForGuidAndQueryPeriodResponse.class);
-		return response != null ? response.getResponseLists() : Collections.emptyList();
+		return Optional.ofNullable(response)
+				.map(GetAttachmentsForGuidAndQueryPeriodResponse::getResponseLists)
+				.map(responseAttachments -> responseAttachments.stream().map(this::toEmailAttachment).collect(Collectors.toList()))
+				.orElseGet(Collections::emptyList);
+	}
+
+	private EmailAttachment toEmailAttachment(AttachmentResponseObject attachment) {
+		return new EmailAttachment(attachment.getTripId(), attachment.getType().value(), attachment.getContent());
 	}
 }

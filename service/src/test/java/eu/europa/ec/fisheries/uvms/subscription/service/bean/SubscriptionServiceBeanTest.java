@@ -609,7 +609,7 @@ public class SubscriptionServiceBeanTest {
 		assertEquals(dto.getStartDate(),result.getStartDate());
 		assertEquals(EMAIL_BODY, result.getOutput().getEmailConfiguration().getBody());
 		assertEquals(true, result.getOutput().getEmailConfiguration().getIsPdf());
-		assertEquals(true, result.getOutput().getEmailConfiguration().getHasAttachments());
+		assertEquals(true, result.getOutput().getEmailConfiguration().getZipAttachments());
 		assertEquals(PASSWORD_PLACEHOLDER, result.getOutput().getEmailConfiguration().getPassword());
 		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
 		assertEquals(false, result.getOutput().getEmailConfiguration().getIsXml());
@@ -691,7 +691,7 @@ public class SubscriptionServiceBeanTest {
 		assertEquals(dto.getStartDate(),result.getStartDate());
 		assertEquals(EMAIL_BODY, result.getOutput().getEmailConfiguration().getBody());
 		assertEquals(true, result.getOutput().getEmailConfiguration().getIsPdf());
-		assertEquals(true, result.getOutput().getEmailConfiguration().getHasAttachments());
+		assertEquals(true, result.getOutput().getEmailConfiguration().getZipAttachments());
 		assertEquals(PASSWORD_PLACEHOLDER, result.getOutput().getEmailConfiguration().getPassword());
 		assertEquals(true, result.getOutput().getEmailConfiguration().getPasswordIsPlaceholder());
 		assertEquals(false, result.getOutput().getEmailConfiguration().getIsXml());

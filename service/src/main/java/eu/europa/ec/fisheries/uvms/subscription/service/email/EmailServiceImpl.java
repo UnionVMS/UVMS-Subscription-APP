@@ -16,36 +16,22 @@ import eu.europa.ec.fisheries.uvms.config.service.ParameterService;
 import eu.europa.ec.fisheries.uvms.subscription.service.config.ParameterKey;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEmailConfiguration;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeUtil;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EmailException;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.time.ZonedDateTime;
-import java.util.Date;
-import java.util.List;
-
-import static eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeUtil.convertDateToZonedDateTime;
 
 @ApplicationScoped
 public class EmailServiceImpl implements EmailService {
 
-    private static final String KEY_CONNECT_ID = "connectId";
-
     private ParameterService parameterService;
     private SubscriptionDao subscriptionDAO;
-    private AttachmentsFacade attachmentsFacade;
     private EmailSender emailSender;
 
     @Inject
-    public EmailServiceImpl(SubscriptionDao subscriptionDAO, AttachmentsFacade attachmentsFacade, ParameterService parameterService, EmailSender emailSender) {
+    public EmailServiceImpl(SubscriptionDao subscriptionDAO, ParameterService parameterService, EmailSender emailSender) {
         this.subscriptionDAO = subscriptionDAO;
-        this.attachmentsFacade = attachmentsFacade;
         this.parameterService = parameterService;
         this.emailSender = emailSender;
     }
@@ -58,40 +44,21 @@ public class EmailServiceImpl implements EmailService {
         // NOOP
     }
 
-
     @Override
-    public void prepareAndSendEmail(SubscriptionExecutionEntity execution) {
+    public void send(EmailData data) {
         String subject = findDefaultParamValue(ParameterKey.SUBSCRIPTION_EMAIL_DEFAULT_SUBJECT.getKey());
         String sender  = findDefaultParamValue(ParameterKey.SUBSCRIPTION_EMAIL_DEFAULT_SENDER.getKey());
-
-        SubscriptionEntity subscriptionEntity = execution.getTriggeredSubscription().getSubscription();
-        SubscriptionOutput subscriptionOutput = subscriptionEntity.getOutput();
-        SubscriptionEmailConfiguration emailConfiguration = subscriptionOutput.getEmailConfiguration();
-
-        EmailBodyEntity emailBodyEntity = subscriptionDAO.findEmailBodyEntity(subscriptionEntity.getId());
-        List<String> receivers = subscriptionOutput.getEmails();
-        String connectId = execution.getTriggeredSubscription()
-                .getData().stream()
-                .filter(tsd -> KEY_CONNECT_ID.equals(tsd.getKey()))
-                .map(TriggeredSubscriptionDataEntity::getValue)
-                .findFirst().orElseThrow(() -> new EmailException("Not found connect id to fetch attachments from activity"));
-
-        List<EmailAttachment> emailAttachmentList = null;
-        if (Boolean.TRUE.equals(emailConfiguration.getHasAttachments())) {
-            Date endDate = new Date();
-            ZonedDateTime startDate = subscriptionOutput.getQueryPeriod() != null ? convertDateToZonedDateTime(subscriptionOutput.getQueryPeriod().getStartDate()) :
-                    DateTimeUtil.convertDateToZonedDateTime(endDate).minus(subscriptionOutput.getHistory(), subscriptionOutput.getHistoryUnit().getTemporalUnit());
-            // if null default true
-            boolean consolidated = !Boolean.FALSE.equals(subscriptionOutput.getConsolidated());
-            emailAttachmentList = attachmentsFacade.findAttachmentsForGuidAndQueryPeriod(connectId, Date.from(startDate.toInstant()), endDate, emailConfiguration.getIsPdf(), emailConfiguration.getIsXml(), consolidated);
-        }
-        // build mail
-        emailSender.buildAndSend(subject, sender, emailBodyEntity.getBody(), emailAttachmentList, emailConfiguration.getPassword(), receivers);
+        emailSender.send(subject, sender, data.getBody(), data.getMimeType(), data.getReceivers(), data.isZipAttachments(), data.getPassword(), data.getEmailAttachmentList());
     }
 
     @Override
     public String findEmailTemplateBodyValue() {
         return findDefaultParamValue(ParameterKey.SUBSCRIPTION_EMAIL_DEFAULT_BODY.getKey());
+    }
+
+    @Override
+    public EmailBodyEntity findEmailBodyEntity(SubscriptionEntity subscription) {
+        return subscriptionDAO.findEmailBodyEntity(subscription.getId());
     }
 
     private String findDefaultParamValue(String key) {

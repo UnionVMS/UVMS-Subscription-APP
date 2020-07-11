@@ -28,7 +28,7 @@ public class SubscriptionEmailConfigurationDto {
 
     private Boolean isPdf;
 
-    private Boolean hasAttachments;
+    private Boolean zipAttachments;
 
     private String password;
 
