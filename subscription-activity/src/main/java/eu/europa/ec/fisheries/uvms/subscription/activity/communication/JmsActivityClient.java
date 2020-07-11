@@ -14,8 +14,12 @@ import javax.inject.Inject;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
 
+import java.text.MessageFormat;
+
 import eu.europa.ec.fisheries.uvms.activity.model.exception.ActivityModelMarshallException;
 import eu.europa.ec.fisheries.uvms.activity.model.mapper.JAXBMarshaller;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityFault;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityModuleMethod;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityModuleRequest;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionConsumerBean;
@@ -58,17 +62,28 @@ public class JmsActivityClient implements ActivityClient {
     public <T> T sendRequest(ActivityModuleRequest request, Class<T> responseClass) {
         try {
             String correlationId = subscriptionProducer.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request), activityQueue, subscriptionConsumerBean.getDestination());
-            return createResponse(correlationId,responseClass);
+            return createResponse(correlationId, responseClass, request.getMethod());
         } catch (MessageException | ActivityModelMarshallException e) {
             throw new ExecutionException(e);
         }
     }
 
-    private <T> T createResponse(String correlationId,Class<T> responseClass) throws MessageException, ActivityModelMarshallException {
+    private <T> T createResponse(String correlationId, Class<T> responseClass, ActivityModuleMethod requestMethod) throws MessageException, ActivityModelMarshallException {
         T response = null;
         if(correlationId != null) {
             TextMessage textMessage = subscriptionConsumerBean.getMessage(correlationId, TextMessage.class);
-            response = JAXBMarshaller.unmarshallTextMessage(textMessage, responseClass);
+            try {
+                response = JAXBMarshaller.unmarshallTextMessage(textMessage, responseClass);
+            } catch (ActivityModelMarshallException me1) {
+                try {
+                    // We may not be able to unmarshal to the wanted object, because activity returned us a fault:
+                    ActivityFault activityFault = JAXBMarshaller.unmarshallTextMessage(textMessage, ActivityFault.class);
+                    throw new ActivityFaultException(activityFault.getCode(), activityFault.getFault(), MessageFormat.format("error invoking {0}: {1} - {2}", requestMethod, activityFault.getCode(), activityFault.getFault()));
+                } catch (ActivityModelMarshallException me2) {
+                    // Genuine ActivityModelMarshallException, throwing the original:
+                    throw me1;
+                }
+            }
         }
         return response;
     }
