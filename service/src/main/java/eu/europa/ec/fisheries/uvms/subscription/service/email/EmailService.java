@@ -11,11 +11,11 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.email;
 
-import eu.europa.ec.fisheries.uvms.config.exception.ConfigServiceException;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
-import eu.europa.fisheries.uvms.subscription.model.exceptions.EmailException;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 
 public interface EmailService {
-	void prepareAndSendEmail(SubscriptionExecutionEntity execution);
+	void send(EmailData data);
 	String findEmailTemplateBodyValue();
+	EmailBodyEntity findEmailBodyEntity(SubscriptionEntity subscription);
 }

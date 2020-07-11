@@ -12,8 +12,8 @@ package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.List;
 
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.AttachmentResponseObject;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
+import eu.europa.ec.fisheries.uvms.subscription.service.email.EmailAttachment;
 
 /**
  * Service for sending messages to Activity.
@@ -54,16 +54,24 @@ public interface ActivitySender {
 				String dataflow);
 
 	/**
-	 * Sends request to activity module for attachments
-	 * @param guid
-	 * @param startDate
-	 * @param endDate
-	 * @param pdf
-	 * @param xml
-	 * @return
+	 * Sends request to activity module for attachments.
+	 *
+	 * @param guid         The asset history GUID (connect id)
+	 * @param startDate    The start date
+	 * @param endDate      The end date
+	 * @param logbook      The logbook flag
+	 * @param pdf          The pdf flag
+	 * @param xml          The xml flag
+	 * @param consolidated The consolidated flag
+	 * @return The attachments
 	 */
-	List<AttachmentResponseObject> createAndSendRequestForAttachments(String guid,
-																	  XMLGregorianCalendar startDate,
-																	  XMLGregorianCalendar endDate,
-																	  boolean pdf,boolean xml);
+	List<EmailAttachment> createAndSendRequestForAttachments(
+			String guid,
+			XMLGregorianCalendar startDate,
+			XMLGregorianCalendar endDate,
+			boolean logbook,
+			boolean pdf,
+			boolean xml,
+			boolean consolidated
+	);
 }

@@ -48,11 +48,4 @@ public interface DateTimeService {
 	 * @return The system current time in milliseconds
 	 */
 	long currentTimeMillis();
-
-	/**
-	 * Converts a Date object to XMLGregorianCalendar object
-	 * @param date The date object to be converted
-	 * @return The converted result
-	 */
-	XMLGregorianCalendar toXMLGregorianCalendar(Date date);
 }

@@ -13,16 +13,20 @@ package eu.europa.ec.fisheries.uvms.subscription.service.email;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @AllArgsConstructor
-public class EmailBody {
-    String body;
-    String mimeType; // "text/plain" default
-    List<EmailAttachment> emailAttachmentList;
-    String password; // compress protection password
+public class EmailData {
+    private String body;
+    private String mimeType; // "text/plain" default
+    private List<String> receivers;
+    private boolean zipAttachments;
+    private String password; // compress protection password
+    private List<EmailAttachment> emailAttachmentList;
 }

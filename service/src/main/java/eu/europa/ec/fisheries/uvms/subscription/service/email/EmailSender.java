@@ -15,18 +15,23 @@ import eu.europa.fisheries.uvms.subscription.model.exceptions.EmailException;
 
 import java.util.List;
 
+/**
+ * Email sending service, abstracting the underlying API.
+ */
 public interface EmailSender {
 
     /**
-     * Builds the mail and sends it
+     * Builds the mail and sends it using the configured API.
      *
      * @param subject        The email subject
      * @param sender         The email sender
      * @param body           The email text body
-     * @param attachmentList The attachment list, to be compressed
-     * @param password       The password to be used as protection on attachments
+     * @param mimeType       The mime type of the body
      * @param receivers      The list of receivers (list of emails)
+     * @param zipAttachments Whether to zip attachments
+     * @param password       The password to be used as protection on attachments
+     * @param attachmentList The attachment list, to be compressed
      * @throws EmailException The exception thrown if building or sending not completed
      */
-    void buildAndSend(String subject, String sender, String body, List<EmailAttachment> attachmentList, String password, List<String> receivers) throws EmailException;
+    void send(String subject, String sender, String body, String mimeType, List<String> receivers, boolean zipAttachments, String password, List<EmailAttachment> attachmentList);
 }

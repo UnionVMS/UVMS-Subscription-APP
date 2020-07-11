@@ -18,7 +18,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -115,13 +114,13 @@ public class SubscriptionTestHelper {
     public static SubscriptionDto createSubscriptionDtoWithEmailConfig(Long id, String name, Boolean active, OutgoingMessageType messageType, Boolean hasEmail,
                                                         Long organisationId, Long endpointId, Long channelId, Boolean consolidated, Integer history, SubscriptionTimeUnit historyUnit,
                                                         Boolean logbook, TriggerType triggerType, Integer frequency, SubscriptionTimeUnit frequencyUnit, String timeExpression,
-                                                        Date startDate, Date endDate, String body, Boolean isPdf, Boolean hasAttachments, String password, Boolean passwordIsPlaceholder, Boolean isXml ) {
+                                                        Date startDate, Date endDate, String body, Boolean isPdf, Boolean zipAttachments, String password, Boolean passwordIsPlaceholder, Boolean isXml ) {
         SubscriptionDto dto = createSubscriptionDto(id, name,active, messageType, hasEmail, organisationId, endpointId, channelId, consolidated, history, historyUnit, logbook, triggerType, frequency, frequencyUnit, timeExpression,startDate, endDate);
         if(hasEmail != null && hasEmail) {
             SubscriptionEmailConfigurationDto emailConfiguration = new SubscriptionEmailConfigurationDto();
             emailConfiguration.setBody(body);
             emailConfiguration.setIsPdf(isPdf);
-            emailConfiguration.setHasAttachments(hasAttachments);
+            emailConfiguration.setZipAttachments(zipAttachments);
             emailConfiguration.setPassword(password);
             emailConfiguration.setIsXml(isXml);
             emailConfiguration.setPasswordIsPlaceholder(passwordIsPlaceholder);
@@ -136,7 +135,7 @@ public class SubscriptionTestHelper {
                                                                        Long organisationId, Long endpointId, Long channelId, Boolean consolidated,
                                                                        Integer history, SubscriptionTimeUnit historyUnit, Date queryStartDate, Date queryEndDate,
                                                                        Boolean logbook, Integer frequency, SubscriptionTimeUnit frequencyUnit, String timeExpression, Date startDate, Date endDate,
-                                                                       String body, Boolean isPdf, Boolean hasAttachments, String password, Boolean passwordIsPlaceholder, Boolean isXml ) {
+                                                                       String body, Boolean isPdf, Boolean zipAttachments, String password, Boolean passwordIsPlaceholder, Boolean isXml ) {
 
         SubscriptionDto dto = createManualSubscriptionDto(id, name,active, messageType, hasEmail, organisationId, endpointId, channelId, consolidated, history, historyUnit, queryStartDate, queryEndDate, logbook, frequency, frequencyUnit, timeExpression,startDate, endDate);
 
@@ -144,7 +143,7 @@ public class SubscriptionTestHelper {
             SubscriptionEmailConfigurationDto emailConfiguration = new SubscriptionEmailConfigurationDto();
             emailConfiguration.setBody(body);
             emailConfiguration.setIsPdf(isPdf);
-            emailConfiguration.setHasAttachments(hasAttachments);
+            emailConfiguration.setZipAttachments(zipAttachments);
             emailConfiguration.setPassword(password);
             emailConfiguration.setIsXml(isXml);
             emailConfiguration.setPasswordIsPlaceholder(passwordIsPlaceholder);

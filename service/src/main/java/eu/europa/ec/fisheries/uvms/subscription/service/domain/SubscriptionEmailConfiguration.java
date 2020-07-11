@@ -26,8 +26,8 @@ public class SubscriptionEmailConfiguration implements Serializable {
     @Column(name = "is_pdf")
     private Boolean isPdf;
 
-    @Column(name = "has_attachments")
-    private Boolean hasAttachments;
+    @Column(name = "zip_attachments")
+    private Boolean zipAttachments;
 
     @Column(name = "password", updatable = false)
     private String password;

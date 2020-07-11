@@ -368,10 +368,13 @@
         </createIndex>
     </changeSet>
 
-
     <changeSet id="UNIONVMS-4597-stop-activities" author="gmanifavas">
         <addColumn tableName="subscription">
             <column name="has_stop_activities" type="BOOLEAN" />
         </addColumn>
+    </changeSet>
+
+    <changeSet id="UNIONVMS-4617-rename-zip-attachements" author="nikospara">
+        <renameColumn tableName="subscription" oldColumnName="has_attachments" newColumnName="zip_attachments" />
     </changeSet>
 </databaseChangeLog>
