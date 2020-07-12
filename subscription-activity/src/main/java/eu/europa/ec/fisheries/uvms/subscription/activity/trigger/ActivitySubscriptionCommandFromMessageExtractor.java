@@ -9,6 +9,9 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.activity.trigger;
 
+import static eu.europa.ec.fisheries.uvms.subscription.activity.ActivityConstants.KEY_REPORT_ID_PREFIX;
+import static eu.europa.ec.fisheries.uvms.subscription.activity.ActivityConstants.KEY_TRIP_ID_PREFIX;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
@@ -69,6 +72,7 @@ import lombok.extern.slf4j.Slf4j;
 import un.unece.uncefact.data.standard.reusableaggregatebusinessinformationentity._20.DelimitedPeriod;
 import un.unece.uncefact.data.standard.reusableaggregatebusinessinformationentity._20.FishingActivity;
 import un.unece.uncefact.data.standard.unqualifieddatatype._20.DateTimeType;
+import un.unece.uncefact.data.standard.unqualifieddatatype._20.IDType;
 
 /**
  * Implementation of {@link SubscriptionCommandFromMessageExtractor} for activity messages.
@@ -77,9 +81,9 @@ import un.unece.uncefact.data.standard.unqualifieddatatype._20.DateTimeType;
 @ApplicationScoped
 public class ActivitySubscriptionCommandFromMessageExtractor implements SubscriptionCommandFromMessageExtractor {
 
-	private static final String KEY_REPORT_ID_PREFIX = "reportId_";
 	private static final String SOURCE = "activity";
 	private static final Predicate<TriggeredSubscriptionDataEntity> BY_KEY_REPORT_ID_PREFIX = d -> d.getKey().startsWith(KEY_REPORT_ID_PREFIX);
+	private static final Predicate<TriggeredSubscriptionDataEntity> BY_KEY_TRIP_ID_PREFIX = d -> d.getKey().startsWith(KEY_TRIP_ID_PREFIX);
 
 	private SubscriptionFinder subscriptionFinder;
 	private DatatypeFactory datatypeFactory;
@@ -287,6 +291,14 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 		long nextIndex = triggeredSubscriptionData.stream().filter(BY_KEY_REPORT_ID_PREFIX).count();
 		Optional.ofNullable(reportAndSubscription.getReportContext().getFluxFaReportMessageIds()).map(List::stream).flatMap(Stream::findFirst)
 				.ifPresent(faReportMessageId -> triggeredSubscriptionData.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_REPORT_ID_PREFIX + nextIndex, faReportMessageId.getSchemeId() + ':' + faReportMessageId.getId())));
+		Set<String> tripIds = triggeredSubscriptionData.stream().filter(BY_KEY_TRIP_ID_PREFIX).map(TriggeredSubscriptionDataEntity::getValue).collect(Collectors.toSet());
+		reportAndSubscription.getReportContext().getFishingActivity().getSpecifiedFishingTrip().getIDS().stream()
+				.filter(id -> "EU_TRIP_ID".equals(id.getSchemeID()))
+				.findFirst()
+				.map(IDType::getValue)
+				.map(id -> "EU_TRIP_ID:" + id)
+				.filter(id -> !tripIds.contains(id))
+				.ifPresent(id -> triggeredSubscriptionData.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_TRIP_ID_PREFIX + tripIds.size(), id)));
 	}
 
 	private Command makeTriggerSubscriptionCommand(TriggeredSubscriptionAndRequestContext context) {
@@ -298,6 +310,11 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 		triggeredSubscriptionCandidate.getData().stream()
 				.filter(BY_KEY_REPORT_ID_PREFIX)
 				.map(data -> new TriggeredSubscriptionDataEntity(existingTriggeredSubscription, KEY_REPORT_ID_PREFIX + indexes.nextInt(), data.getValue()))
+				.forEach(existingTriggeredSubscription.getData()::add);
+		Sequence tripIndexes = new Sequence((int) existingTriggeredSubscription.getData().stream().filter(BY_KEY_TRIP_ID_PREFIX).count());
+		triggeredSubscriptionCandidate.getData().stream()
+				.filter(BY_KEY_TRIP_ID_PREFIX)
+				.map(data -> new TriggeredSubscriptionDataEntity(existingTriggeredSubscription, KEY_TRIP_ID_PREFIX + tripIndexes.nextInt(), data.getValue()))
 				.forEach(existingTriggeredSubscription.getData()::add);
 		return true;
 	}

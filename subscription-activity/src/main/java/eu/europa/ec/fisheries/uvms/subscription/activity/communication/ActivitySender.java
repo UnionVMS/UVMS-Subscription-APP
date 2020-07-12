@@ -74,4 +74,38 @@ public interface ActivitySender {
 			boolean xml,
 			boolean consolidated
 	);
+
+	/**
+	 * Requests Activities to forward a report and/or create email attachments for the given incoming report ids.
+	 * This is essentially report forwarding, for the {@code logbook=false} case.
+	 *
+	 * @param executionId  The id of the {@code SubscriptionExecutionEntity}, needed to correlate the response
+	 * @param newReportIds Instruct Activities to generate new ids for the reports
+	 * @param receiver     The FLUX receiver, {@code null} to avoid sending an FA Report
+	 * @param dataflow     The FLUX dataflow, {@code null} to avoid sending an FA Report
+	 * @param consolidated The consolidated flag
+	 * @param reportIds    The individual report ids to forward and/or generate email
+	 * @param hasEmail     Instruct Activities to generate the email attachments
+	 * @param assetGuid    The Asset GUID
+	 * @param pdf          Instruct Activities to generate the PDF attachments
+	 * @param xml          Instruct Activities to generate the XML (FA Report) attachments
+	 */
+	void forwardMultipleFaReports(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, List<String> reportIds, boolean hasEmail, String assetGuid, boolean pdf, boolean xml);
+
+	/**
+	 * Requests Activities to forward complete logbooks and/or create email attachments for the given trip ids.
+	 * This is essentially report generation, for the {@code logbook=true} case.
+	 *
+	 * @param executionId  The id of the {@code SubscriptionExecutionEntity}, needed to correlate the response
+	 * @param newReportIds Instruct Activities to generate new ids for the reports
+	 * @param receiver     The FLUX receiver, {@code null} to avoid sending an FA Report
+	 * @param dataflow     The FLUX dataflow, {@code null} to avoid sending an FA Report
+	 * @param consolidated The consolidated flag
+	 * @param tripIds      The trip ids for which to generate output
+	 * @param hasEmail     Instruct Activities to generate the email attachments
+	 * @param assetGuid    The Asset GUID
+	 * @param pdf          Instruct Activities to generate the PDF attachments
+	 * @param xml          Instruct Activities to generate the XML (FA Report) attachments
+	 */
+	void forwardFaReportWithLogbook(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, List<String> tripIds, boolean hasEmail, String assetGuid, boolean pdf, boolean xml);
 }

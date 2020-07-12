@@ -24,6 +24,7 @@ import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityModuleRequest;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionConsumerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionQueue;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.ExecutionException;
 
 /**
@@ -35,19 +36,21 @@ public class JmsActivityClient implements ActivityClient {
     private SubscriptionProducerBean subscriptionProducer;
     private SubscriptionConsumerBean subscriptionConsumerBean;
     private Queue activityQueue;
+    private Queue subscriptionQueue;
 
     /**
      * Injection constructor.
-     *
-     * @param subscriptionProducer
+     *  @param subscriptionProducer
      * @param subscriptionConsumerBean
      * @param activityQueue
+     * @param subscriptionQueue
      */
     @Inject
-    public JmsActivityClient(SubscriptionProducerBean subscriptionProducer, SubscriptionConsumerBean subscriptionConsumerBean, @ActivityQueue Queue activityQueue) {
+    public JmsActivityClient(SubscriptionProducerBean subscriptionProducer, SubscriptionConsumerBean subscriptionConsumerBean, @ActivityQueue Queue activityQueue, @SubscriptionQueue Queue subscriptionQueue) {
         this.subscriptionProducer = subscriptionProducer;
         this.subscriptionConsumerBean = subscriptionConsumerBean;
         this.activityQueue = activityQueue;
+        this.subscriptionQueue = subscriptionQueue;
     }
 
     /**
@@ -86,5 +89,14 @@ public class JmsActivityClient implements ActivityClient {
             }
         }
         return response;
+    }
+
+    @Override
+    public void sendAsyncRequest(ActivityModuleRequest request) {
+        try {
+            subscriptionProducer.sendMessageToSpecificQueueSameTx(JAXBMarshaller.marshallJaxBObjectToString(request), activityQueue, subscriptionQueue);
+        } catch (MessageException | ActivityModelMarshallException e) {
+            throw new ExecutionException(e);
+        }
     }
 }

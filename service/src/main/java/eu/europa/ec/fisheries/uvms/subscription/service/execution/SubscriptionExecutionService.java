@@ -56,4 +56,12 @@ public interface SubscriptionExecutionService {
 	 * @param triggeredSubscription The triggered subscription
 	 */
 	void stopPendingExecutions(TriggeredSubscriptionEntity triggeredSubscription);
+
+	/**
+	 * Find an execution by id.
+	 *
+	 * @param id The id
+	 * @return The execution
+	 */
+	SubscriptionExecutionEntity findById(Long id);
 }

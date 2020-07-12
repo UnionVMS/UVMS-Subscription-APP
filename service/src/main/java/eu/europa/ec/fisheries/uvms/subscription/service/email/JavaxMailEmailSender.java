@@ -154,7 +154,7 @@ class JavaxMailEmailSender implements EmailSender {
     }
 
     private String makeFileName(EmailAttachment attachment) {
-        return attachment.getTripId() + '.' + attachment.getType().toLowerCase();
+        return attachment.getTripId().replace(':', '_') + '.' + attachment.getType().toLowerCase();
     }
 
     private ZipOutputStream makeZipOutputStream(ByteArrayOutputStream baos, String password) throws IOException {

@@ -135,4 +135,9 @@ class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 	public void stopPendingExecutions(TriggeredSubscriptionEntity triggeredSubscription) {
 		dao.findByTriggeredSubscriptionAndStatus(triggeredSubscription, PENDING).forEach(execution -> execution.setStatus(STOPPED));
 	}
+
+	@Override
+	public SubscriptionExecutionEntity findById(Long id) {
+		return dao.findById(id);
+	}
 }

@@ -259,4 +259,13 @@ public class SubscriptionExecutionServiceImplTest {
 		sut.stopPendingExecutions(triggeredSubscription);
 		assertEquals(STOPPED, execution.getStatus());
 	}
+
+	@Test
+	void testFindById() {
+		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
+		when(dao.findById(EXECUTION_ID)).thenReturn(execution);
+		SubscriptionExecutionEntity result = sut.findById(EXECUTION_ID);
+		assertSame(execution, result);
+		verify(dao).findById(EXECUTION_ID);
+	}
 }

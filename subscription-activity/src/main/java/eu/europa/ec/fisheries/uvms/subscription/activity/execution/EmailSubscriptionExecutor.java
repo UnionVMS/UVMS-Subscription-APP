@@ -25,8 +25,10 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSen
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.SubscriptionDateTimeService;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
+import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Vetoed;
 import javax.inject.Inject;
 import javax.xml.datatype.DatatypeFactory;
 import java.time.ZonedDateTime;
@@ -40,7 +42,7 @@ import java.util.Objects;
 /**
  * Implementation of {@link SubscriptionExecutor} for sending emails.
  */
-@ApplicationScoped
+@Vetoed
 public class EmailSubscriptionExecutor implements SubscriptionExecutor {
 
     private EmailService emailService;
@@ -70,7 +72,7 @@ public class EmailSubscriptionExecutor implements SubscriptionExecutor {
     public void execute(SubscriptionExecutionEntity execution) {
         TriggeredSubscriptionEntity triggeredSubscription = execution.getTriggeredSubscription();
         SubscriptionEntity subscription = triggeredSubscription.getSubscription();
-        if (TRUE.equals(subscription.getOutput().getHasEmail())) {
+        if (TRUE.equals(subscription.getOutput().getHasEmail()) && subscription.getOutput().getMessageType() != OutgoingMessageType.FA_REPORT) {
             EmailData emailData = new EmailData();
             emailData.setBody(emailService.findEmailBodyEntity(subscription).getBody());
             emailData.setMimeType("text/plain");

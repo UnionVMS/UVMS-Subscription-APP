@@ -24,4 +24,12 @@ public interface ActivityClient {
      * @return The activity module response
      */
     <T> T sendRequest(ActivityModuleRequest request, Class<T> responseClass);
+
+    /**
+     * Send a request for which the response will be sent to our normal incoming queue asynchronously.
+     * The request is sent in the same transaction as the caller.
+     *
+     * @param request The activity module request
+     */
+    void sendAsyncRequest(ActivityModuleRequest request);
 }
