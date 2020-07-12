@@ -18,6 +18,7 @@
                 <xsd:restriction base="xsd:string">
                     <xsd:enumeration value="MODULE_ACCESS_PERMISSION_REQUEST"/>
                     <xsd:enumeration value="DATA_CHANGE_REQUEST"/>
+                    <xsd:enumeration value="ACTIVITY_REPORT_GENERATION_RESULTS_REQUEST"/>
                     <xsd:enumeration value="PING"/>
                 </xsd:restriction>
             </xsd:simpleType>
@@ -86,6 +87,36 @@
                     <xsd:enumeration value="VIEW_SUBSCRIPTION" />
                     <xsd:enumeration value="MANAGE_SUBSCRIPTION"/>
                     <xsd:enumeration value="SUBSCRIPTIONS_ALLOWED"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+
+            <xsd:element name="ActivityReportGenerationResultsRequest">
+                <xsd:complexType>
+                    <xsd:complexContent>
+                        <xsd:extension base="v:SubscriptionBaseRequest">
+                            <xsd:sequence>
+                                <xsd:element name="executionId" type="xsd:long" />
+                                <xsd:element name="messageId" type="xsd:string" minOccurs="0" />
+                                <xsd:element name="assetGuid" type="xsd:string" />
+                                <xsd:element name="attachments" type="v:AttachmentResponseObject" minOccurs="0" maxOccurs="unbounded" />
+                            </xsd:sequence>
+                        </xsd:extension>
+                    </xsd:complexContent>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:complexType name="AttachmentResponseObject">
+                <xsd:sequence>
+                    <xsd:element name="tripId" type="xsd:string"/>
+                    <xsd:element name="type" type="v:AttachmentType"/>
+                    <xsd:element name="content" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:simpleType name="AttachmentType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="PDF"/>
+                    <xsd:enumeration value="XML"/>
                 </xsd:restriction>
             </xsd:simpleType>
 

@@ -26,12 +26,14 @@ import static eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils.unMarsh
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionService;
+import eu.europa.ec.fisheries.wsdl.subscription.module.ActivityReportGenerationResultsRequest;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionBaseRequest;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataRequest;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
+import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.jms.Destination;
 import javax.jms.JMSException;
@@ -55,6 +57,9 @@ public class SubscriptionMessageConsumerBean implements MessageListener {
     @Inject
     private SubscriptionService subscriptionService;
 
+    @Inject
+    private Event<ActivityReportGenerationResultsRequest> activityReportGenerationResultsRequestEvent;
+
     @Override
     public void onMessage(Message message) {
         TextMessage textMessage;
@@ -73,7 +78,7 @@ public class SubscriptionMessageConsumerBean implements MessageListener {
                     break;
                 case MODULE_ACCESS_PERMISSION_REQUEST :
                     log.info("[START] Received MODULE_ACCESS_PERMISSION_REQUEST..");
-                    SubscriptionDataRequest request = unMarshallMessage(textMessage.getText(), SubscriptionDataRequest.class);
+                    SubscriptionDataRequest request = (SubscriptionDataRequest) moduleRequest;
                     SubscriptionPermissionResponse dataRequestAllowed = subscriptionService.hasActiveSubscriptions(request.getQuery());
                     log.info("[INFO] Checked permissions... Going to send back : " + dataRequestAllowed.getSubscriptionCheck());
                     String messageToSend = marshallJaxBObjectToString(dataRequestAllowed);
@@ -82,6 +87,9 @@ public class SubscriptionMessageConsumerBean implements MessageListener {
                     break;
                 case DATA_CHANGE_REQUEST :
                     log.error("DATA_CHANGE_REQUEST not implemented yet!");
+                    break;
+                case ACTIVITY_REPORT_GENERATION_RESULTS_REQUEST:
+                    activityReportGenerationResultsRequestEvent.fire((ActivityReportGenerationResultsRequest) moduleRequest);
                     break;
                 default:
                     subscriptionProducer.sendMessageWithSpecificIds("[ Not implemented method consumed: {} ]", jmsReplyTo, null, jmsMessageID, jmsCorrelationID );

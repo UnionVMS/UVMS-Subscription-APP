@@ -35,7 +35,6 @@ import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ActivitySender;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.ReceiverAndDataflow;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmSender;
-import eu.europa.ec.fisheries.uvms.subscription.service.dao.TriggeredSubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecution;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
@@ -74,9 +73,6 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 	private static final String OCCURRENCE = "2017-03-04T17:39:00Z";
 	private static final Date START_DATE = Date.from(LocalDateTime.of(2020, 6, 11, 12, 1,2).atZone(ZoneId.of("UTC")).toInstant());
 	private static final Date END_DATE = Date.from(LocalDateTime.of(2020, 6, 21, 13, 3,4).atZone(ZoneId.of("UTC")).toInstant());
-
-	@Produces @Mock
-	private TriggeredSubscriptionDao triggeredSubscriptionDao;
 
 	@Produces @Mock
 	private ActivitySender activitySender;
@@ -186,7 +182,6 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 		triggeredSubscription.setSubscription(subscription);
 		triggeredSubscription.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription, "connectId", CONNECT_ID));
 		triggeredSubscription.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription, "occurrence", OCCURRENCE));
-		lenient().when(triggeredSubscriptionDao.getById(TRIGGERED_SUBSCRIPTION_ID)).thenReturn(triggeredSubscription);
 		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
 		execution.setTriggeredSubscription(triggeredSubscription);
 		execution.setStatus(QUEUED);
