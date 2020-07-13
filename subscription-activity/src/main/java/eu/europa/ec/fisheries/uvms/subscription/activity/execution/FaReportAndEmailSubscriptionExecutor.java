@@ -116,7 +116,7 @@ public class FaReportAndEmailSubscriptionExecutor implements SubscriptionExecuto
 		emailData.setBody(emailService.findEmailBodyEntity(subscription).getBody());
 		emailData.setMimeType("text/plain");
 		emailData.setReceivers(subscription.getOutput().getEmails());
-		emailData.setZipAttachments(subscription.getOutput().getEmailConfiguration().getZipAttachments());
+		emailData.setZipAttachments(TRUE.equals(subscription.getOutput().getEmailConfiguration().getZipAttachments()));
 		emailData.setPassword(new String(Base64.getDecoder().decode(subscription.getOutput().getEmailConfiguration().getPassword())));
 		emailData.setEmailAttachmentList(request.getAttachments().stream().map(this::toEmailAttachment).collect(Collectors.toList()));
 		emailService.send(emailData);
