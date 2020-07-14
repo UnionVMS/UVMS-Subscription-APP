@@ -338,6 +338,21 @@ public class SubscriptionServiceBeanTest {
 	}
 
 	@Test
+	void testCreateWithInvalidArgumentsAndMessageTypePOSITION() {
+		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDto(SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.POSITION, false,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
+		assertThrows(ConstraintViolationException.class, () -> sut.create(dto));
+	}
+
+	@Test
+	void testCreateWithValidArgumentsAndMessageTypePOSITION() {
+		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDto(SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.POSITION, false,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, TriggerType.INC_POSITION, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
+		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+		assertDoesNotThrow(() -> sut.create(dto));
+	}
+
+	@Test
 	void testCreateWithValidArgumentsAndMessageTypeFA_REPORT() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_REPORT, false,
 				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
