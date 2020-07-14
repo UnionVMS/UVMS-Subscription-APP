@@ -9,6 +9,8 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
+import java.time.ZonedDateTime;
+
 /**
  * Service that handles incoming messages.
  */
@@ -18,7 +20,8 @@ public interface IncomingDataMessageService {
 	 *
 	 * @param subscriptionSource The source of this message (movement, activity etc)
 	 * @param representation The representation of this message, to be passed to an appropriate {@link SubscriptionCommandFromMessageExtractor}
+	 * @param receptionDateTime The reception date time, used for stop conditions
 	 * @param senderInformation The sender information
 	 */
-	void handle(String subscriptionSource, String representation, SenderInformation senderInformation);
+	void handle(String subscriptionSource, String representation, SenderInformation senderInformation, ZonedDateTime receptionDateTime);
 }

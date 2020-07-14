@@ -52,6 +52,9 @@ public class TriggeredSubscriptionEntity {
 	@Column(name = "creation_date")
 	private Date creationDate;
 
+	/**
+	 * Date used to calculate the deadline stop condition.
+	 */
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "effective_from")
 	private Date effectiveFrom;

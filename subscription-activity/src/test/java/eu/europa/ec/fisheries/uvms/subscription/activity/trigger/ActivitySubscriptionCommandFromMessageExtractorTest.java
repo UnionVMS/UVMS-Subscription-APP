@@ -30,8 +30,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -70,6 +70,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ActivitySubscriptionCommandFromMessageExtractorTest {
 
     private static final Date NOW = new Date();
+    private static final ZonedDateTime RECEPTION_DT = ZonedDateTime.parse("2020-07-14T12:33:44Z", DateTimeFormatter.ISO_ZONED_DATE_TIME);
 
     @Produces
     @Mock
@@ -125,7 +126,7 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
 
     @Test
     void testJAXBExceptionResultsInApplicationException() {
-        assertThrows(MessageFormatException.class, () -> sut.extractCommands("bad",null));
+        assertThrows(MessageFormatException.class, () -> sut.extractCommands("bad",null, RECEPTION_DT));
     }
 
     @Test
@@ -152,7 +153,7 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
         dateTimeService.setNow(NOW);
         SubscriptionSearchCriteria.SenderCriterion senderCriterion = new SubscriptionSearchCriteria.SenderCriterion(1L, 2L, 3L);
 
-        List<Command> commands = sut.extractCommands(representation, senderCriterion).collect(Collectors.toList());
+        List<Command> commands = sut.extractCommands(representation, senderCriterion, RECEPTION_DT).collect(Collectors.toList());
         assertEquals(6, commands.size());
 
         ArgumentCaptor<TriggeredSubscriptionEntity> triggeredSubscriptionCaptor = ArgumentCaptor.forClass(TriggeredSubscriptionEntity.class);
@@ -166,13 +167,13 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
         assertNotNull(triggeredSubscription1.getCreationDate());
         assertEquals(TriggeredSubscriptionStatus.ACTIVE, triggeredSubscription1.getStatus());
         assertEquals(NOW, triggeredSubscription1.getCreationDate());
-        assertEquals(Date.from(LocalDateTime.of(2020,4,8,11,22, 32).toInstant(ZoneOffset.UTC)), triggeredSubscription1.getEffectiveFrom());
+        assertEquals(Date.from(RECEPTION_DT.toInstant()), triggeredSubscription1.getEffectiveFrom());
         TriggeredSubscriptionEntity triggeredSubscription2 = triggeredSubscriptionCaptor.getAllValues().get(1);
         assertSame(subscription, triggeredSubscription2.getSubscription());
         assertNotNull(triggeredSubscription2.getCreationDate());
         assertEquals(TriggeredSubscriptionStatus.ACTIVE, triggeredSubscription2.getStatus());
         assertEquals(NOW, triggeredSubscription2.getCreationDate());
-        assertEquals(Date.from(LocalDateTime.of(2015,2,1,9, 0).toInstant(ZoneOffset.UTC)), triggeredSubscription2.getEffectiveFrom());
+        assertEquals(Date.from(RECEPTION_DT.toInstant()), triggeredSubscription2.getEffectiveFrom());
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Collection<AreaCriterion>> areasCaptor = ArgumentCaptor.forClass(Collection.class);
         @SuppressWarnings("unchecked")
@@ -261,7 +262,7 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
         dateTimeService.setNow(NOW);
         SubscriptionSearchCriteria.SenderCriterion senderCriterion = new SubscriptionSearchCriteria.SenderCriterion(1L, 2L, 3L);
 
-        List<Command> commands = sut.extractCommands(representation, senderCriterion).collect(Collectors.toList());
+        List<Command> commands = sut.extractCommands(representation, senderCriterion, RECEPTION_DT).collect(Collectors.toList());
 
         assertEquals(5, commands.size());
         ArgumentCaptor<TriggeredSubscriptionEntity> triggeredSubscriptionCaptor = ArgumentCaptor.forClass(TriggeredSubscriptionEntity.class);
@@ -275,7 +276,7 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
         assertNotNull(triggeredSubscription1.getCreationDate());
         assertEquals(TriggeredSubscriptionStatus.ACTIVE, triggeredSubscription1.getStatus());
         assertEquals(NOW, triggeredSubscription1.getCreationDate());
-        assertEquals(Date.from(LocalDateTime.of(2020,4,8,11,22, 32).toInstant(ZoneOffset.UTC)), triggeredSubscription1.getEffectiveFrom());
+        assertEquals(Date.from(RECEPTION_DT.toInstant()), triggeredSubscription1.getEffectiveFrom());
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Collection<AreaCriterion>> areasCaptor = ArgumentCaptor.forClass(Collection.class);
         @SuppressWarnings("unchecked")
@@ -346,7 +347,7 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
         dateTimeService.setNow(NOW);
         SubscriptionSearchCriteria.SenderCriterion senderCriterion = new SubscriptionSearchCriteria.SenderCriterion(1L, 2L, 3L);
 
-        List<Command> commands = sut.extractCommands(representation, senderCriterion).collect(Collectors.toList());
+        List<Command> commands = sut.extractCommands(representation, senderCriterion, RECEPTION_DT).collect(Collectors.toList());
 
         assertEquals(4, commands.size()); //4 commands for finding subscriptions by stop criteria
 
@@ -407,7 +408,7 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
 
     private void verifyEmptyStreamForResource(String resourceName) {
         String representation = readResource(resourceName);
-        long size = sut.extractCommands(representation,null).count();
+        long size = sut.extractCommands(representation,null, RECEPTION_DT).count();
         assertEquals(0, size);
         verifyNoInteractions(subscriptionFinder);
     }

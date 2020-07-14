@@ -9,6 +9,7 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
+import java.time.ZonedDateTime;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -36,9 +37,10 @@ public interface SubscriptionCommandFromMessageExtractor {
 	 *
 	 * @param representation The representation of the message as string, as it arrived in the messaging facilities
 	 * @param senderCriterion The sender information, as it arrived in the messaging facilities
+	 * @param receptionDateTime The reception date time, used for stop conditions
 	 * @return A possibly empty but never null stream of commands to execute in order to process this message
 	 */
-	Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion);
+	Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion, ZonedDateTime receptionDateTime);
 
 	/**
 	 * Return a function that can extract the {@link TriggeredSubscriptionDataEntity} that are important for

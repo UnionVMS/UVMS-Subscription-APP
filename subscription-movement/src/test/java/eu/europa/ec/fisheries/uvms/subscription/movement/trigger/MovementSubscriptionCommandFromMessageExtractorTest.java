@@ -9,7 +9,6 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.movement.trigger;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -31,6 +30,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -69,6 +70,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class MovementSubscriptionCommandFromMessageExtractorTest {
 
 	private static final Date NOW = new Date();
+	private static final ZonedDateTime RECEPTION_DT = ZonedDateTime.parse("2020-07-14T12:33:44Z", DateTimeFormatter.ISO_ZONED_DATE_TIME);
 
 	@Produces @Mock
 	private SubscriptionFinder subscriptionFinder;
@@ -123,7 +125,7 @@ public class MovementSubscriptionCommandFromMessageExtractorTest {
 
 	@Test
 	void testJAXBExceptionResultsInApplicationException() {
-		assertThrows(MessageFormatException.class, () -> sut.extractCommands("bad",null));
+		assertThrows(MessageFormatException.class, () -> sut.extractCommands("bad",null, RECEPTION_DT));
 	}
 
 	@Test
@@ -139,7 +141,7 @@ public class MovementSubscriptionCommandFromMessageExtractorTest {
 	@Test
 	void testNoPositionTime() {
 		String representation = readResource("CreateMovementBatchResponse-OK-null-position-time.xml");
-		List<Command> commands = sut.extractCommands(representation,null).collect(Collectors.toList());
+		List<Command> commands = sut.extractCommands(representation,null, RECEPTION_DT).collect(Collectors.toList());
 
 		assertEquals(1, commands.size());
 		ArgumentCaptor<StopConditionCriteria> stopConditionCriteriaArgumentCaptor = ArgumentCaptor.forClass(StopConditionCriteria.class);
@@ -153,7 +155,7 @@ public class MovementSubscriptionCommandFromMessageExtractorTest {
 
 	private void verifyEmptyStreamForResource(String resourceName) {
 		String representation = readResource(resourceName);
-		long size = sut.extractCommands(representation,null).count();
+		long size = sut.extractCommands(representation,null, RECEPTION_DT).count();
 		assertEquals(0, size);
 		verifyNoInteractions(subscriptionFinder);
 	}
@@ -171,7 +173,7 @@ public class MovementSubscriptionCommandFromMessageExtractorTest {
 		dateTimeService.setNow(NOW);
 		SenderCriterion senderCriterion = new SenderCriterion(1L, 2L, 3L);
 
-		List<Command> commands = sut.extractCommands(representation, senderCriterion).collect(Collectors.toList());
+		List<Command> commands = sut.extractCommands(representation, senderCriterion, RECEPTION_DT).collect(Collectors.toList());
 
 		assertEquals(2, commands.size());
 		ArgumentCaptor<TriggeredSubscriptionEntity> triggeredSubscriptionCaptor = ArgumentCaptor.forClass(TriggeredSubscriptionEntity.class);
@@ -185,7 +187,7 @@ public class MovementSubscriptionCommandFromMessageExtractorTest {
 		assertNotNull(triggeredSubscription.getCreationDate());
 		assertEquals(TriggeredSubscriptionStatus.ACTIVE, triggeredSubscription.getStatus());
 		assertEquals(NOW, triggeredSubscription.getCreationDate());
-		assertEquals(Date.from(LocalDateTime.of(2017,3,4,17,39).toInstant(ZoneOffset.UTC)), triggeredSubscription.getEffectiveFrom());
+		assertEquals(Date.from(RECEPTION_DT.toInstant()), triggeredSubscription.getEffectiveFrom());
 		@SuppressWarnings("unchecked")
 		ArgumentCaptor<Collection<AreaCriterion>> areasCaptor = ArgumentCaptor.forClass(Collection.class);
 		@SuppressWarnings("unchecked")
