@@ -108,4 +108,22 @@ public interface ActivitySender {
 	 * @param xml          Instruct Activities to generate the XML (FA Report) attachments
 	 */
 	void forwardFaReportWithLogbook(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, List<String> tripIds, boolean hasEmail, String assetGuid, boolean pdf, boolean xml);
+
+	/**
+	 * Requests Activities to forward a report and/or create email attachments for the given incoming movement.
+	 *
+	 * @param executionId  The id of the {@code SubscriptionExecutionEntity}, needed to correlate the response
+	 * @param newReportIds Instruct Activities to generate new ids for the reports
+	 * @param receiver     The FLUX receiver, {@code null} to avoid sending an FA Report
+	 * @param dataflow     The FLUX dataflow, {@code null} to avoid sending an FA Report
+	 * @param consolidated The consolidated flag
+	 * @param logbook The logbook flag
+	 * @param startDate The starting date of the period in which reports will be searched
+	 * @param endDate The ending  date of the period in which reports will be searched
+	 * @param assetHistGuid The Asset History GUID
+	 * @param hasEmail Instruct Activities to generate the email attachments
+	 * @param pdf Instruct Activities to generate the PDF attachments
+	 * @param xml Instruct Activities to generate the XML (FA Report) attachments
+	 */
+	void forwardFaReportFromPosition(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, boolean logbook, XMLGregorianCalendar startDate, XMLGregorianCalendar endDate, String assetGuid, String assetHistGuid, boolean hasEmail, boolean pdf, boolean xml);
 }

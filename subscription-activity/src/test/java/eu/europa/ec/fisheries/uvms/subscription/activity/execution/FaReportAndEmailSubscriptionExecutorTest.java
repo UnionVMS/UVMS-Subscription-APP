@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import javax.xml.datatype.DatatypeFactory;
 
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ActivitySender;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
@@ -49,6 +50,9 @@ public class FaReportAndEmailSubscriptionExecutorTest {
 
 	@Produces @Mock
 	private EmailService emailService;
+
+	@Produces @Mock
+	private DatatypeFactory datatypeFactory;
 
 	@Inject
 	private FaReportAndEmailSubscriptionExecutor sut;

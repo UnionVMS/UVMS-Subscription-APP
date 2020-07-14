@@ -12,7 +12,6 @@ package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.xml.datatype.XMLGregorianCalendar;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +25,7 @@ import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryRe
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.EmailConfigForReportGeneration;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.FluxReportIdentifier;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardFAReportBaseRequest;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardFAReportFromPositionRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardFAReportWithLogbookRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardMultipleFAReportsRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.GetAttachmentsForGuidAndQueryPeriod;
@@ -121,6 +121,18 @@ class ActivitySenderImpl implements ActivitySender {
 		request.setMethod(ActivityModuleMethod.FORWARD_FA_REPORT_WITH_LOGBOOK);
 		setForwardFAReportBaseRequestCommonFields(request, executionId, newReportIds, receiver, dataflow, consolidated, hasEmail, assetGuid, pdf, xml);
 		request.setTripIds(tripIds);
+		activityClient.sendAsyncRequest(request);
+	}
+
+	@Override
+	public void forwardFaReportFromPosition(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, boolean logbook, XMLGregorianCalendar startDate, XMLGregorianCalendar endDate, String assetGuid, String assetHistGuid,boolean hasEmail, boolean pdf, boolean xml) {
+		ForwardFAReportFromPositionRequest request = new ForwardFAReportFromPositionRequest();
+		request.setMethod(ActivityModuleMethod.FORWARD_FA_REPORT_FROM_POSITION);
+		setForwardFAReportBaseRequestCommonFields(request, executionId, newReportIds, receiver, dataflow, consolidated, hasEmail, assetGuid, pdf, xml);
+		request.setLogbook(logbook);
+		request.setStartDate(startDate);
+		request.setEndDate(endDate);
+		request.setAssetHistoryGuid(assetHistGuid);
 		activityClient.sendAsyncRequest(request);
 	}
 
