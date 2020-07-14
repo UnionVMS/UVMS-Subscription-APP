@@ -133,11 +133,11 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 	}
 
 	@Override
-	public Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion) {
+	public Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion, ZonedDateTime receptionDateTime) {
 		Map<String, Map<Long, TriggeredSubscriptionEntity>> assetHistoryGuidToTriggeringsMap = new HashMap<>();
 		return Stream.of(unmarshal(representation))
 				.flatMap(this::extractReportsFromRequest)
-				.flatMap(makeCommandsForReport(assetHistoryGuidToTriggeringsMap, senderCriterion));
+				.flatMap(makeCommandsForReport(assetHistoryGuidToTriggeringsMap, senderCriterion, receptionDateTime));
 	}
 
 	private ForwardReportToSubscriptionRequest unmarshal(String representation) {
@@ -183,11 +183,11 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 		return true;
 	}
 
-	private Function<ReportContext, Stream<Command>> makeCommandsForReport(Map<String, Map<Long, TriggeredSubscriptionEntity>> assetHistoryGuidToTriggeringsMap, SenderCriterion senderCriterion) {
+	private Function<ReportContext, Stream<Command>> makeCommandsForReport(Map<String, Map<Long, TriggeredSubscriptionEntity>> assetHistoryGuidToTriggeringsMap, SenderCriterion senderCriterion, ZonedDateTime receptionDateTime) {
 		return reportContext -> Stream.concat(
 				Stream.of(reportContext)
 						.flatMap(r -> findTriggeredSubscriptions(r, senderCriterion))
-						.flatMap(makeTriggeredSubscriptionEntity(assetHistoryGuidToTriggeringsMap))
+						.flatMap(makeTriggeredSubscriptionEntity(assetHistoryGuidToTriggeringsMap, receptionDateTime))
 						.map(this::makeTriggerSubscriptionCommand),
 				Stream.of(reportContext)
 						.flatMap(this::makeStopConditionCriteria)
@@ -235,12 +235,12 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 							.collect(Collectors.toList());
 	}
 
-	private Function<ReportAndSubscription, Stream<TriggeredSubscriptionAndRequestContext>> makeTriggeredSubscriptionEntity(Map<String, Map<Long, TriggeredSubscriptionEntity>> assetHistoryGuidToTriggeringsMap) {
+	private Function<ReportAndSubscription, Stream<TriggeredSubscriptionAndRequestContext>> makeTriggeredSubscriptionEntity(Map<String, Map<Long, TriggeredSubscriptionEntity>> assetHistoryGuidToTriggeringsMap, ZonedDateTime receptionDateTime) {
 		return reportAndSubscription -> {
 			TriggeredSubscriptionEntity result;
 			Map<Long, TriggeredSubscriptionEntity> triggerings = assetHistoryGuidToTriggeringsMap.get(reportAndSubscription.getReportContext().getAssetHistGuid());
 			if (triggerings == null) {
-				result = createNewTriggeredSubscriptionEntity(reportAndSubscription);
+				result = createNewTriggeredSubscriptionEntity(reportAndSubscription, receptionDateTime);
 				triggerings = new HashMap<>();
 				triggerings.put(reportAndSubscription.getSubscription().getId(), result);
 				assetHistoryGuidToTriggeringsMap.put(reportAndSubscription.getReportContext().getAssetHistGuid(), triggerings);
@@ -248,7 +248,7 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 			} else {
 				result = triggerings.get(reportAndSubscription.getSubscription().getId());
 				if (result == null) {
-					result = createNewTriggeredSubscriptionEntity(reportAndSubscription);
+					result = createNewTriggeredSubscriptionEntity(reportAndSubscription, receptionDateTime);
 					triggerings.put(reportAndSubscription.getSubscription().getId(), result);
 					return Stream.of(new TriggeredSubscriptionAndRequestContext(reportAndSubscription.getReportContext().getUnmarshalledMessage(), result));
 				} else {
@@ -259,14 +259,14 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 		};
 	}
 
-	private TriggeredSubscriptionEntity createNewTriggeredSubscriptionEntity(ReportAndSubscription reportAndSubscription) {
+	private TriggeredSubscriptionEntity createNewTriggeredSubscriptionEntity(ReportAndSubscription reportAndSubscription, ZonedDateTime receptionDateTime) {
 		TriggeredSubscriptionEntity result;
 		result = new TriggeredSubscriptionEntity();
 		result.setSubscription(reportAndSubscription.getSubscription());
 		result.setSource(SOURCE);
 		result.setCreationDate(dateTimeService.getNowAsDate());
 		result.setStatus(TriggeredSubscriptionStatus.ACTIVE);
-		result.setEffectiveFrom(reportAndSubscription.getReportContext().getOccurrenceDate());
+		result.setEffectiveFrom(Date.from(receptionDateTime.toInstant()));
 		makeTriggeredSubscriptionData(result, reportAndSubscription);
 		return result;
 	}

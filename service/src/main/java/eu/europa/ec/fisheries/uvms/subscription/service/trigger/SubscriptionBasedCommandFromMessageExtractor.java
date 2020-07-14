@@ -13,7 +13,9 @@ import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscri
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.time.ZonedDateTime;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
@@ -83,7 +85,7 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
     }
 
     @Override
-    public Stream<Command> extractCommands(String representation, SenderCriterion ignoredSenderCriterion) {
+    public Stream<Command> extractCommands(String representation, SenderCriterion ignoredSenderCriterion, ZonedDateTime receptionDateTime) {
         AssetPageRetrievalMessage assetPageRetrievalMessage = AssetPageRetrievalMessage.decodeMessage(representation);
         SubscriptionEntity subscription = subscriptionFinder.findSubscriptionById(assetPageRetrievalMessage.getSubscriptionId());
 
@@ -93,28 +95,30 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
         Stream<Command> nextPageCommandStream = assets.size() == assetPageRetrievalMessage.getPageSize() ?
                 Stream.of(createAssetMessageCommandForNextPage(assetPageRetrievalMessage)) : Stream.empty();
 
-        return Stream.concat(nextPageCommandStream, makeCommandsForSubscription(subscription, assets));
+        return Stream.concat(nextPageCommandStream, makeCommandsForSubscription(subscription, assets, receptionDateTime));
     }
 
-    private Stream<Command> makeCommandsForSubscription(SubscriptionEntity subscription, List<AssetEntity> assets) {
+    private Stream<Command> makeCommandsForSubscription(SubscriptionEntity subscription, List<AssetEntity> assets, ZonedDateTime receptionDateTime) {
         List<AssetAndSubscriptionData> assetAndSubscriptionData = assets.stream()
                 .distinct()
                 .map(makeAssetAndSubscriptionDataMapper(subscription))
                 .collect(Collectors.toList());
         return areaFilterComponent.filterAssetsBySubscriptionAreas(assetAndSubscriptionData)
-                .map(this::makeTriggeredSubscriptionEntity)
+                .map(makeTriggeredSubscriptionEntity(receptionDateTime))
                 .map(this::makeCommandForSubscription);
     }
 
-    private TriggeredSubscriptionEntity makeTriggeredSubscriptionEntity(AssetAndSubscriptionData assetAndSubscriptionData) {
-        TriggeredSubscriptionEntity result = new TriggeredSubscriptionEntity();
-        result.setSubscription(assetAndSubscriptionData.getSubscription());
-        result.setSource(getEligibleSubscriptionSource());
-        result.setCreationDate(dateTimeService.getNowAsDate());
-        result.setEffectiveFrom(dateTimeService.getNowAsDate());
-        result.setStatus(ACTIVE);
-        result.setData(makeTriggeredSubscriptionData(result, assetAndSubscriptionData));
-        return result;
+    private Function<AssetAndSubscriptionData,TriggeredSubscriptionEntity> makeTriggeredSubscriptionEntity(ZonedDateTime receptionDateTime) {
+        return assetAndSubscriptionData -> {
+            TriggeredSubscriptionEntity result = new TriggeredSubscriptionEntity();
+            result.setSubscription(assetAndSubscriptionData.getSubscription());
+            result.setSource(getEligibleSubscriptionSource());
+            result.setCreationDate(dateTimeService.getNowAsDate());
+            result.setEffectiveFrom(Date.from(receptionDateTime.toInstant()));
+            result.setStatus(ACTIVE);
+            result.setData(makeTriggeredSubscriptionData(result, assetAndSubscriptionData));
+            return result;
+        };
     }
 
     private Set<TriggeredSubscriptionDataEntity> makeTriggeredSubscriptionData(TriggeredSubscriptionEntity triggeredSubscription, AssetAndSubscriptionData data) {

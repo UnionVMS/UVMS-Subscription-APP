@@ -21,6 +21,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -118,13 +119,13 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	}
 
 	@Override
-	public Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion) {
+	public Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion, ZonedDateTime receptionDateTime) {
 		Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap = new HashMap<>();
 		return Stream.of(unmarshal(representation))
 				.filter(message -> message.getResponse() == SimpleResponse.OK)
 				.flatMap(message -> message.getMovements().stream())
 				.filter(m -> !m.isDuplicate())
-				.flatMap(t -> makeCommandsForMovement(t, senderCriterion, movementGuidToTriggeringsMap));
+				.flatMap(t -> makeCommandsForMovement(t, senderCriterion, movementGuidToTriggeringsMap, receptionDateTime));
 	}
 
 	private CreateMovementBatchResponse unmarshal(String representation) {
@@ -135,10 +136,10 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		}
 	}
 
-	private Stream<Command> makeCommandsForMovement(MovementType movement, SenderCriterion senderCriterion, Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap) {
+	private Stream<Command> makeCommandsForMovement(MovementType movement, SenderCriterion senderCriterion, Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap, ZonedDateTime receptionDateTime) {
 		return Stream.concat(
 				findTriggeredSubscriptions(movement, senderCriterion)
-						.map(movementAndSubscription -> makeTriggeredSubscriptionEntity(movementAndSubscription, movementGuidToTriggeringsMap))
+						.map(movementAndSubscription -> makeTriggeredSubscriptionEntity(movementAndSubscription, movementGuidToTriggeringsMap, receptionDateTime))
 						.map(this::makeTriggerSubscriptionCommand),
 				Stream.of(movement)
 						.map(this::makeStopConditionCriteria)
@@ -166,18 +167,18 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 				.map(area -> new AreaCriterion(AreaType.fromValue(area.getAreaType()), Long.valueOf(area.getRemoteId())));
 	}
 
-	private TriggeredSubscriptionEntity makeTriggeredSubscriptionEntity(MovementAndSubscription input, Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap) {
+	private TriggeredSubscriptionEntity makeTriggeredSubscriptionEntity(MovementAndSubscription input, Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap, ZonedDateTime receptionDateTime) {
 		TriggeredSubscriptionEntity result;
 		Map<Long, TriggeredSubscriptionEntity> triggerings = movementGuidToTriggeringsMap.get(input.getMovement().getGuid());
 		if (triggerings == null) {
-			result = createNewTriggeredSubscriptionEntity(input);
+			result = createNewTriggeredSubscriptionEntity(input, receptionDateTime);
 			triggerings = new HashMap<>();
 			triggerings.put(input.getSubscription().getId(), result);
 			movementGuidToTriggeringsMap.put(input.getMovement().getGuid(), triggerings);
 		} else {
 			result = triggerings.get(input.getSubscription().getId());
 			if (result == null) {
-				result = createNewTriggeredSubscriptionEntity(input);
+				result = createNewTriggeredSubscriptionEntity(input, receptionDateTime);
 				triggerings.put(input.getSubscription().getId(), result);
 			} else {
 				addMovementGuidToTriggeredSubscriptionData(input, result.getData(), result);
@@ -186,13 +187,13 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		return result;
 	}
 
-	private TriggeredSubscriptionEntity createNewTriggeredSubscriptionEntity(MovementAndSubscription input) {
+	private TriggeredSubscriptionEntity createNewTriggeredSubscriptionEntity(MovementAndSubscription input, ZonedDateTime receptionDateTime) {
 		TriggeredSubscriptionEntity result = new TriggeredSubscriptionEntity();
 		result.setSubscription(input.getSubscription());
 		result.setSource(SOURCE);
 		result.setCreationDate(dateTimeService.getNowAsDate());
 		result.setStatus(ACTIVE);
-		result.setEffectiveFrom(input.getMovement().getPositionTime());
+		result.setEffectiveFrom(Date.from(receptionDateTime.toInstant()));
 		makeTriggeredSubscriptionData(result, input);
 		return result;
 	}

@@ -13,6 +13,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -63,11 +64,11 @@ class IncomingDataMessageServiceImpl implements IncomingDataMessageService {
 	}
 
 	@Override
-	public void handle(String subscriptionSource, String representation, SenderInformation senderInformation) {
+	public void handle(String subscriptionSource, String representation, SenderInformation senderInformation, ZonedDateTime receptionDateTime) {
 		SubscriptionCommandFromMessageExtractor extractor = Optional.ofNullable(extractors.get(subscriptionSource))
 				.orElseThrow(() -> new IllegalStateException("unknown subscription source: " + subscriptionSource));
 		SenderCriterion senderCriterion = extractSenderCriterion(senderInformation);
-		extractor.extractCommands(representation, senderCriterion).forEach(Command::execute);
+		extractor.extractCommands(representation, senderCriterion, receptionDateTime).forEach(Command::execute);
 	}
 
 	private SenderCriterion extractSenderCriterion(SenderInformation senderInformation) {

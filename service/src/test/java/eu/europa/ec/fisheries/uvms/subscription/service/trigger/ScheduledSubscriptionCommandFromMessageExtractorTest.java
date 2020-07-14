@@ -15,7 +15,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -27,7 +26,9 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.xml.datatype.DatatypeFactory;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
@@ -75,6 +76,7 @@ class ScheduledSubscriptionCommandFromMessageExtractorTest {
 
     private static final String SOURCE = "scheduled";
     private static final LocalDateTime NOW = LocalDateTime.now();
+    private static final ZonedDateTime NOWZDT = NOW.atZone(ZoneId.of("UTC"));
 
     @Produces
     @Mock
@@ -133,7 +135,7 @@ class ScheduledSubscriptionCommandFromMessageExtractorTest {
         when(triggerCommandsFactory.createAssetPageRetrievalCommand(any())).thenReturn(assetPageRetrievalCommand);
         //skip area filtering
         when(areaFilterComponent.filterAssetsBySubscriptionAreas(ArgumentMatchers.any())).thenAnswer(i-> ((List<?>) i.getArguments()[0]).stream());
-        Stream<Command> result = sut.extractCommands(AssetPageRetrievalMessage.encodeMessage(receivedMessageFromQueue), null);
+        Stream<Command> result = sut.extractCommands(AssetPageRetrievalMessage.encodeMessage(receivedMessageFromQueue), null, NOWZDT);
 
         assertNotNull(result);
         assertEquals(3, result.count());
@@ -181,7 +183,7 @@ class ScheduledSubscriptionCommandFromMessageExtractorTest {
         when(assetSender.findAssetIdentifiersByAssetGroupGuid(assetGroupName, dateTimeService.getNowAsDate(), pageNumber, pageSize)).thenReturn(groupAssets);
         //skip area filtering
         when(areaFilterComponent.filterAssetsBySubscriptionAreas(ArgumentMatchers.any())).thenAnswer(i-> ((List<?>) i.getArguments()[0]).stream());
-        Stream<Command> result = sut.extractCommands(encodedMessageFromQueue, null);
+        Stream<Command> result = sut.extractCommands(encodedMessageFromQueue, null, NOWZDT);
 
         assertNotNull(result);
         assertEquals(4, result.count());
@@ -280,7 +282,7 @@ class ScheduledSubscriptionCommandFromMessageExtractorTest {
     }
 
     private List<VesselIdentifiersWithConnectIdHolder> makeAssetsWithStaticData() {
-        return Arrays.asList(makeAssetWithStaticData(1L, "Sea Pearl", "guid-1"), makeAssetWithStaticData(2L, "Titanic", "guid-2"), makeAssetWithStaticData(3L, "King George", "guid-3")).stream()
+        return Stream.of(makeAssetWithStaticData(1L, "Sea Pearl", "guid-1"), makeAssetWithStaticData(2L, "Titanic", "guid-2"), makeAssetWithStaticData(3L, "King George", "guid-3"))
                 .map(a -> {
                     VesselIdentifiersWithConnectIdHolder holder = new VesselIdentifiersWithConnectIdHolder();
                     holder.setConnectId(a.getGuid());

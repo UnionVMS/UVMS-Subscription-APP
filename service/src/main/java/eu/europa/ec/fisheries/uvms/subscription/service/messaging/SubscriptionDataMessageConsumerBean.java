@@ -19,6 +19,7 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
 
+import java.time.ZoneId;
 import java.util.Optional;
 
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageConstants;
@@ -28,6 +29,7 @@ import eu.europa.ec.fisheries.uvms.commons.message.context.FluxEnvelopePropagate
 import eu.europa.ec.fisheries.uvms.commons.message.context.PropagateFluxEnvelopeData;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.IncomingDataMessageService;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SenderInformation;
+import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.ApplicationException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,6 +55,9 @@ public class SubscriptionDataMessageConsumerBean implements MessageListener {
 	@Inject
 	private FluxEnvelopeHolder fluxEnvelopeHolder;
 
+	@Inject
+	private DateTimeService dateTimeService;
+
 	@Override
 	@PropagateFluxEnvelopeData
 	public void onMessage(Message message) {
@@ -65,10 +70,14 @@ public class SubscriptionDataMessageConsumerBean implements MessageListener {
 			jmsMessageID = message.getJMSMessageID();
 			String subscriptionSource = message.getStringProperty(MessageConstants.JMS_SUBSCRIPTION_SOURCE_PROPERTY);
 			Optional<FluxEnvelopePropagatedData> fluxEnvelopeData = Optional.ofNullable(fluxEnvelopeHolder.get());
-			incomingDataMessageService.handle(subscriptionSource, ((TextMessage) message).getText(), SenderInformation.fromProperties(
-					fluxEnvelopeData.map(FluxEnvelopePropagatedData::getDataflow).orElse(null),
-					fluxEnvelopeData.map(FluxEnvelopePropagatedData::getSenderOrReceiver).orElse(null)
-			));
+			incomingDataMessageService.handle(
+					subscriptionSource,
+					((TextMessage) message).getText(), SenderInformation.fromProperties(
+						fluxEnvelopeData.map(FluxEnvelopePropagatedData::getDataflow).orElse(null),
+						fluxEnvelopeData.map(FluxEnvelopePropagatedData::getSenderOrReceiver).orElse(null)
+					),
+					fluxEnvelopeData.map(FluxEnvelopePropagatedData::getReceptionDateTime).orElseGet(() -> dateTimeService.getNow().atZone(ZoneId.of("UTC")))
+			);
 		} catch (JMSException e) {
 			log.error("error while handling subscriptions data message", e);
 			throw new RuntimeException(e);
