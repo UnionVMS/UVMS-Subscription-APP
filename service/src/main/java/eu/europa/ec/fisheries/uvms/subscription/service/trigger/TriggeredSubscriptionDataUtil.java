@@ -13,6 +13,7 @@ public class TriggeredSubscriptionDataUtil {
 	public static final String KEY_CONNECT_ID = "connectId";
 	public static final String KEY_OCCURRENCE = "occurrence";
 	public static final String KEY_MOVEMENT_GUID_PREFIX = "movementGuidIndex_";
+	public static final String KEY_REPORT_ID_PREFIX = "reportId_";
 
 	/**
 	 * Extract only the {@code connectId} data.

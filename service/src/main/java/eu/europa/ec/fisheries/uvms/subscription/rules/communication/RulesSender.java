@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.Map;
 
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 
 /**
  * Service for sending messages to Rules module.
@@ -22,10 +23,11 @@ public interface RulesSender {
 	/**
 	 * Send message to Rule to create an alarm report.
 	 *
+	 * @param triggerType  The trigger type of the {@code SubscriptionExecution}
 	 * @param subscriptionName  The name of the {@code SubscriptionEntity}
 	 * @param openDate The rule open date
 	 * @param vesselIdentifiers The vessel ids, including the asset guid
 	 * @param dataMap The dataMap of {@code TriggeredSubscriptionEntity}, needed to extract required information
 	 */
-	void createAlarmReportAsync(String subscriptionName, Date openDate, VesselIdentifiersHolder vesselIdentifiers, Map<String,String> dataMap);
+	void createNotificationsAsync(TriggerType triggerType, String subscriptionName, Date openDate, VesselIdentifiersHolder vesselIdentifiers, Map<String,String> dataMap);
 }
