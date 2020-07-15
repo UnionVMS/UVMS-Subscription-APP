@@ -23,6 +23,8 @@ import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryFo
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryForVesselRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.CreateAndSendFAQueryResponse;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.EmailConfigForReportGeneration;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.FindMovementGuidsByReportIdsAndAssetGuidRequest;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.FindMovementGuidsByReportIdsAndAssetGuidResponse;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.FluxReportIdentifier;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardFAReportBaseRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardFAReportFromPositionRequest;
@@ -135,6 +137,19 @@ class ActivitySenderImpl implements ActivitySender {
 		request.setEndDate(endDate);
 		request.setAssetHistoryGuid(assetHistGuid);
 		activityClient.sendAsyncRequest(request);
+	}
+
+	@Override
+	public List<String> findMovementGuidsByReportIdsAndAssetGuid(List<String> reportIds,String assetGuid) {
+		FindMovementGuidsByReportIdsAndAssetGuidRequest request = new FindMovementGuidsByReportIdsAndAssetGuidRequest();
+		request.setMethod(ActivityModuleMethod.FIND_MOVEMENT_GUIDS_BY_REPORT_IDS_AND_ASSET_GUID);
+		request.setReportIds(reportIds);
+		request.setAssetGuid(assetGuid);
+		FindMovementGuidsByReportIdsAndAssetGuidResponse response = activityClient.sendRequest(request, FindMovementGuidsByReportIdsAndAssetGuidResponse.class);
+		if(response == null){
+			return Collections.emptyList();
+		}
+		return response.getMovementGuids();
 	}
 
 	private void setForwardFAReportBaseRequestCommonFields(ForwardFAReportBaseRequest request, long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, boolean hasEmail, String assetGuid, boolean pdf, boolean xml, List<VesselIdentifierSchemeIdEnum> vesselIdentifiers) {

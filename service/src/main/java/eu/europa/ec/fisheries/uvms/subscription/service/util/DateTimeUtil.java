@@ -12,6 +12,9 @@ copy of the GNU General Public License along with the IFDM Suite. If not, see <h
 package eu.europa.ec.fisheries.uvms.subscription.service.util;
 
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -28,5 +31,26 @@ public class DateTimeUtil {
         GregorianCalendar calendarStartDate = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         calendarStartDate.setTime(date);
         return calendarStartDate.toZonedDateTime();
+    }
+
+    public static XMLGregorianCalendar convertDateToXMLGregorianCalendar(Date d) {
+        if (d == null) {
+            return null;
+        }
+        GregorianCalendar c = new GregorianCalendar();
+        c.setTime(d);
+        XMLGregorianCalendar xmlDate;
+        try {
+            xmlDate = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+        } catch (DatatypeConfigurationException e) {
+            xmlDate = null;
+        }
+        return xmlDate;
+    }
+
+    public static Date convertXMLGregorianCalendarToDate(XMLGregorianCalendar x) {
+        if (x == null)
+            return null;
+        return x.toGregorianCalendar().getTime();
     }
 }

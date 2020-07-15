@@ -127,4 +127,12 @@ public interface ActivitySender {
 	 * @param xml Instruct Activities to generate the XML (FA Report) attachments
 	 */
 	void forwardFaReportFromPosition(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, boolean logbook, XMLGregorianCalendar startDate, XMLGregorianCalendar endDate, String assetGuid, String assetHistGuid, boolean hasEmail, boolean pdf, boolean xml, List<VesselIdentifierSchemeIdEnum> vesselIdentifiers);
+
+	/**
+	 * Asks activity module to map given report id list with its associated occurrence date
+	 * @param reportIds The report id list
+	 * @param assetGuid Asset guid
+	 * @return List of movement guids
+	 */
+	List<String> findMovementGuidsByReportIdsAndAssetGuid(List<String> reportIds,String assetGuid);
 }

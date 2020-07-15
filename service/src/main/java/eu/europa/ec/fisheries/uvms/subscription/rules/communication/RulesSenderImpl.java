@@ -10,23 +10,20 @@
 package eu.europa.ec.fisheries.uvms.subscription.rules.communication;
 
 import static eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil.KEY_MOVEMENT_GUID_PREFIX;
+import static eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil.KEY_REPORT_ID_PREFIX;
 
-import eu.europa.ec.fisheries.schema.rules.alarm.v1.AlarmItemType;
-import eu.europa.ec.fisheries.schema.rules.alarm.v1.AlarmReportType;
-import eu.europa.ec.fisheries.schema.rules.alarm.v1.AlarmStatusType;
-import eu.europa.ec.fisheries.schema.rules.asset.v1.AssetId;
-import eu.europa.ec.fisheries.schema.rules.asset.v1.AssetIdList;
-import eu.europa.ec.fisheries.schema.rules.asset.v1.AssetIdType;
-import eu.europa.ec.fisheries.schema.rules.asset.v1.AssetType;
-import eu.europa.ec.fisheries.schema.rules.module.v1.CreateAlarmsReportRequest;
+import eu.europa.ec.fisheries.schema.rules.module.v1.CreateTicketRequest;
 import eu.europa.ec.fisheries.schema.rules.module.v1.RulesModuleMethod;
-import eu.europa.ec.fisheries.schema.rules.movement.v1.RawMovementType;
-import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil;
+import eu.europa.ec.fisheries.schema.rules.ticket.v1.TicketStatusType;
+import eu.europa.ec.fisheries.schema.rules.ticket.v1.TicketType;
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionActivityService;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -41,9 +38,19 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 class RulesSenderImpl implements RulesSender {
 
+	private static final Logger LOG = LoggerFactory.getLogger(RulesSenderImpl.class);
 	private static final String FORMAT = "yyyy-MM-dd HH:mm:ss Z";
 
 	private RulesClient rulesClient;
+	private SubscriptionActivityService subscriptionActivityService;
+
+	/**
+	 * Constructor for frameworks.
+	 */
+	@SuppressWarnings("unused")
+	RulesSenderImpl(){
+		//NOOP
+	}
 
 	/**
 	 * Injection constructor
@@ -51,12 +58,37 @@ class RulesSenderImpl implements RulesSender {
 	 * @param rulesClient The low-level client to the services of the rules module
 	 */
 	@Inject
-	public RulesSenderImpl(RulesClient rulesClient) {
+	public RulesSenderImpl(RulesClient rulesClient,SubscriptionActivityService subscriptionActivityService) {
 		this.rulesClient = rulesClient;
+		this.subscriptionActivityService = subscriptionActivityService;
 	}
 
 	@Override
-	public void createAlarmReportAsync(String subscriptionName, Date openDate, VesselIdentifiersHolder vesselIdentifiers, Map<String,String> dataMap) {
+	public void createNotificationsAsync(TriggerType triggerType, String subscriptionName, Date openDate, VesselIdentifiersHolder vesselIdentifiers, Map<String,String> dataMap) {
+		List<TicketType> ticketTypes = null;
+		switch (triggerType){
+			case INC_POSITION:
+				ticketTypes = incPositionTicketTypes(subscriptionName,openDate,vesselIdentifiers,dataMap);
+				break;
+			case INC_FA_REPORT:
+				ticketTypes = faReportTicketTypes(subscriptionName,openDate,vesselIdentifiers,dataMap);
+				break;
+			case INC_FA_QUERY:
+			case SCHEDULER:
+			case MANUAL:
+			default:
+				break;
+		}
+		if(ticketTypes == null || ticketTypes.isEmpty()) {
+			return;
+		}
+		CreateTicketRequest createTicketRequest = new CreateTicketRequest();
+		createTicketRequest.getTickets().addAll(ticketTypes);
+		createTicketRequest.setMethod(RulesModuleMethod.CREATE_TICKETS_REQUEST);
+		rulesClient.sendAsyncRequest(createTicketRequest);
+	}
+
+	private static List<TicketType> incPositionTicketTypes(String subscriptionName, Date openDate, VesselIdentifiersHolder vesselIdentifiers, Map<String,String> dataMap){
 		List<String> movementIds = dataMap.entrySet().stream()
 				.filter(entry -> entry.getKey().startsWith(KEY_MOVEMENT_GUID_PREFIX))
 				.map(Map.Entry::getValue)
@@ -64,55 +96,39 @@ class RulesSenderImpl implements RulesSender {
 		if (movementIds.isEmpty()) {
 			movementIds.add(UUID.randomUUID().toString());
 		}
-
-		List<AlarmReportType> alarmReports = movementIds.stream()
-				.map(toAlarmReportType(subscriptionName, openDate, vesselIdentifiers, dataMap))
+		return movementIds.stream()
+				.map(toTicketType(subscriptionName, openDate, vesselIdentifiers, dataMap))
 				.collect(Collectors.toList());
-
-		CreateAlarmsReportRequest createAlarmReportRequest = new CreateAlarmsReportRequest();
-		createAlarmReportRequest.getAlarm().addAll(alarmReports);
-		createAlarmReportRequest.setMethod(RulesModuleMethod.CREATE_ALARMS_REPORT_REQUEST);
-		rulesClient.sendAsyncRequest(createAlarmReportRequest);
 	}
 
-	private Function<String, AlarmReportType> toAlarmReportType(String subscriptionName, Date openDate, VesselIdentifiersHolder vesselIdentifiers, Map<String,String> dataMap) {
+	private List<TicketType> faReportTicketTypes(String subscriptionName, Date openDate, VesselIdentifiersHolder vesselIdentifiers, Map<String,String> dataMap){
+		List<String> reportIds = dataMap.entrySet().stream()
+				.filter(entry -> entry.getKey().startsWith(KEY_REPORT_ID_PREFIX))
+				.map(Map.Entry::getValue)
+				.collect(Collectors.toList());
+		if(reportIds.isEmpty()) {
+			LOG.warn("Report Id list was empty,not creating TicketTypes");
+			return null;
+		}
+		/* find movement guid list */
+		List<String> movementGuids = subscriptionActivityService.findMovementGuidsByReportIdsAndAssetGuid(reportIds,vesselIdentifiers.getAssetGuid());
+		return movementGuids.stream()
+				.map(toTicketType(subscriptionName, openDate, vesselIdentifiers, dataMap))
+				.collect(Collectors.toList());
+	}
+
+	private static Function<String, TicketType> toTicketType(String subscriptionName, Date openDate, VesselIdentifiersHolder vesselIdentifiers, Map<String,String> dataMap) {
 		return moveGuid -> {
-			AssetId assetId = new AssetId();
-			assetId.setAssetType(AssetType.VESSEL);
-			addVesselIdIfNotNull(assetId, AssetIdType.CFR, vesselIdentifiers.getCfr());
-			addVesselIdIfNotNull(assetId, AssetIdType.IRCS, vesselIdentifiers.getIrcs());
-
-			RawMovementType rawMovement = new RawMovementType();
-			rawMovement.setAssetId(assetId);
-			rawMovement.setGuid(moveGuid);
-			rawMovement.setConnectId(dataMap.get(TriggeredSubscriptionDataUtil.KEY_CONNECT_ID));
-			rawMovement.setExternalMarking(vesselIdentifiers.getExtMark());
-
-			AlarmItemType alarmItem = new AlarmItemType();
-			alarmItem.setRuleName(subscriptionName);
-			alarmItem.setGuid(UUID.randomUUID().toString());
-
-			AlarmReportType alarmReport = new AlarmReportType();
-			alarmReport.setRawMovement(rawMovement);
-			alarmReport.setStatus(AlarmStatusType.OPEN);
-			if (openDate != null) {
-				DateFormat df = new SimpleDateFormat(FORMAT);
-				alarmReport.setOpenDate(df.format(openDate));
-			}
-			alarmReport.setUpdatedBy("UVMS");
-			alarmReport.setAssetGuid(vesselIdentifiers.getAssetGuid());
-			alarmReport.getAlarmItem().add(alarmItem);
-
-			return alarmReport;
+			TicketType ticketType = new TicketType();
+			ticketType.setAssetGuid(vesselIdentifiers.getAssetGuid());
+			ticketType.setOpenDate(new SimpleDateFormat(FORMAT).format(openDate));
+			ticketType.setRuleName(subscriptionName);
+			ticketType.setGuid(UUID.randomUUID().toString());
+			ticketType.setStatus(TicketStatusType.OPEN);
+			ticketType.setMovementGuid(moveGuid);
+			ticketType.setUpdatedBy("UVMS");
+			return ticketType;
 		};
 	}
 
-	private void addVesselIdIfNotNull(AssetId assetId, AssetIdType assetIdType, String value) {
-		if (value != null) {
-			AssetIdList assetIdList = new AssetIdList();
-			assetIdList.setIdType(assetIdType);
-			assetIdList.setValue(value);
-			assetId.getAssetIdList().add(assetIdList);
-		}
-	}
 }

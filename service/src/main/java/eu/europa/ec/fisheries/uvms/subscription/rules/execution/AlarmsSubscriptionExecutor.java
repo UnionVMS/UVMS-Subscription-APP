@@ -58,7 +58,7 @@ public class AlarmsSubscriptionExecutor implements SubscriptionExecutor {
             Objects.requireNonNull(connectId, "connectId not found in data of " + triggeredSubscription.getId());
             VesselIdentifiersHolder vesselIdentifiers = assetSender.findVesselIdentifiers(connectId);
             Objects.requireNonNull(vesselIdentifiers.getAssetGuid(), "asset GUID null for connectId " + connectId + " of " + triggeredSubscription.getId());
-            rulesSender.createAlarmReportAsync(subscription.getName(), triggeredSubscription.getEffectiveFrom(), vesselIdentifiers ,dataMap);
+            rulesSender.createNotificationsAsync(subscription.getExecution().getTriggerType(),subscription.getName(), triggeredSubscription.getEffectiveFrom(), vesselIdentifiers ,dataMap);
         }
     }
 }
