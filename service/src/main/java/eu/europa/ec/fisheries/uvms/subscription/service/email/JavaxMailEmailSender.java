@@ -119,14 +119,21 @@ class JavaxMailEmailSender implements EmailSender {
             try {
                 MimeBodyPart messageBodyPart = new MimeBodyPart();
                 String filename = makeFileName(attachment);
-                DataSource source = new Base64DataSource(filename, "application/" + attachment.getType().toLowerCase(), attachment.getContent());
-                messageBodyPart.setDataHandler(new DataHandler(source));
+                messageBodyPart.setContent(getContentFor(attachment), "application/" + attachment.getType().toLowerCase());
                 messageBodyPart.setFileName(filename);
                 multipart.addBodyPart(messageBodyPart);
             } catch (MessagingException e) {
                 throw new EmailException("Error attaching content", e);
             }
         });
+    }
+
+    private Object getContentFor(EmailAttachment attachment) {
+        if ("PDF".equalsIgnoreCase(attachment.getType())) {
+            return Base64.getDecoder().decode(attachment.getContent());
+        } else {
+            return attachment.getContent();
+        }
     }
 
     private void handleZippedAttachments(Multipart multipart, String password, List<EmailAttachment> attachmentList) {
@@ -143,6 +150,8 @@ class JavaxMailEmailSender implements EmailSender {
                 pipe(attachment, zos);
                 zos.closeEntry();
             }
+            zos.close();
+
             MimeBodyPart messageBodyPart = new MimeBodyPart();
             DataSource source = new ByteArrayDataSource(baos.toByteArray(), "application/zip");
             messageBodyPart.setDataHandler(new DataHandler(source));
