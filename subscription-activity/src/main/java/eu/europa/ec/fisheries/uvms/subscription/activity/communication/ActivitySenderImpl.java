@@ -32,6 +32,7 @@ import eu.europa.ec.fisheries.uvms.activity.model.schemas.GetAttachmentsForGuidA
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.GetAttachmentsForGuidAndQueryPeriodRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.GetAttachmentsForGuidAndQueryPeriodResponse;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.PluginType;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierSchemeIdEnum;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
 import eu.europa.ec.fisheries.uvms.subscription.service.email.EmailAttachment;
 
@@ -99,10 +100,10 @@ class ActivitySenderImpl implements ActivitySender {
 	}
 
 	@Override
-	public void forwardMultipleFaReports(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, List<String> reportIds, boolean hasEmail, String assetGuid, boolean pdf, boolean xml) {
+	public void forwardMultipleFaReports(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, List<String> reportIds, boolean hasEmail, String assetGuid, boolean pdf, boolean xml, List<VesselIdentifierSchemeIdEnum> vesselIdentifiers) {
 		ForwardMultipleFAReportsRequest request = new ForwardMultipleFAReportsRequest();
 		request.setMethod(ActivityModuleMethod.FORWARD_MULTIPLE_FA_REPORTS);
-		setForwardFAReportBaseRequestCommonFields(request, executionId, newReportIds, receiver, dataflow, consolidated, hasEmail, assetGuid, pdf, xml);
+		setForwardFAReportBaseRequestCommonFields(request, executionId, newReportIds, receiver, dataflow, consolidated, hasEmail, assetGuid, pdf, xml, vesselIdentifiers);
 		request.setReportIds(reportIds.stream().map(this::toFluxReportIdentifier).collect(Collectors.toList()));
 		activityClient.sendAsyncRequest(request);
 	}
@@ -116,19 +117,19 @@ class ActivitySenderImpl implements ActivitySender {
 	}
 
 	@Override
-	public void forwardFaReportWithLogbook(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, List<String> tripIds, boolean hasEmail, String assetGuid, boolean pdf, boolean xml) {
+	public void forwardFaReportWithLogbook(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, List<String> tripIds, boolean hasEmail, String assetGuid, boolean pdf, boolean xml, List<VesselIdentifierSchemeIdEnum> vesselIdentifiers) {
 		ForwardFAReportWithLogbookRequest request = new ForwardFAReportWithLogbookRequest();
 		request.setMethod(ActivityModuleMethod.FORWARD_FA_REPORT_WITH_LOGBOOK);
-		setForwardFAReportBaseRequestCommonFields(request, executionId, newReportIds, receiver, dataflow, consolidated, hasEmail, assetGuid, pdf, xml);
+		setForwardFAReportBaseRequestCommonFields(request, executionId, newReportIds, receiver, dataflow, consolidated, hasEmail, assetGuid, pdf, xml, vesselIdentifiers);
 		request.setTripIds(tripIds);
 		activityClient.sendAsyncRequest(request);
 	}
 
 	@Override
-	public void forwardFaReportFromPosition(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, boolean logbook, XMLGregorianCalendar startDate, XMLGregorianCalendar endDate, String assetGuid, String assetHistGuid,boolean hasEmail, boolean pdf, boolean xml) {
+	public void forwardFaReportFromPosition(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, boolean logbook, XMLGregorianCalendar startDate, XMLGregorianCalendar endDate, String assetGuid, String assetHistGuid, boolean hasEmail, boolean pdf, boolean xml, List<VesselIdentifierSchemeIdEnum> vesselIdentifiers) {
 		ForwardFAReportFromPositionRequest request = new ForwardFAReportFromPositionRequest();
 		request.setMethod(ActivityModuleMethod.FORWARD_FA_REPORT_FROM_POSITION);
-		setForwardFAReportBaseRequestCommonFields(request, executionId, newReportIds, receiver, dataflow, consolidated, hasEmail, assetGuid, pdf, xml);
+		setForwardFAReportBaseRequestCommonFields(request, executionId, newReportIds, receiver, dataflow, consolidated, hasEmail, assetGuid, pdf, xml, vesselIdentifiers);
 		request.setLogbook(logbook);
 		request.setStartDate(startDate);
 		request.setEndDate(endDate);
@@ -136,12 +137,13 @@ class ActivitySenderImpl implements ActivitySender {
 		activityClient.sendAsyncRequest(request);
 	}
 
-	private void setForwardFAReportBaseRequestCommonFields(ForwardFAReportBaseRequest request, long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, boolean hasEmail, String assetGuid, boolean pdf, boolean xml) {
+	private void setForwardFAReportBaseRequestCommonFields(ForwardFAReportBaseRequest request, long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, boolean hasEmail, String assetGuid, boolean pdf, boolean xml, List<VesselIdentifierSchemeIdEnum> vesselIdentifiers) {
 		request.setExecutionId(executionId);
 		request.setNewReportIds(newReportIds);
 		request.setReceiver(receiver);
 		request.setDataflow(dataflow);
 		request.setConsolidated(consolidated);
+		request.setVesselIdentifiers(vesselIdentifiers);
 		if (hasEmail) {
 			EmailConfigForReportGeneration emailConfig = new EmailConfigForReportGeneration();
 			emailConfig.setGuid(assetGuid);

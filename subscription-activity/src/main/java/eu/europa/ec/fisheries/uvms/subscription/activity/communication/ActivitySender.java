@@ -12,6 +12,7 @@ package eu.europa.ec.fisheries.uvms.subscription.activity.communication;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.List;
 
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierSchemeIdEnum;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierType;
 import eu.europa.ec.fisheries.uvms.subscription.service.email.EmailAttachment;
 
@@ -90,7 +91,7 @@ public interface ActivitySender {
 	 * @param pdf          Instruct Activities to generate the PDF attachments
 	 * @param xml          Instruct Activities to generate the XML (FA Report) attachments
 	 */
-	void forwardMultipleFaReports(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, List<String> reportIds, boolean hasEmail, String assetGuid, boolean pdf, boolean xml);
+	void forwardMultipleFaReports(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, List<String> reportIds, boolean hasEmail, String assetGuid, boolean pdf, boolean xml, List<VesselIdentifierSchemeIdEnum> vesselIdentifiers);
 
 	/**
 	 * Requests Activities to forward complete logbooks and/or create email attachments for the given trip ids.
@@ -107,7 +108,7 @@ public interface ActivitySender {
 	 * @param pdf          Instruct Activities to generate the PDF attachments
 	 * @param xml          Instruct Activities to generate the XML (FA Report) attachments
 	 */
-	void forwardFaReportWithLogbook(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, List<String> tripIds, boolean hasEmail, String assetGuid, boolean pdf, boolean xml);
+	void forwardFaReportWithLogbook(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, List<String> tripIds, boolean hasEmail, String assetGuid, boolean pdf, boolean xml, List<VesselIdentifierSchemeIdEnum> vesselIdentifiers);
 
 	/**
 	 * Requests Activities to forward a report and/or create email attachments for the given incoming movement.
@@ -125,5 +126,5 @@ public interface ActivitySender {
 	 * @param pdf Instruct Activities to generate the PDF attachments
 	 * @param xml Instruct Activities to generate the XML (FA Report) attachments
 	 */
-	void forwardFaReportFromPosition(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, boolean logbook, XMLGregorianCalendar startDate, XMLGregorianCalendar endDate, String assetGuid, String assetHistGuid, boolean hasEmail, boolean pdf, boolean xml);
+	void forwardFaReportFromPosition(long executionId, boolean newReportIds, String receiver, String dataflow, boolean consolidated, boolean logbook, XMLGregorianCalendar startDate, XMLGregorianCalendar endDate, String assetGuid, String assetHistGuid, boolean hasEmail, boolean pdf, boolean xml, List<VesselIdentifierSchemeIdEnum> vesselIdentifiers);
 }

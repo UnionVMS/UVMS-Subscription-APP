@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.VesselIdentifierSchemeIdEnum;
 import eu.europa.ec.fisheries.uvms.subscription.activity.communication.ActivitySender;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEmailConfiguration;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
@@ -153,7 +154,8 @@ public class FaReportAndEmailSubscriptionExecutor implements SubscriptionExecuto
 					TRUE.equals(subscription.getOutput().getHasEmail()),
 					extractAssetGuid(TRUE.equals(subscription.getOutput().getHasEmail()), triggeredSubscription.getId(), dataMap),
 					Optional.ofNullable(subscription.getOutput().getEmailConfiguration()).map(SubscriptionEmailConfiguration::getIsPdf).orElse(FALSE),
-					Optional.ofNullable(subscription.getOutput().getEmailConfiguration()).map(SubscriptionEmailConfiguration::getIsXml).orElse(FALSE)
+					Optional.ofNullable(subscription.getOutput().getEmailConfiguration()).map(SubscriptionEmailConfiguration::getIsXml).orElse(FALSE),
+					extractVesselIdentifiers(subscription)
 			);
 		} else {
 			activitySender.forwardMultipleFaReports(
@@ -166,7 +168,8 @@ public class FaReportAndEmailSubscriptionExecutor implements SubscriptionExecuto
 					TRUE.equals(subscription.getOutput().getHasEmail()),
 					extractAssetGuid(TRUE.equals(subscription.getOutput().getHasEmail()), triggeredSubscription.getId(), dataMap),
 					Optional.ofNullable(subscription.getOutput().getEmailConfiguration()).map(SubscriptionEmailConfiguration::getIsPdf).orElse(FALSE),
-					Optional.ofNullable(subscription.getOutput().getEmailConfiguration()).map(SubscriptionEmailConfiguration::getIsXml).orElse(FALSE)
+					Optional.ofNullable(subscription.getOutput().getEmailConfiguration()).map(SubscriptionEmailConfiguration::getIsXml).orElse(FALSE),
+					extractVesselIdentifiers(subscription)
 			);
 		}
 	}
@@ -186,7 +189,8 @@ public class FaReportAndEmailSubscriptionExecutor implements SubscriptionExecuto
 				extractAssetHistGuid(triggeredSubscription.getId(), dataMap),
 				TRUE.equals(subscription.getOutput().getHasEmail()),
 				Optional.ofNullable(subscription.getOutput().getEmailConfiguration()).map(SubscriptionEmailConfiguration::getIsPdf).orElse(FALSE),
-				Optional.ofNullable(subscription.getOutput().getEmailConfiguration()).map(SubscriptionEmailConfiguration::getIsXml).orElse(FALSE)
+				Optional.ofNullable(subscription.getOutput().getEmailConfiguration()).map(SubscriptionEmailConfiguration::getIsXml).orElse(FALSE),
+				extractVesselIdentifiers(subscription)
 		);
 	}
 
@@ -241,5 +245,9 @@ public class FaReportAndEmailSubscriptionExecutor implements SubscriptionExecuto
 		String occurrence = dataMap.get(TriggeredSubscriptionDataUtil.KEY_OCCURRENCE);
 		Objects.requireNonNull(occurrence, "occurence not found in data of " + triggeredSubscriptionId);
 		return occurrence;
+	}
+
+	private List<VesselIdentifierSchemeIdEnum> extractVesselIdentifiers(SubscriptionEntity subscription) {
+		return subscription.getOutput().getVesselIds().stream().map(id -> VesselIdentifierSchemeIdEnum.fromValue(id.toString())).collect(Collectors.toList());
 	}
 }
