@@ -129,7 +129,6 @@
         <dependency>
             <groupId>org.spockframework</groupId>
             <artifactId>spock-core</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -217,25 +216,6 @@
                     <plugin>
                         <groupId>org.codehaus.gmaven</groupId>
                         <artifactId>gmaven-plugin</artifactId>
-                        <version>1.5</version>
-                        <configuration>
-                            <providerSelection>2.0</providerSelection>
-                            <source/>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>testCompile</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.codehaus.gmaven.runtime</groupId>
-                                <artifactId>gmaven-runtime-2.0</artifactId>
-                                <version>1.5</version>
-                            </dependency>
-                        </dependencies>
                     </plugin>
                 </plugins>
             </build>
