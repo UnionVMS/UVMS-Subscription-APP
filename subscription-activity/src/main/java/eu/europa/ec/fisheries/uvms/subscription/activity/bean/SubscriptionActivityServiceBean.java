@@ -20,7 +20,7 @@ import javax.inject.Inject;
 import java.util.List;
 
 @ApplicationScoped
-public class SubscriptionActivityServiceBean implements SubscriptionActivityService {
+class SubscriptionActivityServiceBean implements SubscriptionActivityService {
 
     private ActivitySender activitySender;
 
