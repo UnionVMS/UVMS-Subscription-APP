@@ -134,6 +134,11 @@
 				<version>${uvms.movement.module.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>eu.europa.ec.fisheries.uvms.rules</groupId>
+				<artifactId>rules-model</artifactId>
+				<version>${uvms.rules.module.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>eu.europa.ec.fisheries.uvms.asset</groupId>
 				<artifactId>asset-model</artifactId>
 				<version>${uvms.asset.module.version}</version>
@@ -448,5 +453,6 @@
 		<module>service</module>
 		<module>subscription-activity</module>
 		<module>subscription-movement</module>
+		<module>subscription-rules</module>
 	</modules>
 </project>
