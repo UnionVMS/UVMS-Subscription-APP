@@ -10,6 +10,7 @@
 package eu.europa.ec.fisheries.uvms.subscription.rules.communication;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
@@ -23,11 +24,10 @@ public interface RulesSender {
 	/**
 	 * Send message to Rule to create an alarm report.
 	 *
-	 * @param triggerType  The trigger type of the {@code SubscriptionExecution}
 	 * @param subscriptionName  The name of the {@code SubscriptionEntity}
 	 * @param openDate The rule open date
 	 * @param vesselIdentifiers The vessel ids, including the asset guid
-	 * @param dataMap The dataMap of {@code TriggeredSubscriptionEntity}, needed to extract required information
+	 * @param movementGuids The movement GUIDs for which to create tickets
 	 */
-	void createNotificationsAsync(TriggerType triggerType, String subscriptionName, Date openDate, VesselIdentifiersHolder vesselIdentifiers, Map<String,String> dataMap);
+	void createAlertsAsync(String subscriptionName, Date openDate, VesselIdentifiersHolder vesselIdentifiers, List<String> movementGuids);
 }

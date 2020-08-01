@@ -13,7 +13,6 @@ import eu.europa.ec.fisheries.schema.rules.module.v1.RulesBaseRequest;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.rules.model.exception.RulesModelMarshallException;
 import eu.europa.ec.fisheries.uvms.rules.model.mapper.JAXBMarshaller;
-import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionConsumerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionQueue;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.ExecutionException;
@@ -26,24 +25,21 @@ import javax.jms.Queue;
  * JMS implementation of the {@link RulesClient}.
  */
 @ApplicationScoped
-public class JmsRulesClient implements RulesClient {
+class JmsRulesClient implements RulesClient {
 
     private SubscriptionProducerBean subscriptionProducer;
-    private SubscriptionConsumerBean subscriptionConsumerBean;
     private Queue rulesQueue;
     private Queue subscriptionQueue;
 
     /**
      * Injection constructor.
-     * @param subscriptionProducer
-     * @param subscriptionConsumerBean
-     * @param rulesQueue
-     * @param subscriptionQueue
+     * @param subscriptionProducer     The subscription producer
+     * @param rulesQueue               The rules queue
+     * @param subscriptionQueue        The subscription queue
      */
     @Inject
-    public JmsRulesClient(SubscriptionProducerBean subscriptionProducer, SubscriptionConsumerBean subscriptionConsumerBean, @RulesQueue Queue rulesQueue, @SubscriptionQueue Queue subscriptionQueue) {
+    public JmsRulesClient(SubscriptionProducerBean subscriptionProducer, @RulesQueue Queue rulesQueue, @SubscriptionQueue Queue subscriptionQueue) {
         this.subscriptionProducer = subscriptionProducer;
-        this.subscriptionConsumerBean = subscriptionConsumerBean;
         this.rulesQueue = rulesQueue;
         this.subscriptionQueue = subscriptionQueue;
     }
