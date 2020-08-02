@@ -66,21 +66,21 @@ public class AlarmsSubscriptionExecutor implements SubscriptionExecutor {
             Map<String,String> dataMap = toDataMap(triggeredSubscription);
             String connectId = dataMap.get(TriggeredSubscriptionDataUtil.KEY_CONNECT_ID);
             Objects.requireNonNull(connectId, "connectId not found in data of " + triggeredSubscription.getId());
-            VesselIdentifiersHolder vesselIdentifiers = assetSender.findVesselIdentifiers(connectId);
-            Objects.requireNonNull(vesselIdentifiers.getAssetGuid(), "asset GUID null for connectId " + connectId + " of " + triggeredSubscription.getId());
-            List<String> movementGuids = determineMovementGuids(subscription.getExecution().getTriggerType(), vesselIdentifiers, dataMap);
+            List<String> movementGuids = determineMovementGuids(subscription.getExecution().getTriggerType(), connectId, dataMap);
             if (!movementGuids.isEmpty()) {
+				VesselIdentifiersHolder vesselIdentifiers = assetSender.findVesselIdentifiers(connectId);
+				Objects.requireNonNull(vesselIdentifiers.getAssetGuid(), "asset GUID null for connectId " + connectId + " of " + triggeredSubscription.getId());
                 rulesSender.createAlertsAsync(subscription.getName(), triggeredSubscription.getEffectiveFrom(), vesselIdentifiers, movementGuids);
             }
         }
     }
 
-    private List<String> determineMovementGuids(TriggerType triggerType, VesselIdentifiersHolder vesselIdentifiers, Map<String,String> dataMap) {
+    private List<String> determineMovementGuids(TriggerType triggerType, String connectId, Map<String,String> dataMap) {
         switch (triggerType) {
             case INC_POSITION:
                 return determineMovementGuidsForIncomingPosition(dataMap);
             case INC_FA_REPORT:
-                return determineMovementGuidsForIncomingFaReport(vesselIdentifiers, dataMap);
+                return determineMovementGuidsForIncomingFaReport(connectId, dataMap);
             default:
                 return Collections.emptyList();
         }
@@ -93,7 +93,7 @@ public class AlarmsSubscriptionExecutor implements SubscriptionExecutor {
 				.collect(Collectors.toList());
 	}
 
-	private List<String> determineMovementGuidsForIncomingFaReport(VesselIdentifiersHolder vesselIdentifiers, Map<String,String> dataMap){
+	private List<String> determineMovementGuidsForIncomingFaReport(String connectId, Map<String,String> dataMap){
 		List<String> reportIds = dataMap.entrySet().stream()
 				.filter(entry -> entry.getKey().startsWith(KEY_REPORT_ID_PREFIX))
 				.map(Map.Entry::getValue)
@@ -101,6 +101,6 @@ public class AlarmsSubscriptionExecutor implements SubscriptionExecutor {
 		if(reportIds.isEmpty()) {
 			return Collections.emptyList();
 		}
-		return subscriptionActivityService.findMovementGuidsByReportIdsAndAssetGuid(reportIds,vesselIdentifiers.getAssetGuid());
+		return subscriptionActivityService.findMovementGuidsByReportIdsAndAssetGuid(reportIds,connectId);
 	}
 }
