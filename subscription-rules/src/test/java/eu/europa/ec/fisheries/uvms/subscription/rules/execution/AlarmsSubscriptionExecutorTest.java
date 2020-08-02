@@ -12,7 +12,6 @@ copy of the GNU General Public License along with the IFDM Suite. If not, see <h
 package eu.europa.ec.fisheries.uvms.subscription.rules.execution;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -50,7 +49,8 @@ public class AlarmsSubscriptionExecutorTest {
 
 	private static final String CONNECT_ID = "connectid";
 	private static final String ASSET_GUID = "asset guid";
-	private static final String MOVEMENT_GUID = "asset guid";
+	private static final String MOVEMENT_GUID = "movement guid";
+	private static final String REPORT_GUID = "report guid";
 	private static final String SUBSCRIPTION_NAME = "subscription name";
 	private static final Date EFFECTIVE_FROM = new Date();
 
@@ -73,14 +73,14 @@ public class AlarmsSubscriptionExecutorTest {
 
 	@Test
 	void testExecuteForNonAlertOutput() {
-		SubscriptionExecutionEntity execution = makeExecution(false);
+		SubscriptionExecutionEntity execution = makeExecution(false, TriggerType.INC_POSITION);
 		sut.execute(execution);
 		verifyNoMoreInteractions(rulesSender, assetSender);
 	}
 
 	@Test
 	void testExecuteForPosition() {
-		SubscriptionExecutionEntity execution = makeExecution(true);
+		SubscriptionExecutionEntity execution = makeExecution(true, TriggerType.INC_POSITION);
 		VesselIdentifiersHolder vesselIdentifiers = new VesselIdentifiersHolder();
 		vesselIdentifiers.setAssetGuid(ASSET_GUID);
 		when(assetSender.findVesselIdentifiers(CONNECT_ID)).thenReturn(vesselIdentifiers);
@@ -89,7 +89,27 @@ public class AlarmsSubscriptionExecutorTest {
 		verify(rulesSender).createAlertsAsync(eq(SUBSCRIPTION_NAME), eq(EFFECTIVE_FROM), eq(vesselIdentifiers), eq(Collections.singletonList(MOVEMENT_GUID)));
 	}
 
-	private SubscriptionExecutionEntity makeExecution(boolean isAlert) {
+	@Test
+	void testExecuteForReport() {
+		SubscriptionExecutionEntity execution = makeExecution(true, TriggerType.INC_FA_REPORT);
+		VesselIdentifiersHolder vesselIdentifiers = new VesselIdentifiersHolder();
+		vesselIdentifiers.setAssetGuid(ASSET_GUID);
+		when(assetSender.findVesselIdentifiers(CONNECT_ID)).thenReturn(vesselIdentifiers);
+		execution.getTriggeredSubscription().getData().add(new TriggeredSubscriptionDataEntity(null, "reportId_0", REPORT_GUID));
+		when(subscriptionActivityService.findMovementGuidsByReportIdsAndAssetGuid(eq(Collections.singletonList(REPORT_GUID)), eq(CONNECT_ID))).thenReturn(Collections.singletonList(MOVEMENT_GUID));
+		sut.execute(execution);
+		verify(rulesSender).createAlertsAsync(eq(SUBSCRIPTION_NAME), eq(EFFECTIVE_FROM), eq(vesselIdentifiers), eq(Collections.singletonList(MOVEMENT_GUID)));
+	}
+
+	@Test
+	void testExecuteForOther() {
+		SubscriptionExecutionEntity execution = makeExecution(true, TriggerType.INC_FA_QUERY);
+		execution.getTriggeredSubscription().getData().add(new TriggeredSubscriptionDataEntity(null, "movementGuidIndex_0", MOVEMENT_GUID));
+		sut.execute(execution);
+		verifyNoMoreInteractions(rulesSender);
+	}
+
+	private SubscriptionExecutionEntity makeExecution(boolean isAlert, TriggerType triggerType) {
 		SubscriptionExecutionEntity execution = new SubscriptionExecutionEntity();
 		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
 		execution.setTriggeredSubscription(triggeredSubscription);
@@ -102,7 +122,7 @@ public class AlarmsSubscriptionExecutorTest {
 		triggeredSubscription.getData().add(new TriggeredSubscriptionDataEntity(triggeredSubscription, "connectId", CONNECT_ID));
 		triggeredSubscription.setEffectiveFrom(EFFECTIVE_FROM);
 		SubscriptionExecution subscriptionExecution = new SubscriptionExecution();
-		subscriptionExecution.setTriggerType(TriggerType.INC_POSITION);
+		subscriptionExecution.setTriggerType(triggerType);
 		subscription.setExecution(subscriptionExecution);
 		return execution;
 	}
