@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = ScheduledSubscriptionDtoValidator.class)
 public @interface ValidScheduledSubscriptionDto {
 
-	String message() default "Scheduled Subscription is not valid";
+	String message() default "";
 
 	Class<?>[] groups() default { };
 
