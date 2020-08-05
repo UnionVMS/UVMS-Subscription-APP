@@ -43,7 +43,11 @@ public interface ValidationUtil {
         ConstraintValidatorContext.ConstraintViolationBuilder violationBuilder = context.buildConstraintViolationWithTemplate(message);
         ConstraintValidatorContext.ConstraintViolationBuilder.NodeBuilderCustomizableContext nodeBuilder = null;
         for (String s : path) {
-            nodeBuilder = violationBuilder.addPropertyNode(s);
+            if(nodeBuilder == null) {
+                nodeBuilder = violationBuilder.addPropertyNode(s);
+            } else {
+                nodeBuilder = nodeBuilder.addPropertyNode(s);
+            }
         }
         if (nodeBuilder != null) {
             nodeBuilder.addConstraintViolation();
