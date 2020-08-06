@@ -11,6 +11,7 @@ package eu.europa.ec.fisheries.uvms.subsription.rest.resource;
 
 import eu.europa.ec.fisheries.uvms.commons.rest.resource.UnionVMSResource;
 import eu.europa.ec.fisheries.uvms.subscription.service.email.EmailService;
+import eu.europa.ec.fisheries.uvms.subscription.service.readiness.ReadinessCheck;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EmailException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,6 +26,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Path("/email")
 @ApplicationScoped
+@ReadinessCheck
 @Slf4j
 public class EmailResource extends UnionVMSResource {
 

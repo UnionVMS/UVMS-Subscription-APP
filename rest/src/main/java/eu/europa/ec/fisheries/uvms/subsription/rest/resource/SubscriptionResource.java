@@ -31,11 +31,13 @@ import eu.europa.ec.fisheries.uvms.commons.rest.resource.UnionVMSResource;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionService;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionListQueryImpl;
+import eu.europa.ec.fisheries.uvms.subscription.service.readiness.ReadinessCheck;
 import lombok.extern.slf4j.Slf4j;
 
 
 @Path("/subscription")
 @ApplicationScoped
+@ReadinessCheck
 @Slf4j
 public class SubscriptionResource extends UnionVMSResource {
 
