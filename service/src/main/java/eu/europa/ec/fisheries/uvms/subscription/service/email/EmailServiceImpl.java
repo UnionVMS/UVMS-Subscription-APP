@@ -65,7 +65,7 @@ public class EmailServiceImpl implements EmailService {
         try {
             return parameterService.getParamValueById(key);
         } catch (ConfigServiceException e) {
-            throw new EmailException(e);
+            throw new EmailException("Could not get value for: "+ key,e);
         }
     }
 }

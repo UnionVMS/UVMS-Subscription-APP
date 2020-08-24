@@ -74,7 +74,7 @@ public class UsmClientImpl implements UsmClient{
                 organisations = responseMessage.getOrganisation();
             }
         } catch (ModelMarshallException | MessageException | JMSException | JAXBException e) {
-            throw new ApplicationException(e);
+            throw new ApplicationException("Could not retrieve organisations for scope: " + scopeName + " role: " + roleName+" and reequester: "+requester,e);
         }
         return organisations;
     }
@@ -95,7 +95,7 @@ public class UsmClientImpl implements UsmClient{
                 endpoint = response.getEndpoint();
             }
         } catch (MessageException | ModelMarshallException | JMSException | JAXBException e) {
-            throw new ApplicationException(e);
+            throw new ApplicationException("Could not find endpoint for id: " +endpointId,e);
         }
         return endpoint;
     }
@@ -110,7 +110,7 @@ public class UsmClientImpl implements UsmClient{
             }
             return null;
         } catch (MessageException | ModelMarshallException | JMSException | JAXBException e) {
-            throw new ApplicationException(e);
+            throw new ApplicationException("Could not find organisation by endpoint",e);
         }
     }
 }

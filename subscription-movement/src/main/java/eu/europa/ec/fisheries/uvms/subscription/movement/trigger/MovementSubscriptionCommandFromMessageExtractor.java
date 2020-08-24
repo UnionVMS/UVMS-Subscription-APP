@@ -145,7 +145,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		try {
 			return JAXBUtils.unMarshallMessage(representation, CreateMovementBatchResponse.class);
 		} catch (JAXBException e) {
-			throw new MessageFormatException(e);
+			throw new MessageFormatException("Could not unmarshall: " + representation,e);
 		}
 	}
 

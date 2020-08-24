@@ -67,7 +67,7 @@ public class JmsActivityClient implements ActivityClient {
             String correlationId = subscriptionProducer.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request), activityQueue, subscriptionConsumerBean.getDestination());
             return createResponse(correlationId, responseClass, request.getMethod());
         } catch (MessageException | ActivityModelMarshallException e) {
-            throw new ExecutionException(e);
+            throw new ExecutionException("Could not send request",e);
         }
     }
 

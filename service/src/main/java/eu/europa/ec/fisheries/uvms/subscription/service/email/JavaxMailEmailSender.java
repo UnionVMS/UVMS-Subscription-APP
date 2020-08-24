@@ -84,7 +84,7 @@ class JavaxMailEmailSender implements EmailSender {
             message.setContent(multipart);
             Transport.send(message);
         } catch (MessagingException e) {
-            throw new EmailException(e);
+            throw new EmailException("Could not send message",e);
         }
     }
 

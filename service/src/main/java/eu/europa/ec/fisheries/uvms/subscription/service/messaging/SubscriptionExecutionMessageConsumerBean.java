@@ -47,8 +47,7 @@ public class SubscriptionExecutionMessageConsumerBean implements MessageListener
 			Long executionId = Long.valueOf(executionIdAsString);
 			subscriptionExecutionService.execute(executionId);
 		} catch (JMSException e) {
-			log.error("error while handling subscriptions execution message", e);
-			throw new RuntimeException(e);
+			throw new RuntimeException("error while handling subscriptions execution message",e);
 		}
 	}
 }
