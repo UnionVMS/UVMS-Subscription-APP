@@ -41,8 +41,7 @@ public class SubscriptionConfigConsumerBean extends AbstractConsumer implements 
         try {
             return getMessage(correlationId, type);
         } catch (MessageException e) {
-            log.error("[ERROR] Error when getting config message {}", e.getMessage());
-            throw new ConfigMessageException("[ Error when getting config message. ]");
+            throw new ConfigMessageException("[ Error when getting config message. ]",e);
         }
     }
 

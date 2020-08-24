@@ -40,7 +40,7 @@ public class SubscriptionConfigProducerBean extends AbstractProducer implements 
         try {
             return sendModuleMessage(textMsg, subscriptionINQueue);
         } catch (MessageException e) {
-            log.error("[ERROR] Error while trying to send message to Config! Check SubscriptionConfigProducerBeanImpl..");
+            log.error("[ERROR] Error while trying to send message to Config! Check SubscriptionConfigProducerBeanImpl..",e);
         }
         return StringUtils.EMPTY;
     }

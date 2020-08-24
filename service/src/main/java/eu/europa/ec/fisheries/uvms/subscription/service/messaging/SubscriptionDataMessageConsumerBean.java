@@ -79,8 +79,7 @@ public class SubscriptionDataMessageConsumerBean implements MessageListener {
 					fluxEnvelopeData.map(FluxEnvelopePropagatedData::getReceptionDateTime).orElseGet(() -> dateTimeService.getNow().atZone(ZoneId.of("UTC")))
 			);
 		} catch (JMSException e) {
-			log.error("error while handling subscriptions data message", e);
-			throw new RuntimeException(e);
+			throw new RuntimeException("error while handling subscriptions data message",e);
 		} catch (ApplicationException e) {
 			try {
 				subscriptionProducer.sendMessageWithSpecificIds(e.getLocalizedMessage(), jmsReplyTo,null, jmsMessageID, jmsCorrelationID);

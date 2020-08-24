@@ -77,7 +77,7 @@ public class JmsAssetClient implements AssetClient {
 			}
 			return response;
 		} catch (MessageException | ModelMarshallException | JMSException | JAXBException e) {
-			throw new ApplicationException(e);
+			throw new ApplicationException(e.getMessage(),e);
 		}
 	}
 
@@ -95,7 +95,7 @@ public class JmsAssetClient implements AssetClient {
 			}
 			return response;
 		} catch (MessageException | ModelMarshallException | JMSException | JAXBException e) {
-			throw new ApplicationException(e);
+			throw new ApplicationException(e.getMessage(),e);
 		}
 	}
 
@@ -113,7 +113,7 @@ public class JmsAssetClient implements AssetClient {
 			}
 			return response;
 		} catch (MessageException | ModelMarshallException e) {
-			throw new ApplicationException(e);
+			throw new ApplicationException(e.getMessage(),e);
 		}
 	}
 
@@ -131,7 +131,7 @@ public class JmsAssetClient implements AssetClient {
 			}
 			return response;
 		} catch (MessageException | ModelMarshallException e) {
-			throw new ApplicationException(e);
+			throw new ApplicationException(e.getMessage(),e);
 		}
 	}
 
@@ -151,7 +151,7 @@ public class JmsAssetClient implements AssetClient {
 			}
 			return response;
 		} catch (MessageException | ModelMarshallException e) {
-			throw new ApplicationException(e);
+			throw new ApplicationException(e.getMessage(),e);
 		}
 	}
 }

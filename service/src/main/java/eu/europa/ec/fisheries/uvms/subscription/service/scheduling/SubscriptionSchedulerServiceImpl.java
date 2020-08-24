@@ -52,7 +52,7 @@ class SubscriptionSchedulerServiceImpl implements SubscriptionSchedulerService {
             scheduledSubscriptionTriggeringService.findScheduledSubscriptionIdsForTriggering(activationDate)
                     .forEach(scheduledSubscriptionTriggeringService::enqueueForTriggeringInNewTransaction);
         } catch (ScheduledSubscriptionProcessingException e) {
-            log.error("Error processing scheduled subscription batch: " + e.getMessage());
+            log.error("Error processing scheduled subscription batch: " , e);
         }
     }
 }
