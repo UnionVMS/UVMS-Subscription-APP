@@ -418,6 +418,9 @@ class SubscriptionServiceBean implements SubscriptionService {
 
     private Date calculateNextScheduledExecutionDate(SubscriptionEntity subscriptionEntity) {
         Instant date = dateTimeService.getNowAsInstant();
+        if(TRUE.equals(subscriptionEntity.getExecution().getImmediate())) {
+            return Date.from(date);
+        }
         // we need to adjust the requestedTime to
         // the next occurrence of timeExpression, which might be tomorrow
         LocalTime time = LocalTime.parse(subscriptionEntity.getExecution().getTimeExpression(), TIME_EXPRESSION_FORMAT);

@@ -338,6 +338,20 @@ public class SubscriptionServiceBeanTest {
 	}
 
 	@Test
+	void testCreateImmediatelyScheduledSubscription() {
+		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
+		dto.getExecution().setImmediate(Boolean.TRUE);
+		dateTimeService.setNow(LocalDateTime.now());
+		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+		sut.create(dto);
+		ArgumentCaptor<SubscriptionEntity> captor = ArgumentCaptor.forClass(SubscriptionEntity.class);
+		verify(subscriptionDAO).createEntity(captor.capture());
+		SubscriptionEntity en = captor.getValue();
+		assertEquals(dateTimeService.getNowAsDate(),en.getExecution().getNextScheduledExecution());
+	}
+	
+	@Test
 	void testCreateWithInvalidArgumentsAndMessageTypePOSITION() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDto(SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.POSITION, false,
 				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
