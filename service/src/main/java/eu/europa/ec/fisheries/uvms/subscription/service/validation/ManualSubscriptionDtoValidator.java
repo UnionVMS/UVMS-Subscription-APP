@@ -16,12 +16,15 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 import static eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidationUtil.addViolationMessageToPath;
+import static eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidationUtil.require;
 import static eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidationUtil.requirePropertyNotNullWithMessage;
 
 /**
  * Implementation of custom validator for SubscriptionDto with its execution TriggerType.MANUAL.
  */
 public class ManualSubscriptionDtoValidator implements ConstraintValidator<ValidManualSubscriptionDto, SubscriptionDto> {
+
+    private static final String ASSETS_PATH = "assets";
 
     @Override
     public boolean isValid(SubscriptionDto subscriptionDto, ConstraintValidatorContext context) {
@@ -45,7 +48,9 @@ public class ManualSubscriptionDtoValidator implements ConstraintValidator<Valid
                     valid &= requirePropertyNotNullWithMessage(context, subscriptionDto.getOutput().getHistoryUnit(), "output.historyUnit", "HistoryUnit is required");
                 }
             }
-
+            valid &= require(context, "Assets must be selected for manual subscriptions", subscriptionDto)
+                    .path(ASSETS_PATH, SubscriptionDto::getAssets)
+                    .toBe(assets -> !assets.isEmpty());
         }
         return valid;
     }

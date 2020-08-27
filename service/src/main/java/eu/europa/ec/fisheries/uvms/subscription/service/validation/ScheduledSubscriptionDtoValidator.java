@@ -18,6 +18,7 @@ public class ScheduledSubscriptionDtoValidator implements ConstraintValidator<Va
 	private static final String EXECUTION_PATH = "execution";
 	private static final String FREQUENCY_PATH = "frequency";
 	private static final String FREQUENCY_UNIT_PATH = "frequencyUnit";
+	private static final String ASSETS_PATH = "assets";
 
 	@Override
 	public boolean isValid(SubscriptionDto value, ConstraintValidatorContext context) {
@@ -29,6 +30,9 @@ public class ScheduledSubscriptionDtoValidator implements ConstraintValidator<Va
 						.path(EXECUTION_PATH, SubscriptionDto::getExecution)
 						.path(FREQUENCY_PATH, SubscriptionExecutionDto::getFrequency)
 						.toBe(frequency -> frequency > 0);
+			valid &= require(context, "Start conditions for scheduled subscriptions must include assets", value)
+						.path(ASSETS_PATH, SubscriptionDto::getAssets)
+						.toBe(assets -> !assets.isEmpty());
 		}
 		return valid;
 	}

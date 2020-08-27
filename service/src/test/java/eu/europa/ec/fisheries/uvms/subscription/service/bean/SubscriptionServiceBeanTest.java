@@ -548,7 +548,23 @@ public class SubscriptionServiceBeanTest {
 				null, null, null, null, null , null , null ,null, null , null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
     }
+    
+	@Test
+	void createManualSubscriptionMissingAssets() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto(SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, new Date(), new Date(),
+				false, false);
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
 
+	@Test
+	void testCreateScheduledSubscriptionMissingAssets() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_REPORT, false,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
+		subscription.setAssets(Collections.emptySet());
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
+	
     @Test
     void createSubscriptionWithHasEmailTrueAndNullPassword() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
@@ -753,7 +769,7 @@ public class SubscriptionServiceBeanTest {
 		assertEquals(Boolean.FALSE, manualSubscriptionDto.getOutput().getLogbook());
 		assert(manualSubscriptionDto.getName() != null && !manualSubscriptionDto.getName().isEmpty());
 	}
-
+	
 	@ParameterizedTest
 	@MethodSource("testCreateManualSubscriptionParams")
 	void testCreateManualSubscription(boolean includeAssets, boolean includeAssetGroups, boolean includeAreas) {
@@ -829,7 +845,6 @@ public class SubscriptionServiceBeanTest {
 
 	protected static Stream<Arguments> testCreateManualSubscriptionParams() {
 		return Stream.of(
-				Arguments.of(false, false, false),
 				Arguments.of(true, false, false),
 				Arguments.of(false, true, true),
 				Arguments.of(true, true, true)
