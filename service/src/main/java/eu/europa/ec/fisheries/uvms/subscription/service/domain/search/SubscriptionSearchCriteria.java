@@ -17,7 +17,7 @@ public interface SubscriptionSearchCriteria {
 	String getName();
 	Boolean getActive();
 	Long getOrganisation();
-	Long getEndPoint();
+	Long getEndpoint();
 	Long getChannel();
 	String getDescription();
 	ZonedDateTime getStartDate();
