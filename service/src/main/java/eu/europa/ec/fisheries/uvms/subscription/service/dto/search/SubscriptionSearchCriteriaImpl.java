@@ -19,7 +19,7 @@ public class SubscriptionSearchCriteriaImpl implements SubscriptionSearchCriteri
     private String name;
     private Boolean active;
     private Long organisation;
-    private Long endPoint;
+    private Long endpoint;
     private Long channel;
     private String description;
     private ZonedDateTime startDate;

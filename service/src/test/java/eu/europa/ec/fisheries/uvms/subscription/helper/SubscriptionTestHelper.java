@@ -73,7 +73,7 @@ public class SubscriptionTestHelper {
         when(searchCriteria.getName()).thenReturn(name);
         when(searchCriteria.getActive()).thenReturn(active);
         when(searchCriteria.getOrganisation()).thenReturn(organisation);
-        when(searchCriteria.getEndPoint()).thenReturn(endpoint);
+        when(searchCriteria.getEndpoint()).thenReturn(endpoint);
         when(searchCriteria.getChannel()).thenReturn(channel);
         when(searchCriteria.getDescription()).thenReturn(description);
         when(searchCriteria.getStartDate()).thenReturn(startDate);
