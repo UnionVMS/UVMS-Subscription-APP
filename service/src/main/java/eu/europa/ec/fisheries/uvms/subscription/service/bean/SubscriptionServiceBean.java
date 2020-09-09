@@ -425,4 +425,14 @@ class SubscriptionServiceBean implements SubscriptionService {
         date = timeToday.isAfter(date) ? timeToday : timeToday.plus(1L, ChronoUnit.DAYS);
         return Date.from(date);
     }
+
+    @Override
+    public void setSubscriptionActive(@NotNull Long id, Boolean active) {
+        SubscriptionEntity entityById = subscriptionDAO.findById(id);
+        if (entityById == null) {
+            throw new EntityDoesNotExistException("Subscription with id " + id);
+        }
+        entityById.setActive(active);
+        subscriptionDAO.update(entityById);
+    }
 }

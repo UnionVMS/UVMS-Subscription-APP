@@ -141,4 +141,31 @@ public class SubscriptionResource extends UnionVMSResource {
         SubscriptionDto manualSubscriptionDto = service.prepareManualRequest(subscription);
         return createSuccessResponse(service.createManual(manualSubscriptionDto));
     }
+
+    /**
+     * Make a subscription active
+     * 
+     * @param id
+     */
+    @POST
+    @Path("/activate/{id}")
+    @Produces(APPLICATION_JSON)
+    public Response activate(@PathParam("id") Long id) {
+        service.setSubscriptionActive(id, true);
+        return createSuccessResponse();
+    }
+
+
+    /**
+     * Make a subscription not active
+     *
+     * @param id
+     */
+    @POST
+    @Path("/deactivate/{id}")
+    @Produces(APPLICATION_JSON)
+    public Response deactivate(@PathParam("id") Long id) {
+        service.setSubscriptionActive(id, false);
+        return createSuccessResponse();
+    }
 }
