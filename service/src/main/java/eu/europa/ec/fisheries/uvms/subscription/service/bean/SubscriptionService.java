@@ -42,4 +42,6 @@ public interface SubscriptionService {
     SubscriptionDto prepareManualRequest(@NotNull SubscriptionDto subscriptionDto);
 
     SubscriptionDto createManual(@Valid @NotNull SubscriptionDto subscription);
+    
+    void setSubscriptionActive(@NotNull Long id, Boolean active);
 }

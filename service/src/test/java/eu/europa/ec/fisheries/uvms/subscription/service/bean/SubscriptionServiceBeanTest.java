@@ -570,7 +570,63 @@ public class SubscriptionServiceBeanTest {
 
 		assertDoesNotThrow(() -> sut.create(subscription));
     }
+    
+    @Test
+	void activateDeactivatedSubscription() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.FALSE, OutgoingMessageType.NONE, true,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null,
+				EMAIL_BODY, false, true, "", true, false );
 
+		SubscriptionEntity subscriptionEntity = mapper.mapDtoToEntity(subscription);
+		subscriptionEntity.setActive(false);
+		when(subscriptionDAO.findById(any())).thenReturn(subscriptionEntity);
+		sut.setSubscriptionActive(subscriptionEntity.getId(), true);
+		
+		assertTrue(subscriptionEntity.isActive());
+	}
+    
+    @Test
+	void deactivateActivatedSubscription() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.FALSE, OutgoingMessageType.NONE, true,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null,
+				EMAIL_BODY, false, true, "", true, false );
+
+		SubscriptionEntity subscriptionEntity = mapper.mapDtoToEntity(subscription);
+		subscriptionEntity.setActive(true);
+		when(subscriptionDAO.findById(any())).thenReturn(subscriptionEntity);
+		sut.setSubscriptionActive(subscriptionEntity.getId(), false);
+		
+		assertFalse(subscriptionEntity.isActive());
+	}
+    
+    @Test
+	void deactivateDeactivatedSubscription() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.FALSE, OutgoingMessageType.NONE, true,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null,
+				EMAIL_BODY, false, true, "", true, false );
+
+		SubscriptionEntity subscriptionEntity = mapper.mapDtoToEntity(subscription);
+		subscriptionEntity.setActive(false);
+		when(subscriptionDAO.findById(any())).thenReturn(subscriptionEntity);
+		sut.setSubscriptionActive(subscriptionEntity.getId(), false);
+		
+		assertFalse(subscriptionEntity.isActive());
+	}
+
+	@Test
+	void activateActivatedSubscription() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.FALSE, OutgoingMessageType.NONE, true,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null,
+				EMAIL_BODY, false, true, "", true, false );
+
+		SubscriptionEntity subscriptionEntity = mapper.mapDtoToEntity(subscription);
+		subscriptionEntity.setActive(true);
+		when(subscriptionDAO.findById(any())).thenReturn(subscriptionEntity);
+		sut.setSubscriptionActive(subscriptionEntity.getId(), true);
+
+		assertTrue(subscriptionEntity.isActive());
+	}
+	
     @Test
 	void createScheduledSubscription() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
