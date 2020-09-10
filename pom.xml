@@ -454,5 +454,6 @@
 		<module>subscription-activity</module>
 		<module>subscription-movement</module>
 		<module>subscription-rules</module>
+		<module>subscription-spatial</module>
 	</modules>
 </project>

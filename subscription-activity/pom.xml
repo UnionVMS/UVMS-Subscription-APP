@@ -23,7 +23,12 @@
 			<artifactId>subscription-service</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
+			<artifactId>subscription-spatial</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
 		<!-- FLUX FMC DEPENDENCIES -->
 		<dependency>
 			<groupId>eu.europa.ec.fisheries.uvms.activity</groupId>
@@ -55,5 +60,5 @@
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-junit-jupiter</artifactId>
 		</dependency>
-	</dependencies>
+    </dependencies>
 </project>

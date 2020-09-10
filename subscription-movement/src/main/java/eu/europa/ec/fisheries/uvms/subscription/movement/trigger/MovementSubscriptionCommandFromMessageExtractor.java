@@ -37,9 +37,15 @@ import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.schema.movement.common.v1.SimpleResponse;
 import eu.europa.ec.fisheries.schema.movement.module.v1.CreateMovementBatchResponse;
+import eu.europa.ec.fisheries.schema.movement.v1.MovementBaseType;
+import eu.europa.ec.fisheries.schema.movement.v1.MovementMetaDataAreaType;
 import eu.europa.ec.fisheries.schema.movement.v1.MovementType;
 import eu.europa.ec.fisheries.schema.movement.v1.MovementTypeType;
 import eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils;
+import eu.europa.ec.fisheries.uvms.spatial.model.schemas.AreaExtendedIdentifierType;
+import eu.europa.ec.fisheries.uvms.spatial.model.schemas.BatchSpatialEnrichmentRS;
+import eu.europa.ec.fisheries.uvms.spatial.model.schemas.SpatialEnrichmentRSListElement;
+import eu.europa.ec.fisheries.uvms.subscription.movement.mapper.MovementModelMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionFinder;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
@@ -55,6 +61,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsF
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.SequenceIntIterator;
+import eu.europa.ec.fisheries.uvms.subscription.spatial.communication.SpatialSender;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
@@ -74,6 +81,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	private SubscriptionFinder subscriptionFinder;
 	private DatatypeFactory datatypeFactory;
 	private AssetSender assetSender;
+	private SpatialSender spatialSender;
 	private DateTimeService dateTimeService;
 	private TriggerCommandsFactory triggerCommandsFactory;
 
@@ -83,14 +91,16 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	 * @param subscriptionFinder     The finder
 	 * @param datatypeFactory        The data type factory
 	 * @param assetSender            The asset sender
+	 * @param spatialSender          The spatial sender
 	 * @param dateTimeService        The date/time service
 	 * @param triggerCommandsFactory The factory for commands
 	 */
 	@Inject
-	public MovementSubscriptionCommandFromMessageExtractor(SubscriptionFinder subscriptionFinder, DatatypeFactory datatypeFactory, AssetSender assetSender, DateTimeService dateTimeService, TriggerCommandsFactory triggerCommandsFactory) {
+	public MovementSubscriptionCommandFromMessageExtractor(SubscriptionFinder subscriptionFinder, DatatypeFactory datatypeFactory, AssetSender assetSender,SpatialSender spatialSender, DateTimeService dateTimeService, TriggerCommandsFactory triggerCommandsFactory) {
 		this.subscriptionFinder = subscriptionFinder;
 		this.datatypeFactory = datatypeFactory;
 		this.assetSender = assetSender;
+		this.spatialSender = spatialSender;
 		this.dateTimeService = dateTimeService;
 		this.triggerCommandsFactory = triggerCommandsFactory;
 	}
@@ -120,14 +130,17 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 
 	@Override
 	public Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion, ZonedDateTime receptionDateTime) {
-		Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap = new HashMap<>();
-		return Stream.of(unmarshal(representation))
+		Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringMap = new HashMap<>();
+		List<MovementType> movementTypes = Stream.of(unmarshal(representation))
 				.filter(message -> message.getResponse() == SimpleResponse.OK)
 				.flatMap(message -> message.getMovements().stream())
 				.filter(m -> !m.isDuplicate())
-				.flatMap(t -> makeCommandsForMovement(t, senderCriterion, movementGuidToTriggeringsMap, receptionDateTime));
+				.collect(Collectors.toList());
+		enrichWithUserAreas(movementTypes);
+		return movementTypes.stream()
+				.flatMap(t -> makeCommandsForMovement(t, senderCriterion, movementGuidToTriggeringMap, receptionDateTime));
 	}
-
+	
 	private CreateMovementBatchResponse unmarshal(String representation) {
 		try {
 			return JAXBUtils.unMarshallMessage(representation, CreateMovementBatchResponse.class);
@@ -241,6 +254,19 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		return criteria;
 	}
 
+	private void enrichWithUserAreas(List<MovementType> movementTypes) {
+		BatchSpatialEnrichmentRS response = spatialSender.getBatchUserAreasEnrichment(MovementModelMapper.movementTypesToSubscriptionAreaSimpleTypes(movementTypes));
+		if(response != null) {
+			Map<String,MovementType> movementTypeMap = movementTypes.stream().collect(Collectors.toMap(MovementBaseType::getGuid, Function.identity()));
+			List<SpatialEnrichmentRSListElement> rsListElements = response.getEnrichmentRespLists();
+			for(SpatialEnrichmentRSListElement rsListElement : rsListElements) {
+				List<AreaExtendedIdentifierType> areas = rsListElement.getAreasByLocation().getAreas();
+				List<MovementMetaDataAreaType> movementMetaDataAreaTypes = MovementModelMapper.mapSpatialAreaToMovementAreas(areas);
+				movementTypeMap.get(rsListElement.getGuid()).getMetaData().getAreas().addAll(movementMetaDataAreaTypes);
+			}
+		}
+	}
+	
 	@Getter
 	@AllArgsConstructor
 	private static class MovementAndSubscription {
