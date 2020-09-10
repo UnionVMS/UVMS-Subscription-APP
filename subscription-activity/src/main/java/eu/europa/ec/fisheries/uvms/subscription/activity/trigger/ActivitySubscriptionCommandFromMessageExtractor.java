@@ -26,7 +26,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -36,13 +35,18 @@ import java.util.TimeZone;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.ActivityAreas;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.Area;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.FluxReportIdentifier;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardReportToSubscriptionRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ReportToSubscription;
 import eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils;
+import eu.europa.ec.fisheries.uvms.spatial.model.schemas.AreaExtendedIdentifierType;
+import eu.europa.ec.fisheries.uvms.spatial.model.schemas.BatchSpatialEnrichmentRS;
+import eu.europa.ec.fisheries.uvms.spatial.model.schemas.SpatialEnrichmentRSListElement;
+import eu.europa.ec.fisheries.uvms.subscription.activity.mapper.ActivityModelMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionFinder;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
@@ -59,6 +63,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsF
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.SequenceIntIterator;
+import eu.europa.ec.fisheries.uvms.subscription.spatial.communication.SpatialSender;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionFaReportDocumentType;
@@ -88,6 +93,7 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 	private SubscriptionFinder subscriptionFinder;
 	private DatatypeFactory datatypeFactory;
 	private AssetSender assetSender;
+	private SpatialSender spatialSender;
 	private DateTimeService dateTimeService;
 	private TriggerCommandsFactory triggerCommandsFactory;
 
@@ -97,14 +103,16 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 	 * @param subscriptionFinder The finder
 	 * @param datatypeFactory The data type factory
 	 * @param assetSender The asset sender
+	 * @param spatialSender The spatial sender
 	 * @param dateTimeService The date/time service
 	 * @param triggerCommandsFactory The factory for commands
 	 */
 	@Inject
-	public ActivitySubscriptionCommandFromMessageExtractor(SubscriptionFinder subscriptionFinder, DatatypeFactory datatypeFactory, AssetSender assetSender, DateTimeService dateTimeService, TriggerCommandsFactory triggerCommandsFactory) {
+	public ActivitySubscriptionCommandFromMessageExtractor(SubscriptionFinder subscriptionFinder, DatatypeFactory datatypeFactory, AssetSender assetSender, SpatialSender spatialSender, DateTimeService dateTimeService, TriggerCommandsFactory triggerCommandsFactory) {
 		this.subscriptionFinder = subscriptionFinder;
 		this.datatypeFactory = datatypeFactory;
 		this.assetSender = assetSender;
+		this.spatialSender = spatialSender;
 		this.dateTimeService = dateTimeService;
 		this.triggerCommandsFactory = triggerCommandsFactory;
 	}
@@ -160,15 +168,37 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 						return false;
 					}
 					return true;
-				})
-				.flatMap(reportToSubscription -> {
-					Iterator<ActivityAreas> activityAreas = reportToSubscription.getActivityAreas().iterator();
-					return reportToSubscription.getFishingActivities().stream()
-							.map(fishingActivity -> new ReportContext(request, reportToSubscription.getFluxFaReportMessageIds(), fishingActivity, reportToSubscription.getFaReportType(), activityAreas.next(), null, reportToSubscription.getAssetHistoryGuids().get(0)))
+				}).flatMap(reportToSubscription -> {
+					enrichWithUserAreas(reportToSubscription);
+					return indexed(reportToSubscription.getFishingActivities(),i->i).entrySet().stream()
+							.map(en -> new ReportContext(request, reportToSubscription.getFluxFaReportMessageIds(), en.getKey(), reportToSubscription.getFaReportType(),reportToSubscription.getActivityAreas().get(en.getValue()).getAreas(), null, reportToSubscription.getAssetHistoryGuids().get(0)))
 							.filter(this::handleOccurrenceDate);
 				});
 	}
+	
+	private void enrichWithUserAreas(ReportToSubscription reportToSubscription) {
+		List<XMLGregorianCalendar> dates = reportToSubscription.getFishingActivities().stream().map(fa ->
+				fa.getOccurrenceDateTime().getDateTime()).collect(Collectors.toList());
+		List<String> wktList = reportToSubscription.getActivitiesWktLists();
+		BatchSpatialEnrichmentRS response = spatialSender.getUserAreasEnrichmentByWkt(indexed(wktList,dates::get));
+		if(response != null) {
+			List<SpatialEnrichmentRSListElement> rsListElements = response.getEnrichmentRespLists();
+			int index = 0;
+			for(SpatialEnrichmentRSListElement rsListElement : rsListElements) {
+				List<AreaExtendedIdentifierType> areas = rsListElement.getAreasByLocation().getAreas();
+				List<Area> movementMetaDataAreaTypes = ActivityModelMapper.mapSpatialAreaToActivityAreas(areas);
+				// enrich corresponding areas of activity
+				reportToSubscription.getActivityAreas().get(index++).getAreas().addAll(movementMetaDataAreaTypes);
+			}
+		}
+	}
 
+	private static <K,V> Map<K,V> indexed(List<K> keys,Function<Integer,V> fn){
+		return IntStream.range(0, keys.size())
+				.boxed()
+				.collect(Collectors.toMap(keys::get, fn));
+	}
+	
 	private String makeReportToSubscriptionId(ReportToSubscription reportToSubscription) {
 		return reportToSubscription.getFluxFaReportMessageIds().stream().map(id -> id.getSchemeId() + ':' + id.getId()).collect(Collectors.joining(","));
 	}
@@ -220,7 +250,7 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 	}
 
 	private Stream<AreaCriterion> extractAreas(ReportContext reportContext) {
-		return reportContext.getActivityAreas().getAreas().stream()
+		return reportContext.getActivityAreas().stream()
 				.map(area -> new AreaCriterion(AreaType.fromValue(area.getAreaType()), Long.valueOf(area.getRemoteId())));
 	}
 
@@ -340,7 +370,7 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 		private List<FluxReportIdentifier> fluxFaReportMessageIds;
 		private FishingActivity fishingActivity;
 		private String faReportType;
-		private ActivityAreas activityAreas;
+		private List<Area> activityAreas;
 		/** Occurrence date of activity, extracted from activity. */
 		private Date occurrenceDate;
 		/** Asset history guid of reporting asset. */

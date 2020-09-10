@@ -120,6 +120,16 @@
                 </xsd:restriction>
             </xsd:simpleType>
 
+            <xsd:complexType name="SubscriptionAreaSimpleType">
+                <xsd:sequence>
+                    <xsd:element name="guid" type="xsd:string" default="UNKNOWN"/>
+                    <xsd:element name="longitude" type="xsd:double" nillable="true"/>
+                    <xsd:element name="latitude" type="xsd:double" nillable="true"/>
+                    <xsd:element name="crs" type="xsd:int" nillable="true"/>
+                    <xsd:element name="userAreaActiveDate" type="xsd:date" nillable="true"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            
             <!-- Ping request -->
 
             <xsd:element name="pingRequest">

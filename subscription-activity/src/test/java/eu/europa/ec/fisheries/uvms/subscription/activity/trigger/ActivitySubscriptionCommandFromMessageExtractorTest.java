@@ -52,6 +52,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.Subscripti
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsFactory;
+import eu.europa.ec.fisheries.uvms.subscription.spatial.communication.SpatialSender;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.MessageFormatException;
@@ -78,6 +79,9 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
 
     @Produces @Mock
     private AssetSender assetSender;
+    
+    @Produces @Mock
+    private SpatialSender spatialSender;
 
     @Produces @ApplicationScoped
     private final DateTimeServiceTestImpl dateTimeService = new DateTimeServiceTestImpl();

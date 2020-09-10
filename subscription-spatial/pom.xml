@@ -8,8 +8,8 @@
 		<version>${uvms.subscription.module.version}</version>
 	</parent>
 
-	<artifactId>subscription-movement</artifactId>
-	<description>Subscription and movement integration module.</description>
+	<artifactId>subscription-spatial</artifactId>
+	<description>Subscription and spatial integration module.</description>
 
 	<dependencies>
 		<!-- PROJECT DEPENDENCIES -->
@@ -23,16 +23,11 @@
 			<artifactId>subscription-service</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>eu.europa.ec.fisheries.uvms.subscription</groupId>
-			<artifactId>subscription-spatial</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		
+
 		<!-- FLUX FMC DEPENDENCIES -->
 		<dependency>
-			<groupId>eu.europa.ec.fisheries.uvms.movement</groupId>
-			<artifactId>movement-model</artifactId>
+			<groupId>eu.europa.ec.fisheries.uvms.spatial</groupId>
+			<artifactId>spatial-model</artifactId>
 		</dependency>
 
 		<!-- TEST -->
@@ -56,5 +51,5 @@
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-junit-jupiter</artifactId>
 		</dependency>
-    </dependencies>
+	</dependencies>
 </project>
