@@ -893,7 +893,7 @@ public class SubscriptionServiceBeanTest {
 	}
 
 	private void verifyMainAssets(AssetPageRetrievalMessage message, long pageNumber) {
-		assertFalse(message.isGroup());
+		assertFalse(message.getIsGroup());
 		assertEquals("mainAssets", message.getAssetGroupGuid());
 		assertEquals(pageNumber, message.getPageNumber());
 		assertTrue(message.getPageSize() > 1L);

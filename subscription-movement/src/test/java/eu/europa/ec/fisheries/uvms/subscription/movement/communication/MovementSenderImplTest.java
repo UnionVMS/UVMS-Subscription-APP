@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -22,9 +23,9 @@ import java.util.Map;
 import java.util.Set;
 
 import eu.europa.ec.fisheries.schema.movement.common.v1.SimpleResponse;
-import eu.europa.ec.fisheries.schema.movement.module.v1.FilterGuidListByAreaAndDateResponse;
 import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionRequest;
 import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionResponse;
+import eu.europa.ec.fisheries.schema.movement.module.v1.GetConnectIdsByDateAndGeometryResponse;
 import eu.europa.ec.fisheries.schema.movement.module.v1.MovementModuleMethod;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
@@ -63,8 +64,8 @@ class MovementSenderImplTest {
         final LocalDate todayLD = LocalDate.now();
         final Instant lastMonth = todayLD.minusMonths(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
         final Instant nextMonth = todayLD.plusMonths(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
-        FilterGuidListByAreaAndDateResponse response = new FilterGuidListByAreaAndDateResponse();
-        response.getFilteredList().add(GUID_1);
+        GetConnectIdsByDateAndGeometryResponse response = new GetConnectIdsByDateAndGeometryResponse();
+        response.getConnectIds().add(GUID_1);
         List<String> guidList = new ArrayList<>();
         guidList.add(GUID_1);
         guidList.add(GUID_2);
@@ -78,8 +79,8 @@ class MovementSenderImplTest {
         areas.add(areaEntity1);
         areas.add(areaEntity2);
 
-        when(movementClient.filterGuidListForDateByArea(any())).thenReturn(response);
-        List<String> filteredList = sut.sendFilterGuidListForAreasRequest(guidList,Date.from(lastMonth),Date.from(nextMonth),areas);
+        when(movementClient.sendRequest(any(),any())).thenReturn(response);
+        List<String> filteredList = sut.sendGetConnectIdsByDateAndGeometryRequest(guidList,Date.from(lastMonth),Date.from(nextMonth),null,1,null);
         assertEquals(GUID_1,filteredList.get(0));
     }
 
@@ -97,12 +98,12 @@ class MovementSenderImplTest {
         ForwardPositionResponse response = new ForwardPositionResponse();
         response.setMessageId(MESSAGE_ID);
         response.setResponse(SimpleResponse.OK);
-        when(movementClient.forwardPosition(any())).thenReturn(response);
+        when(movementClient.sendRequest(any(),any())).thenReturn(response);
 
         String result = sut.forwardPosition(vesselIdentifiers, vesselFlagState, movementGuids, "receiver", "dataflow");
 
         ArgumentCaptor<ForwardPositionRequest> requestCaptor = ArgumentCaptor.forClass(ForwardPositionRequest.class);
-        verify(movementClient).forwardPosition(requestCaptor.capture());
+        verify(movementClient).sendRequest(requestCaptor.capture(),any());
         ForwardPositionRequest invokedArgument = requestCaptor.getValue();
 
         assertEquals(MovementModuleMethod.FORWARD_POSITION, invokedArgument.getMethod());

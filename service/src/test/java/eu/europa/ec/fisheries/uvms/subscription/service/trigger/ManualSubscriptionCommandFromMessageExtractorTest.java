@@ -43,14 +43,16 @@ import java.util.stream.Stream;
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
 import eu.europa.ec.fisheries.uvms.subscription.helper.DateTimeServiceTestImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionAssetService;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionFinder;
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionSpatialService;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetGroupEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.filter.AreaFilterComponent;
+import eu.europa.ec.fisheries.uvms.subscription.service.filter.AreaFiltererComponent;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.AssetPageRetrievalMessage;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
@@ -63,7 +65,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mapstruct.ap.internal.util.Collections;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -92,7 +93,15 @@ class ManualSubscriptionCommandFromMessageExtractorTest {
 
     @Produces
     @Mock
-    private AreaFilterComponent areaFilterComponent;
+    private SubscriptionAssetService subscriptionAssetService;
+
+    @Produces
+    @Mock
+    private SubscriptionSpatialService subscriptionSpatialService;
+
+    @Produces
+    @Mock
+    private AreaFiltererComponent areaFiltererComponent;
 
     @Produces
     @ApplicationScoped
@@ -134,7 +143,7 @@ class ManualSubscriptionCommandFromMessageExtractorTest {
         AssetPageRetrievalCommand assetPageRetrievalCommand = new AssetPageRetrievalCommand(messageForQueue, subscriptionSender);
         when(triggerCommandsFactory.createAssetPageRetrievalCommand(any())).thenReturn(assetPageRetrievalCommand);
         //skip area filtering
-        when(areaFilterComponent.filterAssetsBySubscriptionAreas(ArgumentMatchers.any())).thenAnswer(i-> ((List<?>) i.getArguments()[0]).stream());
+        when(areaFiltererComponent.filterAssetsBySubscriptionAreas( any(),any(),any())).thenAnswer(i-> i.getArgument(0));
         Stream<Command> result = sut.extractCommands(AssetPageRetrievalMessage.encodeMessage(receivedMessageFromQueue), null, NOWZDT);
 
         assertNotNull(result);
@@ -182,7 +191,7 @@ class ManualSubscriptionCommandFromMessageExtractorTest {
         when(triggerCommandsFactory.createAssetPageRetrievalCommand(any())).thenReturn(assetPageRetrievalCommand);
         when(assetSender.findAssetIdentifiersByAssetGroupGuid(assetGroupName, dateTimeService.getNowAsDate(), pageNumber, pageSize)).thenReturn(groupAssets);
         //skip area filtering
-        when(areaFilterComponent.filterAssetsBySubscriptionAreas(ArgumentMatchers.any())).thenAnswer(i-> ((List<?>) i.getArguments()[0]).stream());
+        when(areaFiltererComponent.filterAssetsBySubscriptionAreas(any(),any(),any())).thenAnswer(i-> i.getArgument(0));
         Stream<Command> result = sut.extractCommands(encodedMessageFromQueue, null, NOWZDT);
 
         assertNotNull(result);

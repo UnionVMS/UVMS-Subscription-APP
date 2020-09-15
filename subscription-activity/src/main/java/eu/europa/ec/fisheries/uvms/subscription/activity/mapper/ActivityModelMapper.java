@@ -13,41 +13,25 @@
 package eu.europa.ec.fisheries.uvms.subscription.activity.mapper;
 
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.Area;
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.MovementSimpleType;
-import eu.europa.ec.fisheries.uvms.spatial.model.schemas.AreaExtendedIdentifierType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionAreaSimpleType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionMovementMetaDataAreaType;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ActivityModelMapper {
 
-    public static List<SubscriptionAreaSimpleType> movementSimpleTypesToSubscriptionAreaSimpleTypes(List<MovementSimpleType> movementSimpleTypes){
-        return movementSimpleTypes.stream().map(ActivityModelMapper::movementSimpleTypeToSubscriptionAreaSimpleTypes).collect(Collectors.toList());
-    }
-    public static SubscriptionAreaSimpleType movementSimpleTypeToSubscriptionAreaSimpleTypes(MovementSimpleType movementSimpleType){
-        if(movementSimpleType == null){
-            return null;
-        }
-        SubscriptionAreaSimpleType subscriptionAreaSimpleType = new SubscriptionAreaSimpleType();
-        subscriptionAreaSimpleType.setCrs(4326);
-        subscriptionAreaSimpleType.setGuid(movementSimpleType.getMoveGuid());
-        subscriptionAreaSimpleType.setLatitude(movementSimpleType.getLatitude());
-        subscriptionAreaSimpleType.setLongitude(movementSimpleType.getLongitude());
-        return subscriptionAreaSimpleType;
-    }
-    public static List<Area> mapSpatialAreaToActivityAreas(List<AreaExtendedIdentifierType> spatialAreas){
-        return spatialAreas.stream().map(ActivityModelMapper::mapSpatialAreaToActivityArea).collect(Collectors.toList());
+    public static List<Area> mapSubscriptionAreasToActivityAreas(List<SubscriptionMovementMetaDataAreaType> subscriptionMovementMetaDataAreaTypes){
+        return subscriptionMovementMetaDataAreaTypes.stream().map(ActivityModelMapper::mapSubscriptionAreaToActivityArea).collect(Collectors.toList());
     }
 
-    public static Area mapSpatialAreaToActivityArea(AreaExtendedIdentifierType spatialArea) {
-        if(spatialArea == null) {
+    public static Area mapSubscriptionAreaToActivityArea(SubscriptionMovementMetaDataAreaType subscriptionMovementMetaDataAreaType) {
+        if(subscriptionMovementMetaDataAreaType == null) {
             return null;
         }
         Area area = new Area();
-        area.setAreaType(spatialArea.getAreaType().name());
-        area.setRemoteId(spatialArea.getId());
-        area.setName(spatialArea.getName());
+        area.setAreaType(subscriptionMovementMetaDataAreaType.getAreaType());
+        area.setRemoteId(subscriptionMovementMetaDataAreaType.getRemoteId());
+        area.setName(subscriptionMovementMetaDataAreaType.getName());
         return area;
     }
 }

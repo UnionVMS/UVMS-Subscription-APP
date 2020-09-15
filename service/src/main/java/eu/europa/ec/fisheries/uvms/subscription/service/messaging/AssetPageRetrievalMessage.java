@@ -16,7 +16,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class AssetPageRetrievalMessage {
 
-    private final boolean isGroup;
+    private final Boolean isGroup;
     private final Long subscriptionId;
     private final String assetGroupGuid;
     private final Long pageNumber;
@@ -33,7 +33,7 @@ public class AssetPageRetrievalMessage {
      */
     public static String encodeMessage(AssetPageRetrievalMessage assetPageRetrievalMessage) {
         return String.join(";",
-                assetPageRetrievalMessage.isGroup() ? "g" : "m",
+                encodeIsGroupChar(assetPageRetrievalMessage),
                 assetPageRetrievalMessage.getSubscriptionId().toString(),
                 assetPageRetrievalMessage.getAssetGroupGuid(),
                 assetPageRetrievalMessage.getPageNumber().toString(),
@@ -50,10 +50,29 @@ public class AssetPageRetrievalMessage {
      */
     public static AssetPageRetrievalMessage decodeMessage(String encodedMessage) {
         String[] messageParameters = encodedMessage.split(";");
-        return new AssetPageRetrievalMessage("g".equals(messageParameters[0]),
+        return new AssetPageRetrievalMessage(decodeIsGroupChar(messageParameters[0]),
                 Long.valueOf(messageParameters[1]),
                 messageParameters[2],
                 Long.valueOf(messageParameters[3]),
                 Long.valueOf(messageParameters[4]));
+    }
+    
+    private static String encodeIsGroupChar(AssetPageRetrievalMessage assetPageRetrievalMessage){
+        if(assetPageRetrievalMessage.getIsGroup() == null) {
+            return "a";
+        }
+        if(assetPageRetrievalMessage.getIsGroup()) {
+            return "g";
+        }
+        return "m";
+    }
+    private static Boolean decodeIsGroupChar(String param){
+        if("a".equals(param)) {
+            return null;
+        }
+        if("g".equals(param)) {
+            return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
     }
 }

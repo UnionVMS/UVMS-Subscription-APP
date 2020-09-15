@@ -29,7 +29,8 @@ class AssetPageRetrievalMessageTest {
     protected static Stream<Arguments> encodeMessageTestInput() {
         return Stream.of(
                 Arguments.of("g;500;greece-guid;0;10", new AssetPageRetrievalMessage(true, 500L, "greece-guid", 0L, 10L)),
-                Arguments.of("m;500;mainAssets;1;10", new AssetPageRetrievalMessage(false, 500L, "mainAssets", 1L, 10L))
+                Arguments.of("m;500;mainAssets;1;10", new AssetPageRetrievalMessage(false, 500L, "mainAssets", 1L, 10L)),
+                Arguments.of("a;500;none;2;10", new AssetPageRetrievalMessage(null, 500L, "none", 2L, 10L))
         );
     }
 
@@ -37,7 +38,7 @@ class AssetPageRetrievalMessageTest {
     @MethodSource("decodeMessageTestInput")
     void testDecodeManualSubscriptionMessage(AssetPageRetrievalMessage expectedObject, String encodedInput) {
         AssetPageRetrievalMessage result = AssetPageRetrievalMessage.decodeMessage(encodedInput);
-        assertEquals(expectedObject.isGroup(), result.isGroup());
+        assertEquals(expectedObject.getIsGroup(), result.getIsGroup());
         assertEquals(expectedObject.getSubscriptionId(), result.getSubscriptionId());
         assertEquals(expectedObject.getAssetGroupGuid(), result.getAssetGroupGuid());
         assertEquals(expectedObject.getPageNumber(), result.getPageNumber());
@@ -46,8 +47,9 @@ class AssetPageRetrievalMessageTest {
 
     protected static Stream<Arguments> decodeMessageTestInput() {
         return Stream.of(
-                Arguments.of(new AssetPageRetrievalMessage(true, 500L, "greece-guid", 0L, 10L), "g;500;greece-guid;0;10"),
-                Arguments.of(new AssetPageRetrievalMessage(false, 500L, "mainAssets", 1L, 10L), "m;500;mainAssets;1;10")
+                Arguments.of(new AssetPageRetrievalMessage(null, 500L, "none", 0L, 10L), "a;500;none;0;10"),
+                Arguments.of(new AssetPageRetrievalMessage(true, 500L, "greece-guid", 1L, 10L), "g;500;greece-guid;1;10"),
+                Arguments.of(new AssetPageRetrievalMessage(false, 500L, "mainAssets", 2L, 10L), "m;500;mainAssets;2;10")
         );
     }
 }

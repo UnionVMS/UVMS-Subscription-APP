@@ -10,10 +10,12 @@
 package eu.europa.ec.fisheries.uvms.subscription.spatial.communication;
 
 import eu.europa.ec.fisheries.uvms.spatial.model.schemas.BatchSpatialEnrichmentRS;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionAreaSimpleType;
+import eu.europa.ec.fisheries.uvms.spatial.model.schemas.GetAreasGeometryUnionRS;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionAreaType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Date;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -26,10 +28,10 @@ public interface SpatialSender {
 	/**
 	 * Sends message to Spatial in order to enrich movements with user defined areas
 	 * 
-	 * @param subscriptionAreaSimpleTypes The SubscriptionAreaSimpleType list
+	 * @param subscriptionAreaTypes The SubscriptionAreaType list
 	 * @return BatchSpatialEnrichmentRS enriched with user areas, if found
 	 */
-	BatchSpatialEnrichmentRS getBatchUserAreasEnrichment(List<SubscriptionAreaSimpleType> subscriptionAreaSimpleTypes);
+	BatchSpatialEnrichmentRS getBatchUserAreasEnrichment(List<SubscriptionAreaType> subscriptionAreaTypes);
 
 	/**
 	 * Sends message to Spatial in order to enrich movements with user defined areas
@@ -38,4 +40,12 @@ public interface SpatialSender {
 	 * @return BatchSpatialEnrichmentRS enriched with user areas, if found
 	 */
 	BatchSpatialEnrichmentRS getUserAreasEnrichmentByWkt(Map<String, XMLGregorianCalendar> wktDateMap);
+	
+	/**
+	 * Sends message to Spatial asking a geometry union wkt string for the request entities
+	 *
+	 * @param areaEntities The AreaEntity Set
+	 * @return GetAreasGeometryUnionRS, the spatial module response
+	 */
+	GetAreasGeometryUnionRS getAreasGeometryUnion(Collection<AreaEntity> areaEntities);
 }

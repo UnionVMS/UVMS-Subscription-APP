@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionFinder;
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionSpatialService;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
@@ -52,7 +53,6 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.Subscripti
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsFactory;
-import eu.europa.ec.fisheries.uvms.subscription.spatial.communication.SpatialSender;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.MessageFormatException;
@@ -81,7 +81,7 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
     private AssetSender assetSender;
     
     @Produces @Mock
-    private SpatialSender spatialSender;
+    private SubscriptionSpatialService subscriptionSpatialService;
 
     @Produces @ApplicationScoped
     private final DateTimeServiceTestImpl dateTimeService = new DateTimeServiceTestImpl();

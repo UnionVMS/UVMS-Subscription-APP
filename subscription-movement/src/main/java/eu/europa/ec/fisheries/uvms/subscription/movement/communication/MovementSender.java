@@ -9,9 +9,6 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.movement.communication;
 
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
-
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -24,20 +21,24 @@ public interface MovementSender {
 	/**
 	 * Retrieves a list of guids that according to movement module there had been at least one movement that satisfies
 	 * the requested criteria
-	 * @param guidList The list that will be filterer
+	 * @param inList The list that will be filtered, can be empty
 	 * @param startDate The start date
 	 * @param endDate The end date
-	 * @param areas Areas that occurred a movement
+	 * @param areasGeometryUnion Areas geometry union string (wkt)
+	 * @param fromPage Page number
+	 * @param limit Records limit
 	 * @return The filtered guid list
 	 */
-	List<String> sendFilterGuidListForAreasRequest(
-            List<String> guidList,
+	List<String> sendGetConnectIdsByDateAndGeometryRequest(
+            List<String> inList,
             Date startDate,
             Date endDate,
-			Collection<AreaEntity> areas);
+			String areasGeometryUnion,
+			Integer fromPage,
+			Integer limit);
 
 	/**
-	 *
+	 * Call @{@code FORWARD_POSITION}
 	 * @param vesselIdentifiers the vessel identifiers
 	 * @param vesselRegistrationState the country that the vessel is registered to
 	 * @param movementGuidList the guids of each movement

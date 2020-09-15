@@ -13,32 +13,40 @@
 package eu.europa.ec.fisheries.uvms.subscription.spatial.mapper;
 
 import eu.europa.ec.fisheries.uvms.spatial.model.mapper.SpatialModuleRequestMapper;
+import eu.europa.ec.fisheries.uvms.spatial.model.schemas.AreaExtendedIdentifierType;
+import eu.europa.ec.fisheries.uvms.spatial.model.schemas.AreaIdentifierType;
+import eu.europa.ec.fisheries.uvms.spatial.model.schemas.AreaType;
 import eu.europa.ec.fisheries.uvms.spatial.model.schemas.AreaTypeElement;
 import eu.europa.ec.fisheries.uvms.spatial.model.schemas.BatchSpatialEnrichmentRQ;
 import eu.europa.ec.fisheries.uvms.spatial.model.schemas.BatchSpatialUserAreaEnrichmentRQ;
+import eu.europa.ec.fisheries.uvms.spatial.model.schemas.GetAreasGeometryUnionRQ;
 import eu.europa.ec.fisheries.uvms.spatial.model.schemas.PointType;
 import eu.europa.ec.fisheries.uvms.spatial.model.schemas.SpatialEnrichmentRQListElement;
 import eu.europa.ec.fisheries.uvms.spatial.model.schemas.SpatialModuleMethod;
 import eu.europa.ec.fisheries.uvms.spatial.model.schemas.UnitType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionAreaSimpleType;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionAreaType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionMovementMetaDataAreaType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SpatialMapper {
     
-    public static BatchSpatialEnrichmentRQ batchSpatialEnrichmentRQ(List<SubscriptionAreaSimpleType> subscriptionAreaSimpleTypes){
+    public static BatchSpatialEnrichmentRQ batchSpatialEnrichmentRQ(List<SubscriptionAreaType> subscriptionAreaTypes){
         List<SpatialEnrichmentRQListElement> batchReqElements = new ArrayList<>();
-        for (SubscriptionAreaSimpleType subscriptionAreaSimpleType : subscriptionAreaSimpleTypes) {
+        for (SubscriptionAreaType subscriptionAreaType : subscriptionAreaTypes) {
             PointType point = new PointType();
-            point.setCrs(subscriptionAreaSimpleType.getCrs());//4326;
-            point.setLatitude(subscriptionAreaSimpleType.getLatitude());
-            point.setLongitude(subscriptionAreaSimpleType.getLongitude());
+            point.setCrs(subscriptionAreaType.getCrs());
+            point.setLatitude(subscriptionAreaType.getLatitude());
+            point.setLongitude(subscriptionAreaType.getLongitude());
             SpatialEnrichmentRQListElement spatialEnrichmentRQListElement = SpatialModuleRequestMapper.mapToCreateSpatialEnrichmentRQElement(point, UnitType.NAUTICAL_MILES, null, null);
-            spatialEnrichmentRQListElement.setUserAreaActiveDate(subscriptionAreaSimpleType.getUserAreaActiveDate());
-            spatialEnrichmentRQListElement.setGuid(subscriptionAreaSimpleType.getGuid());
+            spatialEnrichmentRQListElement.setUserAreaActiveDate(subscriptionAreaType.getUserAreaActiveDate());
+            spatialEnrichmentRQListElement.setGuid(subscriptionAreaType.getCorrelationId());
             batchReqElements.add(spatialEnrichmentRQListElement);
         }
         BatchSpatialEnrichmentRQ request = new BatchSpatialEnrichmentRQ();
@@ -59,5 +67,35 @@ public class SpatialMapper {
         request.setAreaTypes(list);
         request.setMethod(SpatialModuleMethod.GET_USER_AREA_ENRICHMENT_BY_WKT);
         return request;
+    }
+    
+    public static GetAreasGeometryUnionRQ createGetAreasGeometryUnionRQ(Collection<AreaEntity> areaEntities){
+        GetAreasGeometryUnionRQ request = new GetAreasGeometryUnionRQ();
+        request.setMethod(SpatialModuleMethod.GET_AREAS_GEOMETRY_UNION);
+        List<AreaIdentifierType> areaIdentifierTypes = request.getAreas();
+        for(AreaEntity areaEntity : areaEntities) {
+            AreaIdentifierType areaIdentifierType = new AreaIdentifierType();
+            areaIdentifierType.setAreaType(AreaType.valueOf(areaEntity.getAreaType().name()));
+            areaIdentifierType.setId(String.valueOf(areaEntity.getGid()));
+            areaIdentifierTypes.add(areaIdentifierType);
+        }
+        return request;
+    }
+
+    public static List<SubscriptionMovementMetaDataAreaType> mapSpatialAreasToSubscriptionAreas(List<AreaExtendedIdentifierType> spatialAreas){
+        return spatialAreas.stream().map(SpatialMapper::mapSpatialAreaToSubscriptionArea).collect(Collectors.toList());
+    }
+
+    public static SubscriptionMovementMetaDataAreaType mapSpatialAreaToSubscriptionArea(AreaExtendedIdentifierType spatialArea) {
+        if(spatialArea == null) {
+            return null;
+        }
+        SubscriptionMovementMetaDataAreaType movementMetaDataAreaType = new SubscriptionMovementMetaDataAreaType();
+        movementMetaDataAreaType.setAreaType(spatialArea.getAreaType().name());
+        movementMetaDataAreaType.setCode(spatialArea.getCode());
+        movementMetaDataAreaType.setRemoteId(spatialArea.getId());
+        movementMetaDataAreaType.setName(spatialArea.getName());
+        movementMetaDataAreaType.setTransitionType("POS");
+        return movementMetaDataAreaType;
     }
 }

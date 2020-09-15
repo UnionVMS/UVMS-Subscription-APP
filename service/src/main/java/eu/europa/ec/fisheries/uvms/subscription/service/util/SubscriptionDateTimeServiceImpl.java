@@ -14,7 +14,10 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutpu
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.ZonedDateTime;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import static eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeUtil.convertDateToZonedDateTime;
 
@@ -25,9 +28,11 @@ import static eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeUtil
 public class SubscriptionDateTimeServiceImpl implements SubscriptionDateTimeService {
 
 	private DatatypeFactory datatypeFactory;
+	private DateTimeService dateTimeService;
 
 	@Inject
-	public SubscriptionDateTimeServiceImpl(DatatypeFactory datatypeFactory){
+	public SubscriptionDateTimeServiceImpl(DateTimeService dateTimeService,DatatypeFactory datatypeFactory){
+		this.dateTimeService = dateTimeService;
 		this.datatypeFactory = datatypeFactory;
 	}
 
@@ -55,6 +60,18 @@ public class SubscriptionDateTimeServiceImpl implements SubscriptionDateTimeServ
 			endDate = datatypeFactory.newXMLGregorianCalendar(occurrence).toGregorianCalendar().toZonedDateTime();
 		}
 		return endDate;
+	}
+
+	@Override
+	public ZonedDateTime calculateEndDate(SubscriptionOutput output) {
+		String occurrenceKeyData = null;
+		if(output.getQueryPeriod() == null){
+			GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+			calendar.setTime(dateTimeService.getNowAsDate());
+			XMLGregorianCalendar xmlCalendar = datatypeFactory.newXMLGregorianCalendar(calendar);
+			occurrenceKeyData = xmlCalendar.toXMLFormat();
+		}
+		return calculateEndDate(output,occurrenceKeyData);
 	}
 
 }

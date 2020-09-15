@@ -15,13 +15,11 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.xml.datatype.DatatypeFactory;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
 import java.util.Date;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
@@ -38,7 +36,10 @@ class SubscriptionDateTimeServiceImplTest {
 
 	@Inject
 	private SubscriptionDateTimeServiceImpl sut;
-
+	
+	@Produces
+	private DateTimeService dateTimeService = new DateTimeServiceImpl();
+	
 	@Produces
 	DatatypeFactory getDatatypeFactory() throws Exception {
 		return DatatypeFactory.newInstance();
@@ -79,6 +80,15 @@ class SubscriptionDateTimeServiceImplTest {
 		assertEquals(16, result.getDayOfMonth());
 	}
 
+	@Test
+	void testCalculateEndDateWithoutQueryPeriodAndOccurrence() {
+		LocalDateTime now = LocalDateTime.now();
+		ZonedDateTime result = sut.calculateEndDate(new SubscriptionOutput());
+		assertEquals(now.getYear(), result.getYear());
+		assertEquals(now.getMonth(), result.getMonth());
+		assertEquals(now.getDayOfMonth(), result.getDayOfMonth());
+	}
+	
 	@Test
 	void testCalculateEndDateWithoutQueryPeriod() {
 		SubscriptionOutput output = new SubscriptionOutput();
