@@ -11,12 +11,9 @@ copy of the GNU General Public License along with the IFDM Suite. If not, see <h
 */
 package eu.europa.ec.fisheries.uvms.subscription.movement.filter;
 
-import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
 import eu.europa.ec.fisheries.uvms.subscription.movement.communication.MovementSender;
@@ -24,9 +21,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
-import eu.europa.ec.fisheries.uvms.subscription.service.trigger.AssetAndSubscriptionData;
+import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.SubscriptionDateTimeService;
-import eu.europa.ec.fisheries.uvms.subscription.service.util.SubscriptionDateTimeServiceImpl;
 import lombok.SneakyThrows;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
@@ -34,7 +30,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.xml.datatype.DatatypeFactory;
@@ -48,25 +43,28 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
- * Tests for the {@link AreaFilterComponentImpl}.
+ * Tests for the {@link AreaFiltererComponentImpl}.
  */
 @EnableAutoWeld
 @ExtendWith(MockitoExtension.class)
-public class AreaFilterComponentImplTest {
+public class AreaFiltererComponentImplTest {
 
     @Produces
     @Mock
     private MovementSender movementSender;
-
+    
     @Produces
-    @ApplicationScoped
-    private SubscriptionDateTimeService dateTimeService = new SubscriptionDateTimeServiceImpl(dataTypeFactory());
+    @Mock
+    private DateTimeService dateTimeService;
+    
+    @Produces
+    @Mock
+    private SubscriptionDateTimeService subscriptionDateTimeService ;
 
     @Inject
-    private AreaFilterComponentImpl sut;
+    private AreaFiltererComponentImpl sut;
 
     @Produces
     @SneakyThrows
@@ -76,7 +74,7 @@ public class AreaFilterComponentImplTest {
 
     @Test
     void testEmptyConstructor() {
-        AreaFilterComponentImpl sut = new AreaFilterComponentImpl();
+        AreaFiltererComponentImpl sut = new AreaFiltererComponentImpl();
         assertNotNull(sut);
     }
 
@@ -84,11 +82,10 @@ public class AreaFilterComponentImplTest {
     void testMakeAreaFilterWithNoAreas(){
         SubscriptionEntity subscriptionEntity = createSubscriptionEntity(1L,false);
         AssetEntity assetEntity = createAsset(1L,"TestAsset",UUID.randomUUID().toString());
-        AssetAndSubscriptionData assetAndSubscriptionData = new AssetAndSubscriptionData(assetEntity,subscriptionEntity,null);
-        List<AssetAndSubscriptionData> assetAndSubscriptionDataList = new ArrayList<>();
-        assetAndSubscriptionDataList.add(assetAndSubscriptionData);
+        List<AssetEntity> assetEntities = new ArrayList<>();
+        assetEntities.add(assetEntity);
 
-        List<AssetAndSubscriptionData> filteredData = sut.filterAssetsBySubscriptionAreas(assetAndSubscriptionDataList).collect(Collectors.toList());
+        List<AssetEntity> filteredData = sut.filterAssetsBySubscriptionAreas(assetEntities,subscriptionEntity,null);
 
         assertNotNull(filteredData);
         assertEquals(1, filteredData.size());
@@ -101,17 +98,14 @@ public class AreaFilterComponentImplTest {
         String guid2 = UUID.randomUUID().toString();
         AssetEntity assetEntity1 = createAsset(1L,"TestAsset",guid1);
         AssetEntity assetEntity2 = createAsset(2L,"TestAsset",guid2);
-        AssetAndSubscriptionData assetAndSubscriptionData1 = new AssetAndSubscriptionData(assetEntity1,subscriptionEntity,null);
-        AssetAndSubscriptionData assetAndSubscriptionData2 = new AssetAndSubscriptionData(assetEntity2,subscriptionEntity,null);
-        List<AssetAndSubscriptionData> assetAndSubscriptionDataList = new ArrayList<>();
-        assetAndSubscriptionDataList.add(assetAndSubscriptionData1);
-        assetAndSubscriptionDataList.add(assetAndSubscriptionData2);
-        when(movementSender.sendFilterGuidListForAreasRequest(any(),any(),any(),any())).thenReturn(singletonList(guid1));
+        List<AssetEntity> assetEntities = new ArrayList<>();
+        assetEntities.add(assetEntity1);
+        assetEntities.add(assetEntity2);
 
-        List<AssetAndSubscriptionData> filteredData = sut.filterAssetsBySubscriptionAreas(assetAndSubscriptionDataList).collect(Collectors.toList());
+        List<AssetEntity> filteredData = sut.filterAssetsBySubscriptionAreas(assetEntities,subscriptionEntity,null);
 
         assertNotNull(filteredData);
-        assertEquals(assetEntity1.getId(), filteredData.get(0).getAssetEntity().getId());
+        assertEquals(assetEntity1.getId(), filteredData.get(0).getId());
     }
 
     private SubscriptionEntity createSubscriptionEntity(Long id,boolean sendRequiredData) {

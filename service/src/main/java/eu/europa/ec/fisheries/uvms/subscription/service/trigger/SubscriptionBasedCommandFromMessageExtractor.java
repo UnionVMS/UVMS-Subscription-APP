@@ -14,6 +14,7 @@ import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscri
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -27,18 +28,22 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionAssetService;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionFinder;
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionSpatialService;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
-import eu.europa.ec.fisheries.uvms.subscription.service.filter.AreaFilterComponent;
+import eu.europa.ec.fisheries.uvms.subscription.service.filter.AreaFiltererComponent;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.AssetPageRetrievalMessage;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersWithConnectIdHolder;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * Base abstract class for manual and scheduled subscriptions.
@@ -50,18 +55,25 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
     private DatatypeFactory datatypeFactory;
     private DateTimeService dateTimeService;
     private AssetSender assetSender;
-    private AreaFilterComponent areaFilterComponent;
-
+    private AreaFiltererComponent areaFiltererComponent;
+    private SubscriptionAssetService subscriptionAssetService;
+    private SubscriptionSpatialService subscriptionSpatialService;
+    
     public SubscriptionBasedCommandFromMessageExtractor(SubscriptionFinder subscriptionFinder,
                                                         TriggerCommandsFactory triggerCommandsFactory,
                                                         DatatypeFactory datatypeFactory,
-                                                        DateTimeService dateTimeService, AssetSender assetSender, AreaFilterComponent areaFilterComponent) {
+                                                        DateTimeService dateTimeService, AssetSender assetSender,
+                                                        AreaFiltererComponent areaFiltererComponent,
+                                                        SubscriptionAssetService subscriptionAssetService,
+                                                        SubscriptionSpatialService subscriptionSpatialService) {
         this.subscriptionFinder = subscriptionFinder;
         this.triggerCommandsFactory = triggerCommandsFactory;
         this.datatypeFactory = datatypeFactory;
         this.dateTimeService = dateTimeService;
         this.assetSender = assetSender;
-        this.areaFilterComponent = areaFilterComponent;
+        this.subscriptionAssetService = subscriptionAssetService;
+        this.areaFiltererComponent = areaFiltererComponent;
+        this.subscriptionSpatialService = subscriptionSpatialService;
     }
 
     /**
@@ -87,21 +99,34 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
         AssetPageRetrievalMessage assetPageRetrievalMessage = AssetPageRetrievalMessage.decodeMessage(representation);
         SubscriptionEntity subscription = subscriptionFinder.findSubscriptionById(assetPageRetrievalMessage.getSubscriptionId());
 
-        List<AssetEntity> assets = assetPageRetrievalMessage.isGroup() ?
-                handleAssetGroup(assetPageRetrievalMessage) : handleMainAssets(assetPageRetrievalMessage, subscription.getAssets());
-
+        List<AssetEntity> assets = handleAssets(assetPageRetrievalMessage,subscription);
+        
         Stream<Command> nextPageCommandStream = assets.size() == assetPageRetrievalMessage.getPageSize() ?
                 Stream.of(createAssetMessageCommandForNextPage(assetPageRetrievalMessage)) : Stream.empty();
 
         return Stream.concat(nextPageCommandStream, makeCommandsForSubscription(subscription, assets, receptionDateTime));
     }
 
+    private List<AssetEntity> handleAssets(AssetPageRetrievalMessage assetPageRetrievalMessage, SubscriptionEntity subscription) {
+        String areasGeometry = null;
+        if (Boolean.TRUE.equals(subscription.getHasAreas())) {
+            areasGeometry = subscriptionSpatialService.getAreasGeometry(subscription.getAreas());
+            if(areasGeometry == null) {
+                return Collections.emptyList();
+            }
+        }
+        if(assetPageRetrievalMessage.getIsGroup() == null){
+            return handleAreaAssets(areasGeometry,assetPageRetrievalMessage,subscription);
+        }
+        List<AssetEntity> assets = assetPageRetrievalMessage.getIsGroup() ?
+                    handleAssetGroup(assetPageRetrievalMessage) : handleMainAssets(assetPageRetrievalMessage, subscription.getAssets());
+        return areaFiltererComponent.filterAssetsBySubscriptionAreas(assets,subscription,areasGeometry);
+    }
+
     private Stream<Command> makeCommandsForSubscription(SubscriptionEntity subscription, List<AssetEntity> assets, ZonedDateTime receptionDateTime) {
-        List<AssetAndSubscriptionData> assetAndSubscriptionData = assets.stream()
+        return assets.stream()
                 .distinct()
-                .map(makeAssetAndSubscriptionDataMapper(subscription))
-                .collect(Collectors.toList());
-        return areaFilterComponent.filterAssetsBySubscriptionAreas(assetAndSubscriptionData)
+                .map(a-> new AssetAndSubscriptionData(a,subscription))
                 .map(makeTriggeredSubscriptionEntity(receptionDateTime))
                 .map(this::makeCommandForSubscription);
     }
@@ -122,7 +147,7 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
     private Set<TriggeredSubscriptionDataEntity> makeTriggeredSubscriptionData(TriggeredSubscriptionEntity triggeredSubscription, AssetAndSubscriptionData data) {
         Set<TriggeredSubscriptionDataEntity> result = new HashSet<>();
         addConnectIdData(triggeredSubscription, data, result);
-        addOccurrenceDataIfRequired(triggeredSubscription, data, result);
+        addOccurrenceDataIfRequired(triggeredSubscription, result);
         addVesselIdentifierData(triggeredSubscription, data, result);
         return result;
     }
@@ -131,9 +156,12 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
         result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_CONNECT_ID, data.getAssetEntity().getGuid()));
     }
 
-    private void addOccurrenceDataIfRequired(TriggeredSubscriptionEntity triggeredSubscription,AssetAndSubscriptionData data, Set<TriggeredSubscriptionDataEntity> result) {
+    private void addOccurrenceDataIfRequired(TriggeredSubscriptionEntity triggeredSubscription, Set<TriggeredSubscriptionDataEntity> result) {
         if (triggeredSubscription.getSubscription().getOutput().getQueryPeriod() == null) {
-            result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_OCCURRENCE, data.getOccurrenceKeyData()));
+            GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+            calendar.setTime(dateTimeService.getNowAsDate());
+            XMLGregorianCalendar xmlCalendar = datatypeFactory.newXMLGregorianCalendar(calendar);
+            result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_OCCURRENCE, xmlCalendar.toXMLFormat()));
         }
     }
 
@@ -157,6 +185,16 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
         return triggerCommandsFactory.createTriggerSubscriptionCommand(triggeredSubscription, getDataForDuplicatesExtractor());
     }
 
+    private List<AssetEntity> handleAreaAssets(String areasGeometry,AssetPageRetrievalMessage assetPageRetrievalMessage,SubscriptionEntity subscription){
+        if(!Boolean.TRUE.equals(subscription.getHasAreas())){
+            return Collections.emptyList();
+        }
+        return subscriptionAssetService.getAssetEntitiesPaginated(areasGeometry,
+                subscription.getOutput(),
+                assetPageRetrievalMessage.getPageNumber().intValue(),
+                assetPageRetrievalMessage.getPageSize().intValue());
+    }
+    
     private List<AssetEntity> handleAssetGroup(AssetPageRetrievalMessage assetPageRetrievalMessage) {
         List<VesselIdentifiersWithConnectIdHolder> assetIdentifiersByAssetGroupGuid = assetSender.findAssetIdentifiersByAssetGroupGuid(assetPageRetrievalMessage.getAssetGroupGuid(),
                 dateTimeService.getNowAsDate(),
@@ -194,7 +232,7 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
     private Command createAssetMessageCommandForNextPage(AssetPageRetrievalMessage assetPageRetrievalMessage) {
         return triggerCommandsFactory.createAssetPageRetrievalCommand(
                 new AssetPageRetrievalMessage(
-                        assetPageRetrievalMessage.isGroup(),
+                        assetPageRetrievalMessage.getIsGroup(),
                         assetPageRetrievalMessage.getSubscriptionId(),
                         assetPageRetrievalMessage.getAssetGroupGuid(),
                         assetPageRetrievalMessage.getPageNumber() + 1,
@@ -202,16 +240,10 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
         );
     }
 
-    private Function<AssetEntity,AssetAndSubscriptionData> makeAssetAndSubscriptionDataMapper(SubscriptionEntity manualSubscription) {
-        return assetEntity -> {
-            String occurrenceKeyData = null;
-            if(manualSubscription.getOutput().getQueryPeriod() == null){
-                GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
-                calendar.setTime(dateTimeService.getNowAsDate());
-                XMLGregorianCalendar xmlCalendar = datatypeFactory.newXMLGregorianCalendar(calendar);
-                occurrenceKeyData = xmlCalendar.toXMLFormat();
-            }
-            return new AssetAndSubscriptionData(assetEntity,manualSubscription,occurrenceKeyData);
-        };
+    @Getter
+    @AllArgsConstructor
+    private static class AssetAndSubscriptionData {
+        private final AssetEntity assetEntity;
+        private final SubscriptionEntity subscription;
     }
 }

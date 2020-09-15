@@ -16,42 +16,42 @@ import eu.europa.ec.fisheries.schema.movement.v1.MovementMetaDataAreaType;
 import eu.europa.ec.fisheries.schema.movement.v1.MovementType;
 import eu.europa.ec.fisheries.schema.movement.v1.MovementTypeType;
 import eu.europa.ec.fisheries.uvms.commons.date.XMLDateUtils;
-import eu.europa.ec.fisheries.uvms.spatial.model.schemas.AreaExtendedIdentifierType;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionAreaSimpleType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionAreaType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionMovementMetaDataAreaType;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class MovementModelMapper {
-    public static List<SubscriptionAreaSimpleType> movementTypesToSubscriptionAreaSimpleTypes(List<MovementType> movementTypes){
-        return movementTypes.stream().map(MovementModelMapper::movementTypeToSubscriptionAreaSimpleType).collect(Collectors.toList());
+    public static List<SubscriptionAreaType> movementTypesToSubscriptionAreaTypes(List<MovementType> movementTypes){
+        return movementTypes.stream().map(MovementModelMapper::movementTypeToSubscriptionAreaType).collect(Collectors.toList());
     }
-    public static SubscriptionAreaSimpleType movementTypeToSubscriptionAreaSimpleType(MovementType movementType){
+    public static SubscriptionAreaType movementTypeToSubscriptionAreaType(MovementType movementType){
         if(movementType == null){
             return null;
         }
-        SubscriptionAreaSimpleType subscriptionAreaSimpleType = new SubscriptionAreaSimpleType();
-        subscriptionAreaSimpleType.setCrs(4326);
-        subscriptionAreaSimpleType.setGuid(movementType.getGuid());
-        subscriptionAreaSimpleType.setLatitude(movementType.getPosition().getLatitude());
-        subscriptionAreaSimpleType.setLongitude(movementType.getPosition().getLongitude());
-        subscriptionAreaSimpleType.setUserAreaActiveDate(XMLDateUtils.dateToXmlGregorian(movementType.getPositionTime()));
-        return subscriptionAreaSimpleType;
+        SubscriptionAreaType subscriptionAreaType = new SubscriptionAreaType();
+        subscriptionAreaType.setCrs(4326);
+        subscriptionAreaType.setCorrelationId(movementType.getGuid());
+        subscriptionAreaType.setLatitude(movementType.getPosition().getLatitude());
+        subscriptionAreaType.setLongitude(movementType.getPosition().getLongitude());
+        subscriptionAreaType.setUserAreaActiveDate(XMLDateUtils.dateToXmlGregorian(movementType.getPositionTime()));
+        return subscriptionAreaType;
     }
 
-    public static List<MovementMetaDataAreaType> mapSpatialAreaToMovementAreas(List<AreaExtendedIdentifierType> spatialAreas){
-        return spatialAreas.stream().map(MovementModelMapper::mapSpatialAreaToMoveArea).collect(Collectors.toList());
+    public static List<MovementMetaDataAreaType> mapSubscriptionAreasToMovementAreas(List<SubscriptionMovementMetaDataAreaType> subscriptionMovementMetaDataAreaTypes){
+        return subscriptionMovementMetaDataAreaTypes.stream().map(MovementModelMapper::mapSubscriptionAreaToMovementArea).collect(Collectors.toList());
     }
 
-    public static MovementMetaDataAreaType mapSpatialAreaToMoveArea(AreaExtendedIdentifierType spatialArea) {
-        if(spatialArea == null) {
+    public static MovementMetaDataAreaType mapSubscriptionAreaToMovementArea(SubscriptionMovementMetaDataAreaType subscriptionMovementMetaDataAreaTypes) {
+        if(subscriptionMovementMetaDataAreaTypes == null) {
             return null;
         }
         MovementMetaDataAreaType movementMetaDataAreaType = new MovementMetaDataAreaType();
-        movementMetaDataAreaType.setAreaType(spatialArea.getAreaType().name());
-        movementMetaDataAreaType.setCode(spatialArea.getCode());
-        movementMetaDataAreaType.setRemoteId(spatialArea.getId());
-        movementMetaDataAreaType.setName(spatialArea.getName());
+        movementMetaDataAreaType.setAreaType(subscriptionMovementMetaDataAreaTypes.getAreaType());
+        movementMetaDataAreaType.setCode(subscriptionMovementMetaDataAreaTypes.getCode());
+        movementMetaDataAreaType.setRemoteId(subscriptionMovementMetaDataAreaTypes.getRemoteId());
+        movementMetaDataAreaType.setName(subscriptionMovementMetaDataAreaTypes.getName());
         movementMetaDataAreaType.setTransitionType(MovementTypeType.POS);
         return movementMetaDataAreaType;
     }

@@ -120,13 +120,32 @@
                 </xsd:restriction>
             </xsd:simpleType>
 
-            <xsd:complexType name="SubscriptionAreaSimpleType">
+            <xsd:complexType name="SubscriptionAreaType">
                 <xsd:sequence>
-                    <xsd:element name="guid" type="xsd:string" default="UNKNOWN"/>
+                    <xsd:element name="gid" type="xsd:long" nillable="true"/>
+                    <xsd:element name="areaType" type="v:AreaType" nillable="true"/>
+                    <xsd:element name="correlationId" type="xsd:string" nillable="true"/>
                     <xsd:element name="longitude" type="xsd:double" nillable="true"/>
                     <xsd:element name="latitude" type="xsd:double" nillable="true"/>
                     <xsd:element name="crs" type="xsd:int" nillable="true"/>
                     <xsd:element name="userAreaActiveDate" type="xsd:date" nillable="true"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            
+            <xsd:complexType name="SubscriptionMovementMetaDataAreaType">
+                <xsd:sequence>
+                    <xsd:element name="areaType" type="xsd:string" nillable="true"/>
+                    <xsd:element name="transitionType" type="xsd:string" nillable="true"/>
+                    <xsd:element name="remoteId" type="xsd:string" nillable="true"/>
+                    <xsd:element name="code" type="xsd:string" nillable="true"/>
+                    <xsd:element name="name" type="xsd:string" nillable="true"/>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:complexType name="SubscriptionMovementMetaDataAreaTypeResponseElement">
+                <xsd:sequence>
+                    <xsd:element name="correlationId" type="xsd:string" nillable="true"/>
+                    <xsd:element name="elements" type="v:SubscriptionMovementMetaDataAreaType" minOccurs="0" maxOccurs="unbounded" />
                 </xsd:sequence>
             </xsd:complexType>
             

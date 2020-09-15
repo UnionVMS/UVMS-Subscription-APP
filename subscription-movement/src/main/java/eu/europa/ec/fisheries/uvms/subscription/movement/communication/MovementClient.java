@@ -9,10 +9,7 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.movement.communication;
 
-import eu.europa.ec.fisheries.schema.movement.module.v1.FilterGuidListByAreaAndDateRequest;
-import eu.europa.ec.fisheries.schema.movement.module.v1.FilterGuidListByAreaAndDateResponse;
-import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionRequest;
-import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionResponse;
+import eu.europa.ec.fisheries.schema.movement.module.v1.MovementBaseRequest;
 
 /**
  * Low-level client to interesting Movement module services.
@@ -20,18 +17,11 @@ import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionResponse;
 public interface MovementClient {
 
     /**
-     * Call @{@code FILTER_GUID_LIST_FOR_DATE_BY_AREA}
-     *
+     * Generic request to movement module
      * @param request The movement module request
-     * @return The movement module response
+     * @param responseClass The response class
+     * @param <T> The response class type
+     * @return Response instance of <T>
      */
-    FilterGuidListByAreaAndDateResponse filterGuidListForDateByArea(FilterGuidListByAreaAndDateRequest request);
-
-    /**
-     * Call @{@code FORWARD_POSITION}
-     *
-     * @param request the movement module request
-     * @return The movement module response
-     */
-    ForwardPositionResponse forwardPosition(ForwardPositionRequest request);
+    <T> T sendRequest(MovementBaseRequest request, Class<T> responseClass);
 }

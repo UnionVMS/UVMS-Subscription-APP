@@ -402,6 +402,9 @@ class SubscriptionServiceBean implements SubscriptionService {
     }
 
     private void sendAssetPageRetrievalMessages(SubscriptionEntity subscriptionEntity) {
+        if(!subscriptionEntity.getHasAssets() && subscriptionEntity.getHasAreas()) {
+            subscriptionSender.sendAssetPageRetrievalMessageSameTx(new AssetPageRetrievalMessage(null, subscriptionEntity.getId(), null, 1L, PAGE_SIZE_FOR_MANUAL));
+        }
         for (AssetGroupEntity assetGroup : subscriptionEntity.getAssetGroups()) {
             subscriptionSender.sendAssetPageRetrievalMessageSameTx(new AssetPageRetrievalMessage(true, subscriptionEntity.getId(), assetGroup.getGuid(), 1L, PAGE_SIZE_FOR_MANUAL));
         }

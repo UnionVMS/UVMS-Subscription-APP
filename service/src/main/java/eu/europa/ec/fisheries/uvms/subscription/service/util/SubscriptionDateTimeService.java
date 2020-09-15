@@ -36,4 +36,11 @@ public interface SubscriptionDateTimeService {
 	 */
 	ZonedDateTime calculateEndDate(SubscriptionOutput output, String occurrence);
 
+	/**
+	 * Calculates the end date, occurrence will be calculated if query period not set on output
+	 * @param output Will use its queryPeriods endDate
+	 * @return The calculated end date
+	 */
+	ZonedDateTime calculateEndDate(SubscriptionOutput output);
+
 }

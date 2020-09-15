@@ -18,10 +18,7 @@ import javax.xml.bind.JAXBException;
 import java.text.MessageFormat;
 
 import eu.europa.ec.fisheries.schema.movement.common.v1.ExceptionType;
-import eu.europa.ec.fisheries.schema.movement.module.v1.FilterGuidListByAreaAndDateRequest;
-import eu.europa.ec.fisheries.schema.movement.module.v1.FilterGuidListByAreaAndDateResponse;
-import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionRequest;
-import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionResponse;
+import eu.europa.ec.fisheries.schema.movement.module.v1.MovementBaseRequest;
 import eu.europa.ec.fisheries.schema.movement.module.v1.MovementModuleMethod;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.movement.model.exception.MovementModelException;
@@ -63,20 +60,10 @@ public class JmsMovementClient implements MovementClient {
     }
 
     @Override
-    public FilterGuidListByAreaAndDateResponse filterGuidListForDateByArea(FilterGuidListByAreaAndDateRequest request) {
-        try {
+    public <T> T sendRequest(MovementBaseRequest request,Class<T> responseClass) {
+        try{
             String correlationId = subscriptionProducer.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request), movementQueue, subscriptionConsumerBean.getDestination());
-            return createResponse(correlationId, FilterGuidListByAreaAndDateResponse.class, request.getMethod());
-        } catch (MessageException | MovementModelException e) {
-            throw new ExecutionException(e);
-        }
-    }
-
-    @Override
-    public ForwardPositionResponse forwardPosition(ForwardPositionRequest request) {
-        try {
-            String correlationId = subscriptionProducer.sendMessageToSpecificQueue(JAXBMarshaller.marshallJaxBObjectToString(request), movementQueue, subscriptionConsumerBean.getDestination());
-            return createResponse(correlationId, ForwardPositionResponse.class, request.getMethod());
+            return createResponse(correlationId,responseClass, request.getMethod());
         } catch (MessageException | MovementModelException e) {
             throw new ExecutionException(e);
         }

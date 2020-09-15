@@ -19,10 +19,14 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionOutput;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionSubscriber;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListDto;
+import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
+import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
+import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersWithConnectIdHolder;
 import eu.europa.ec.fisheries.wsdl.user.types.Channel;
 import eu.europa.ec.fisheries.wsdl.user.types.EndPoint;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
@@ -87,5 +91,20 @@ public class CustomMapper {
         return channels -> channels.stream()
                 .filter(channel -> subscriptionChannelId.map(channelId -> channelId == channel.getId()).orElse(false))
                 .findFirst();
+    }
+
+    public static List<AssetEntity> toAssetEntityListFrom(List<AssetHistGuidIdWithVesselIdentifiers> elements) {
+        return elements.stream().map(CustomMapper::toAssetEntityFrom).collect(Collectors.toList());
+    }
+    public static AssetEntity toAssetEntityFrom(AssetHistGuidIdWithVesselIdentifiers element) {
+        AssetEntity assetEntity = new AssetEntity();
+        VesselIdentifiersHolder vesselIdentifiersHolder = element.getIdentifiers();
+        assetEntity.setGuid(element.getAssetHistGuid());
+        assetEntity.setIrcs(vesselIdentifiersHolder.getIrcs());
+        assetEntity.setCfr(vesselIdentifiersHolder.getCfr());
+        assetEntity.setIccat(vesselIdentifiersHolder.getIccat());
+        assetEntity.setUvi(vesselIdentifiersHolder.getUvi());
+        assetEntity.setExtMark(vesselIdentifiersHolder.getExtMark());
+        return assetEntity;
     }
 }

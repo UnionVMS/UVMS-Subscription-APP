@@ -42,12 +42,10 @@ import eu.europa.ec.fisheries.schema.movement.v1.MovementMetaDataAreaType;
 import eu.europa.ec.fisheries.schema.movement.v1.MovementType;
 import eu.europa.ec.fisheries.schema.movement.v1.MovementTypeType;
 import eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils;
-import eu.europa.ec.fisheries.uvms.spatial.model.schemas.AreaExtendedIdentifierType;
-import eu.europa.ec.fisheries.uvms.spatial.model.schemas.BatchSpatialEnrichmentRS;
-import eu.europa.ec.fisheries.uvms.spatial.model.schemas.SpatialEnrichmentRSListElement;
 import eu.europa.ec.fisheries.uvms.subscription.movement.mapper.MovementModelMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionFinder;
+import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionSpatialService;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
@@ -61,8 +59,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsF
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.SequenceIntIterator;
-import eu.europa.ec.fisheries.uvms.subscription.spatial.communication.SpatialSender;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionMovementMetaDataAreaTypeResponseElement;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.MessageFormatException;
@@ -81,9 +79,9 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	private SubscriptionFinder subscriptionFinder;
 	private DatatypeFactory datatypeFactory;
 	private AssetSender assetSender;
-	private SpatialSender spatialSender;
 	private DateTimeService dateTimeService;
 	private TriggerCommandsFactory triggerCommandsFactory;
+	private SubscriptionSpatialService subscriptionSpatialService;
 
 	/**
 	 * Constructor for injection.
@@ -91,18 +89,20 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	 * @param subscriptionFinder     The finder
 	 * @param datatypeFactory        The data type factory
 	 * @param assetSender            The asset sender
-	 * @param spatialSender          The spatial sender
 	 * @param dateTimeService        The date/time service
 	 * @param triggerCommandsFactory The factory for commands
+	 * @param subscriptionSpatialService The subscription-spatial communication service
 	 */
 	@Inject
-	public MovementSubscriptionCommandFromMessageExtractor(SubscriptionFinder subscriptionFinder, DatatypeFactory datatypeFactory, AssetSender assetSender,SpatialSender spatialSender, DateTimeService dateTimeService, TriggerCommandsFactory triggerCommandsFactory) {
+	public MovementSubscriptionCommandFromMessageExtractor(SubscriptionFinder subscriptionFinder, DatatypeFactory datatypeFactory, AssetSender assetSender, 
+														   DateTimeService dateTimeService, TriggerCommandsFactory triggerCommandsFactory,
+														   SubscriptionSpatialService subscriptionSpatialService) {
 		this.subscriptionFinder = subscriptionFinder;
 		this.datatypeFactory = datatypeFactory;
 		this.assetSender = assetSender;
-		this.spatialSender = spatialSender;
 		this.dateTimeService = dateTimeService;
 		this.triggerCommandsFactory = triggerCommandsFactory;
+		this.subscriptionSpatialService = subscriptionSpatialService;
 	}
 
 	/**
@@ -255,14 +255,12 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	}
 
 	private void enrichWithUserAreas(List<MovementType> movementTypes) {
-		BatchSpatialEnrichmentRS response = spatialSender.getBatchUserAreasEnrichment(MovementModelMapper.movementTypesToSubscriptionAreaSimpleTypes(movementTypes));
-		if(response != null) {
+		List<SubscriptionMovementMetaDataAreaTypeResponseElement> responseList = subscriptionSpatialService.getBatchUserAreasEnrichment(MovementModelMapper.movementTypesToSubscriptionAreaTypes(movementTypes));
+		if(responseList != null) {
 			Map<String,MovementType> movementTypeMap = movementTypes.stream().collect(Collectors.toMap(MovementBaseType::getGuid, Function.identity()));
-			List<SpatialEnrichmentRSListElement> rsListElements = response.getEnrichmentRespLists();
-			for(SpatialEnrichmentRSListElement rsListElement : rsListElements) {
-				List<AreaExtendedIdentifierType> areas = rsListElement.getAreasByLocation().getAreas();
-				List<MovementMetaDataAreaType> movementMetaDataAreaTypes = MovementModelMapper.mapSpatialAreaToMovementAreas(areas);
-				movementTypeMap.get(rsListElement.getGuid()).getMetaData().getAreas().addAll(movementMetaDataAreaTypes);
+			for(SubscriptionMovementMetaDataAreaTypeResponseElement rsListElement : responseList) {
+				List<MovementMetaDataAreaType> movementMetaDataAreaTypes = MovementModelMapper.mapSubscriptionAreasToMovementAreas(rsListElement.getElements());
+				movementTypeMap.get(rsListElement.getCorrelationId()).getMetaData().getAreas().addAll(movementMetaDataAreaTypes);
 			}
 		}
 	}

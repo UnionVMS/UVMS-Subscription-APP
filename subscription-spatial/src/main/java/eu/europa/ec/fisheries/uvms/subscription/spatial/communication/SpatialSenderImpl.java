@@ -10,12 +10,15 @@
 package eu.europa.ec.fisheries.uvms.subscription.spatial.communication;
 
 import eu.europa.ec.fisheries.uvms.spatial.model.schemas.BatchSpatialEnrichmentRS;
+import eu.europa.ec.fisheries.uvms.spatial.model.schemas.GetAreasGeometryUnionRS;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.ec.fisheries.uvms.subscription.spatial.mapper.SpatialMapper;
-import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionAreaSimpleType;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionAreaType;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -46,13 +49,18 @@ class SpatialSenderImpl implements SpatialSender {
 	}
 
 	@Override
-	public BatchSpatialEnrichmentRS getBatchUserAreasEnrichment(List<SubscriptionAreaSimpleType> subscriptionAreaSimpleTypes) {
-		return spatialClient.sendRequest(SpatialMapper.batchSpatialEnrichmentRQ(subscriptionAreaSimpleTypes), BatchSpatialEnrichmentRS.class);
+	public BatchSpatialEnrichmentRS getBatchUserAreasEnrichment(List<SubscriptionAreaType> subscriptionAreaTypes) {
+		return spatialClient.sendRequest(SpatialMapper.batchSpatialEnrichmentRQ(subscriptionAreaTypes), BatchSpatialEnrichmentRS.class);
 	}
 
 	@Override
 	public BatchSpatialEnrichmentRS getUserAreasEnrichmentByWkt(Map<String, XMLGregorianCalendar> wktDateMap) {
 		return spatialClient.sendRequest(SpatialMapper.spatialEnrichmentRQByWkt(wktDateMap), BatchSpatialEnrichmentRS.class);
+	}
+
+	@Override
+	public GetAreasGeometryUnionRS getAreasGeometryUnion(Collection<AreaEntity> areaEntities) {
+		return spatialClient.sendRequest(SpatialMapper.createGetAreasGeometryUnionRQ(areaEntities), GetAreasGeometryUnionRS.class);
 	}
 
 }

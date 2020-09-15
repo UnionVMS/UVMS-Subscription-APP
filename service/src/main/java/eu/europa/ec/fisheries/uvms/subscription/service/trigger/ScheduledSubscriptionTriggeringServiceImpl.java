@@ -54,7 +54,7 @@ class ScheduledSubscriptionTriggeringServiceImpl implements ScheduledSubscriptio
      *
      * @param subscriptionDAO    the subscriptions dao
      * @param subscriptionSender service that facilitates the enqueueing of jms messages
-     * @param dateTimeService
+     * @param dateTimeService The DateTimeService
      */
     @Inject
     public ScheduledSubscriptionTriggeringServiceImpl(SubscriptionDao subscriptionDAO, SubscriptionSender subscriptionSender, DateTimeService dateTimeService) {
@@ -89,6 +89,7 @@ class ScheduledSubscriptionTriggeringServiceImpl implements ScheduledSubscriptio
         } else {
             enqueueAssetGroupRetrievalMessages(subscriptionEntity);
             enqueueAssetRetrievalMessages(subscriptionEntity);
+            enqueueAssetRetrievalMessagesByAreas(subscriptionEntity);
             updateNextScheduledExecutionDate(subscriptionEntity);
         }
     }
@@ -124,6 +125,16 @@ class ScheduledSubscriptionTriggeringServiceImpl implements ScheduledSubscriptio
                         SCHEDULED_SUBSCRIPTIONS_JMS_MESSAGE_PAGE_SIZE));
     }
 
+    private void enqueueAssetRetrievalMessagesByAreas(SubscriptionEntity subscriptionEntity) {
+        subscriptionSender.sendMessageForScheduledSubscriptionExecutionSameTx(
+                new AssetPageRetrievalMessage(
+                        null,
+                        subscriptionEntity.getId(),
+                        MAIN_ASSETS,
+                        SCHEDULED_SUBSCRIPTIONS_JMS_FIRST_PAGE,
+                        SCHEDULED_SUBSCRIPTIONS_JMS_MESSAGE_PAGE_SIZE));
+    }
+    
     private void invalidateNextScheduleExexutionDate(SubscriptionEntity subscriptionEntity) {
         subscriptionEntity.getExecution().setNextScheduledExecution(null);
     }

@@ -113,7 +113,7 @@ class ScheduledSubscriptionTriggeringServiceImplTest {
         sut.enqueueForTriggeringInNewTransaction(subscriptionEntity.getId());
 
         ArgumentCaptor<AssetPageRetrievalMessage> assetPageRetrievalMessageCaptor = ArgumentCaptor.forClass(AssetPageRetrievalMessage.class);
-        verify(subscriptionSender, times(3)).sendMessageForScheduledSubscriptionExecutionSameTx(assetPageRetrievalMessageCaptor.capture());
+        verify(subscriptionSender, times(4)).sendMessageForScheduledSubscriptionExecutionSameTx(assetPageRetrievalMessageCaptor.capture());
         List<AssetPageRetrievalMessage> assetMessages = assetPageRetrievalMessageCaptor.getAllValues().stream()
                 .filter(v -> MAIN_ASSETS.equals(v.getAssetGroupGuid()))
                 .collect(Collectors.toList());

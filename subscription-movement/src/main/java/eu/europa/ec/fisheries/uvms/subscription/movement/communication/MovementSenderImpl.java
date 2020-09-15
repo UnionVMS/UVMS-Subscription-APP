@@ -11,22 +11,18 @@ package eu.europa.ec.fisheries.uvms.subscription.movement.communication;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import eu.europa.ec.fisheries.schema.movement.area.v1.AreaType;
 import eu.europa.ec.fisheries.schema.movement.area.v1.GuidListForAreaFilteringQuery;
 import eu.europa.ec.fisheries.schema.movement.asset.v1.VesselIdentifyingProperties;
-import eu.europa.ec.fisheries.schema.movement.module.v1.FilterGuidListByAreaAndDateRequest;
-import eu.europa.ec.fisheries.schema.movement.module.v1.FilterGuidListByAreaAndDateResponse;
 import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionRequest;
 import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionResponse;
+import eu.europa.ec.fisheries.schema.movement.module.v1.GetConnectIdsByDateAndGeometryRequest;
+import eu.europa.ec.fisheries.schema.movement.module.v1.GetConnectIdsByDateAndGeometryResponse;
 import eu.europa.ec.fisheries.schema.movement.module.v1.MovementModuleMethod;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
 
 /**
@@ -56,18 +52,23 @@ class MovementSenderImpl implements MovementSender {
     }
 
     @Override
-    public List<String> sendFilterGuidListForAreasRequest(List<String> guidList, Date startDate, Date endDate, Collection<AreaEntity> areas) {
-
-        FilterGuidListByAreaAndDateRequest request = new FilterGuidListByAreaAndDateRequest();
-        request.setMethod(MovementModuleMethod.FILTER_GUID_LIST_FOR_DATE_BY_AREA);
-        GuidListForAreaFilteringQuery value = new GuidListForAreaFilteringQuery();
-        value.getGuidList().addAll(guidList);
-        value.setStartDate(startDate);
-        value.setEndDate(endDate);
-        value.getAreas().addAll(areas.stream().map(MovementSenderImpl::toType).collect(Collectors.toList()));
-        request.setQuery(value);
-        FilterGuidListByAreaAndDateResponse response = movementClient.filterGuidListForDateByArea(request);
-        return response != null ? response.getFilteredList() : new ArrayList<>();
+    public List<String> sendGetConnectIdsByDateAndGeometryRequest(List<String> inList, Date startDate, Date endDate, String areasGeometryUnion,
+                                                                  Integer page,
+                                                                  Integer limit) {
+        GetConnectIdsByDateAndGeometryRequest request = new GetConnectIdsByDateAndGeometryRequest();
+        request.setMethod(MovementModuleMethod.FIND_CONNECT_IDS_BY_DATE_AND_GEOMETRY);
+        GuidListForAreaFilteringQuery query = new GuidListForAreaFilteringQuery();
+        if(inList != null && !inList.isEmpty()){
+            query.getGuidList().addAll(inList);
+        }
+        query.setStartDate(startDate);
+        query.setEndDate(endDate);
+        query.setAreasGeometryUnion(areasGeometryUnion);
+        query.setLimit(limit);
+        query.setPage(page);
+        request.setQuery(query);
+        GetConnectIdsByDateAndGeometryResponse response = movementClient.sendRequest(request,GetConnectIdsByDateAndGeometryResponse.class);
+        return response != null ? response.getConnectIds() : Collections.emptyList();
     }
 
     @Override
@@ -79,7 +80,7 @@ class MovementSenderImpl implements MovementSender {
         request.setReceiver(receiver);
         movementGuidList.forEach(movementGuid -> request.getMovementGuids().add(movementGuid));
 
-        ForwardPositionResponse response = movementClient.forwardPosition(request);
+        ForwardPositionResponse response = movementClient.sendRequest(request,ForwardPositionResponse.class);
 
         return response != null ? response.getMessageId() : "";
     }
@@ -93,12 +94,5 @@ class MovementSenderImpl implements MovementSender {
         vesselIdentifyingProperties.setExtMarking(vesselIdentifiers.get(SubscriptionVesselIdentifier.EXT_MARK.name()));
         vesselIdentifyingProperties.setFlagState(vesselFlagState);
         return vesselIdentifyingProperties;
-    }
-
-    private static AreaType toType(AreaEntity areaEntity) {
-        AreaType areaType = new AreaType();
-        areaType.setAreaId(areaEntity.getGid());
-        areaType.setAreaName(areaEntity.getAreaType().name());
-        return areaType;
     }
 }
