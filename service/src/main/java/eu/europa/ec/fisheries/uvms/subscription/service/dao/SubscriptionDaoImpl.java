@@ -381,7 +381,7 @@ class SubscriptionDaoImpl implements SubscriptionDao {
     }
 
     @Override
-    public void delete(Long id) {
+    public String delete(Long id) {
         SubscriptionEntity subscription = em.find(SubscriptionEntity.class, id);
         if (subscription == null) {
             throw new EntityDoesNotExistException("Subscription with id " + id);
@@ -394,6 +394,8 @@ class SubscriptionDaoImpl implements SubscriptionDao {
         deleteTriggered(cb, subscription);
 
         em.remove(subscription);
+
+        return subscription.getName();
     }
 
     private void deleteEmails(CriteriaBuilder cb, SubscriptionEntity subscription) {

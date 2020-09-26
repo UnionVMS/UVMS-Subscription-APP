@@ -28,14 +28,22 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import eu.europa.ec.fisheries.uvms.audit.model.exception.AuditModelMarshallException;
+import eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper;
+import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
+import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionExecutionDao;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SubscriptionCommandFromMessageExtractor;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
+import eu.europa.fisheries.uvms.subscription.model.exceptions.ExecutionException;
 
 /**
  * Implementation of the {@link SubscriptionExecutionService}.
@@ -43,22 +51,26 @@ import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExist
 @ApplicationScoped
 class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 
+	private static final String SUBSCRIPTION_AUDIT_TYPE = "Subscription";
+
 	private SubscriptionExecutionDao dao;
 	private SubscriptionExecutionSender subscriptionExecutionSender;
 	private DateTimeService dateTimeService;
 	private Instance<SubscriptionExecutor> subscriptionExecutorInstance;
 	private SubscriptionExecutionScheduler subscriptionExecutionScheduler;
 	private Map<String, SubscriptionCommandFromMessageExtractor> extractors;
-
+	private SubscriptionAuditProducer auditProducer;
+	private SubscriptionProducerBean subscriptionProducer;
 
 	/**
 	 * Constructor for injection.
-	 *
 	 * @param dao The DAO
 	 * @param subscriptionExecutionSender The execution queue sender
 	 * @param dateTimeService             The date/time service
 	 * @param subscriptionExecutorInstance   The executors
 	 * @param subscriptionExecutionScheduler The scheduler
+	 * @param auditProducer The audit producer
+	 * @param subscriptionProducer           The subscription producer
 	 */
 	@Inject
 	public SubscriptionExecutionServiceImpl(
@@ -67,17 +79,21 @@ class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 			DateTimeService dateTimeService,
 			Instance<SubscriptionExecutor> subscriptionExecutorInstance,
 			SubscriptionExecutionScheduler subscriptionExecutionScheduler,
-			Instance<SubscriptionCommandFromMessageExtractor> extractors
+			Instance<SubscriptionCommandFromMessageExtractor> extractors,
+			SubscriptionAuditProducer auditProducer,
+			SubscriptionProducerBean subscriptionProducer
 	) {
 		this.dao = dao;
 		this.subscriptionExecutionSender = subscriptionExecutionSender;
 		this.dateTimeService = dateTimeService;
 		this.subscriptionExecutorInstance = subscriptionExecutorInstance;
 		this.subscriptionExecutionScheduler = subscriptionExecutionScheduler;
+		this.auditProducer = auditProducer;
 		this.extractors = extractors.stream().collect(Collectors.toMap(
 				SubscriptionCommandFromMessageExtractor::getEligibleSubscriptionSource,
 				Function.identity()
 		));
+		this.subscriptionProducer = subscriptionProducer;
 	}
 
 	/**
@@ -116,9 +132,30 @@ class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 					subscriptionExecutorInstance.stream().forEach(executor -> executor.execute(execution));
 					execution.setStatus(EXECUTED);
 					execution.setExecutionTime(dateTimeService.getNowAsDate());
+					sendLogToAudit(mapToAuditLog(AuditActionEnum.EXECUTE, execution.getTriggeredSubscription().getSubscription()));
 					return subscriptionExecutionScheduler.scheduleNext(execution.getTriggeredSubscription(), execution);
 				})
 				.ifPresent(dao::create);
+	}
+
+	private String mapToAuditLog(AuditActionEnum action, SubscriptionEntity subscription) {
+		try {
+			return AuditLogMapper.mapToAuditLog(SUBSCRIPTION_AUDIT_TYPE, action.getAuditType(), makeAuditAffectedObject(subscription), "UVMS");
+		} catch (AuditModelMarshallException e) {
+			throw new ExecutionException(e);
+		}
+	}
+
+	private void sendLogToAudit(String log) {
+		try {
+			auditProducer.sendModuleMessage(log, subscriptionProducer.getDestination());
+		} catch (MessageException e) {
+			throw new ExecutionException(e);
+		}
+	}
+
+	private String makeAuditAffectedObject(SubscriptionEntity subscription) {
+		return subscription.getId() + ":" + subscription.getName();
 	}
 
 	private void deactivateAnyPreviousTriggerings(SubscriptionExecutionEntity execution) {

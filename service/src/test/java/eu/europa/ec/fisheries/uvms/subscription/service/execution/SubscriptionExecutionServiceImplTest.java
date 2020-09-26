@@ -38,6 +38,8 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
 import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SubscriptionCommandFromMessageExtractor;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionExecutionStatusType;
@@ -73,8 +75,14 @@ public class SubscriptionExecutionServiceImplTest {
 	@Produces @Mock
 	private SubscriptionExecutionScheduler subscriptionExecutionScheduler;
 
+	@Produces @Mock
+	private SubscriptionAuditProducer auditProducer;
+
+	@Produces @Mock
+	private SubscriptionProducerBean subscriptionProducer;
+
 	@Produces
-	private DateTimeServiceTestImpl dateTimeService = new DateTimeServiceTestImpl();
+	private final DateTimeServiceTestImpl dateTimeService = new DateTimeServiceTestImpl();
 
 	@Produces
 	private final SubscriptionCommandFromMessageExtractor subscriptionCommandFromMessageExtractor;
