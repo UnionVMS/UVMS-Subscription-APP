@@ -82,7 +82,7 @@ class SubscriptionDateTimeServiceImplTest {
 
 	@Test
 	void testCalculateEndDateWithoutQueryPeriodAndOccurrence() {
-		LocalDateTime now = LocalDateTime.now();
+		ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC"));
 		ZonedDateTime result = sut.calculateEndDate(new SubscriptionOutput());
 		assertEquals(now.getYear(), result.getYear());
 		assertEquals(now.getMonth(), result.getMonth());

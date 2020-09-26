@@ -53,7 +53,13 @@ public interface SubscriptionDao {
 
 	String getEmailConfigurationPassword(Long id);
 
-	void delete(Long id);
+	/**
+	 * Delete the subscription with the given id and return its name.
+	 *
+	 * @param id The id of the subscription to delete
+	 * @return The name of the deleted subscription
+	 */
+	String delete(Long id);
 
 	List<Long> findScheduledSubscriptionIdsForTriggering(Date now, int page, int pageSize);
 }
