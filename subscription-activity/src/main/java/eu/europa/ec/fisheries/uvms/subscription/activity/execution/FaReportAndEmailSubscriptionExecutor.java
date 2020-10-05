@@ -138,9 +138,22 @@ public class FaReportAndEmailSubscriptionExecutor implements SubscriptionExecuto
 	}
 
 	private EmailAttachment toEmailAttachment(AttachmentResponseObject attachmentResponseObject) {
-		return new EmailAttachment(attachmentResponseObject.getTripId(), attachmentResponseObject.getType().value(), attachmentResponseObject.getContent());
+		return new EmailAttachment(attachmentResponseObject.getTripId(), attachmentResponseObject.getType().value(), clearEmptyTags(attachmentResponseObject.getContent()));
 	}
 
+	private String clearEmptyTags(String source) {
+		source = source
+				.replaceAll("<([a-zA-Z][a-zA-Z0-9]*)[^>]*/>", "") // clear tags like  <udt:IndicatorString/>
+				.replaceAll("\n?\\s*<(\\w+)></\\1>", "")
+				.replaceAll("<ram:SpecifiedPhysicalFLUXGeographicalCoordinate>\\s*</ram:SpecifiedPhysicalFLUXGeographicalCoordinate>", "")
+				.replaceAll("<SpecifiedPhysicalFLUXGeographicalCoordinate>\\s*</SpecifiedPhysicalFLUXGeographicalCoordinate>", "")
+				.replaceAll("<ram:ValueIndicator>\\s*</ram:ValueIndicator>","")
+				.replaceAll("<ValueIndicator>\\s*</ValueIndicator>","")
+				.replaceAll("(?m)^[ \t]*\r?\n", "");// clear empty lines
+
+		return source;
+	}
+	
 	private void fromReportTrigger(SubscriptionEntity subscription, TriggeredSubscriptionEntity triggeredSubscription, SubscriptionExecutionEntity execution, ReceiverAndDataflow receiverAndDataflow) {
 		Map<String, String> dataMap = toDataMap(triggeredSubscription);
 		if (TRUE.equals(subscription.getOutput().getLogbook())) {
