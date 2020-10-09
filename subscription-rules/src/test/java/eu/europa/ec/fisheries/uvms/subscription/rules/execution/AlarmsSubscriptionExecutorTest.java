@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.Date;
 
 import eu.europa.ec.fisheries.uvms.subscription.rules.communication.RulesSender;
-import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionActivityService;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecution;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
@@ -60,9 +59,6 @@ public class AlarmsSubscriptionExecutorTest {
 	@Produces @Mock
 	private AssetSender assetSender;
 
-	@Produces @Mock
-	private SubscriptionActivityService subscriptionActivityService;
-
 	@Inject
 	private AlarmsSubscriptionExecutor sut;
 
@@ -85,18 +81,6 @@ public class AlarmsSubscriptionExecutorTest {
 		vesselIdentifiers.setAssetGuid(ASSET_GUID);
 		when(assetSender.findVesselIdentifiers(CONNECT_ID)).thenReturn(vesselIdentifiers);
 		execution.getTriggeredSubscription().getData().add(new TriggeredSubscriptionDataEntity(null, "movementGuidIndex_0", MOVEMENT_GUID));
-		sut.execute(execution);
-		verify(rulesSender).createAlertsAsync(eq(SUBSCRIPTION_NAME), eq(EFFECTIVE_FROM), eq(vesselIdentifiers), eq(Collections.singletonList(MOVEMENT_GUID)));
-	}
-
-	@Test
-	void testExecuteForReport() {
-		SubscriptionExecutionEntity execution = makeExecution(true, TriggerType.INC_FA_REPORT);
-		VesselIdentifiersHolder vesselIdentifiers = new VesselIdentifiersHolder();
-		vesselIdentifiers.setAssetGuid(ASSET_GUID);
-		when(assetSender.findVesselIdentifiers(CONNECT_ID)).thenReturn(vesselIdentifiers);
-		execution.getTriggeredSubscription().getData().add(new TriggeredSubscriptionDataEntity(null, "reportId_0", REPORT_GUID));
-		when(subscriptionActivityService.findMovementGuidsByReportIdsAndAssetGuid(eq(Collections.singletonList(REPORT_GUID)), eq(CONNECT_ID))).thenReturn(Collections.singletonList(MOVEMENT_GUID));
 		sut.execute(execution);
 		verify(rulesSender).createAlertsAsync(eq(SUBSCRIPTION_NAME), eq(EFFECTIVE_FROM), eq(vesselIdentifiers), eq(Collections.singletonList(MOVEMENT_GUID)));
 	}
