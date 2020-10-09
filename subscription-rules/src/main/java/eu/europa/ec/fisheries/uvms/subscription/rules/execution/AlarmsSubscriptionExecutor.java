@@ -12,10 +12,8 @@ copy of the GNU General Public License along with the IFDM Suite. If not, see <h
 package eu.europa.ec.fisheries.uvms.subscription.rules.execution;
 
 import static eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil.KEY_MOVEMENT_GUID_PREFIX;
-import static eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil.KEY_REPORT_ID_PREFIX;
 
 import eu.europa.ec.fisheries.uvms.subscription.rules.communication.RulesSender;
-import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionActivityService;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
@@ -41,13 +39,11 @@ public class AlarmsSubscriptionExecutor implements SubscriptionExecutor {
 
     private RulesSender rulesSender;
     private AssetSender assetSender;
-    private SubscriptionActivityService subscriptionActivityService;
 
     @Inject
-    public AlarmsSubscriptionExecutor(RulesSender rulesSender, AssetSender assetSender, SubscriptionActivityService subscriptionActivityService) {
+    public AlarmsSubscriptionExecutor(RulesSender rulesSender, AssetSender assetSender) {
         this.rulesSender = rulesSender;
         this.assetSender = assetSender;
-        this.subscriptionActivityService = subscriptionActivityService;
     }
 
     /**
@@ -79,8 +75,6 @@ public class AlarmsSubscriptionExecutor implements SubscriptionExecutor {
         switch (triggerType) {
             case INC_POSITION:
                 return determineMovementGuidsForIncomingPosition(dataMap);
-            case INC_FA_REPORT:
-                return determineMovementGuidsForIncomingFaReport(connectId, dataMap);
             default:
                 return Collections.emptyList();
         }
@@ -91,16 +85,5 @@ public class AlarmsSubscriptionExecutor implements SubscriptionExecutor {
 				.filter(entry -> entry.getKey().startsWith(KEY_MOVEMENT_GUID_PREFIX))
 				.map(Map.Entry::getValue)
 				.collect(Collectors.toList());
-	}
-
-	private List<String> determineMovementGuidsForIncomingFaReport(String connectId, Map<String,String> dataMap){
-		List<String> reportIds = dataMap.entrySet().stream()
-				.filter(entry -> entry.getKey().startsWith(KEY_REPORT_ID_PREFIX))
-				.map(Map.Entry::getValue)
-				.collect(Collectors.toList());
-		if(reportIds.isEmpty()) {
-			return Collections.emptyList();
-		}
-		return subscriptionActivityService.findMovementGuidsByReportIdsAndAssetGuid(reportIds,connectId);
 	}
 }
