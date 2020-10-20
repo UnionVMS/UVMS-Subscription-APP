@@ -218,7 +218,7 @@ class SubscriptionServiceBean implements SubscriptionService {
         entity.setHasSenders(false);
         SubscriptionEntity saved = subscriptionDAO.createEntity(entity);
         sendAssetPageRetrievalMessages(saved);
-        sendLogToAudit(mapToAuditLog(SUBSCRIPTION_AUDIT_TYPE, AuditActionEnum.CREATE.name(), makeAuditAffectedObject(saved), authenticationContext.getUserPrincipal().getName()));
+        sendLogToAudit(mapToAuditLog(SUBSCRIPTION_AUDIT_TYPE, AuditActionEnum.CREATE.name(), "MANUAL:"+saved.getId(), authenticationContext.getUserPrincipal().getName()));
         return mapper.mapEntityToDto(saved, null);
     }
 
@@ -326,7 +326,7 @@ class SubscriptionServiceBean implements SubscriptionService {
     @AllowedRoles(MANAGE_SUBSCRIPTION)
     public void delete(@NotNull Long id) {
         String name = subscriptionDAO.delete(id);
-        sendLogToAudit(mapToAuditLog(SUBSCRIPTION_AUDIT_TYPE, AuditActionEnum.DELETE.name(), makeAuditAffectedObject(id, name), authenticationContext.getUserPrincipal().getName()));
+        sendLogToAudit(mapToAuditLog(SUBSCRIPTION_AUDIT_TYPE, AuditActionEnum.DELETE.name(), id.toString(), authenticationContext.getUserPrincipal().getName()));
     }
 
     public EmailBodyEntity createEmailBody(SubscriptionEntity subscription, String body) {
@@ -443,10 +443,9 @@ class SubscriptionServiceBean implements SubscriptionService {
     }
 
     private String makeAuditAffectedObject(SubscriptionEntity subscription) {
-        return makeAuditAffectedObject(subscription.getId(), subscription.getName());
-    }
-
-    private String makeAuditAffectedObject(Long id, String name) {
-        return id + ":" + name;
+        if(TriggerType.MANUAL.equals(subscription.getExecution().getTriggerType())){
+            return "MANUAL:" + subscription.getId();
+        }
+        return subscription.getId() + ":" + subscription.getName();
     }
 }

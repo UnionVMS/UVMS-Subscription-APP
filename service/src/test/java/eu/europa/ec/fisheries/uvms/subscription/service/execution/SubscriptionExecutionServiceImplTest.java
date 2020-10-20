@@ -35,6 +35,7 @@ import java.util.stream.Stream;
 import eu.europa.ec.fisheries.uvms.subscription.helper.DateTimeServiceTestImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionExecutionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecution;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
@@ -160,6 +161,7 @@ public class SubscriptionExecutionServiceImplTest {
 	void testExecute() {
 		SubscriptionEntity subscription = new SubscriptionEntity();
 		subscription.setActive(true);
+		subscription.setExecution(new SubscriptionExecution());
 		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
 		triggeredSubscription.setStatus(ACTIVE);
 		triggeredSubscription.setSubscription(subscription);
@@ -184,6 +186,7 @@ public class SubscriptionExecutionServiceImplTest {
 	void testExecuteStoppedTriggeredSubscription() {
 		SubscriptionEntity subscription = new SubscriptionEntity();
 		subscription.setActive(true);
+		subscription.setExecution(new SubscriptionExecution());
 		TriggeredSubscriptionEntity triggeredSubscription = new TriggeredSubscriptionEntity();
 		triggeredSubscription.setStatus(TriggeredSubscriptionStatus.STOPPED);
 		triggeredSubscription.setSubscription(subscription);
