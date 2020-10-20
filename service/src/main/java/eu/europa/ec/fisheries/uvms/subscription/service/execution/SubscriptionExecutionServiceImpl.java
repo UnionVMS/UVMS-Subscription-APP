@@ -42,6 +42,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionPr
 import eu.europa.ec.fisheries.uvms.subscription.service.scheduling.SubscriptionExecutionScheduler;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SubscriptionCommandFromMessageExtractor;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
+import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.ExecutionException;
 
@@ -155,6 +156,9 @@ class SubscriptionExecutionServiceImpl implements SubscriptionExecutionService {
 	}
 
 	private String makeAuditAffectedObject(SubscriptionEntity subscription) {
+		if(TriggerType.MANUAL.equals(subscription.getExecution().getTriggerType())){
+			return "MANUAL:" + subscription.getId();
+		}
 		return subscription.getId() + ":" + subscription.getName();
 	}
 
