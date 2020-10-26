@@ -47,7 +47,7 @@ import un.unece.uncefact.data.standard.unqualifieddatatype._20.DateTimeType;
 
 @ApplicationScoped
 @Slf4j
-public class FaReportUtil {
+public class FaReportUtil implements FaReportUtility {
 
     private static final SubscriptionSearchCriteria.SenderCriterion BAD_SENDER = new SubscriptionSearchCriteria.SenderCriterion(-1L, -1L, -1L);
 
@@ -63,6 +63,7 @@ public class FaReportUtil {
     @Inject
     private AssetSender assetSender;
 
+    @Override
     public Stream<ReportContext> extractReportsFromRequest(ForwardReportToSubscriptionRequest request) {
         return request.getFaReports().stream()
                 .filter(reportToSubscription -> {
@@ -116,10 +117,12 @@ public class FaReportUtil {
         return true;
     }
 
+    @Override
     public List<Area> mapSubscriptionAreasToActivityAreas(List<SubscriptionMovementMetaDataAreaType> subscriptionMovementMetaDataAreaTypes) {
         return subscriptionMovementMetaDataAreaTypes.stream().map(this::mapSubscriptionAreaToActivityArea).collect(Collectors.toList());
     }
 
+    @Override
     public Area mapSubscriptionAreaToActivityArea(SubscriptionMovementMetaDataAreaType subscriptionMovementMetaDataAreaType) {
         if (subscriptionMovementMetaDataAreaType == null) {
             return null;
@@ -139,6 +142,7 @@ public class FaReportUtil {
                 .orElse(null);
     }
 
+    @Override
     public List<SubscriptionEntity> findTriggeredSubscriptions(ReportContext reportContext, SubscriptionSearchCriteria.SenderCriterion senderCriterion) {
         FishingActivity fishingActivity = reportContext.getFishingActivity();
         ZonedDateTime validAt = ZonedDateTime.ofInstant(reportContext.occurrenceDate.toInstant(), ZoneId.of("UTC"));
@@ -170,6 +174,15 @@ public class FaReportUtil {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public SubscriptionSearchCriteria.SenderCriterion extractSenderCriterion(SenderInformation senderInformation) {
+        return Optional.ofNullable(senderInformation)
+                .filter(si -> StringUtils.isNotBlank(si.getDataflow()) && StringUtils.isNotBlank(si.getSenderOrReceiver()))
+                .map(si -> usmSender.findOrganizationByDataFlowAndEndpoint(si.getDataflow(), si.getSenderOrReceiver()))
+                .map(sender -> new SubscriptionSearchCriteria.SenderCriterion(sender.getOrganisationId(), sender.getEndpointId(), sender.getChannelId()))
+                .orElse(BAD_SENDER);
+    }
+
     @Getter
     @Setter
     @AllArgsConstructor
@@ -190,13 +203,5 @@ public class FaReportUtil {
          * Asset history guid of reporting asset.
          */
         private String assetHistGuid;
-    }
-
-    public SubscriptionSearchCriteria.SenderCriterion extractSenderCriterion(SenderInformation senderInformation) {
-        return Optional.ofNullable(senderInformation)
-                .filter(si -> StringUtils.isNotBlank(si.getDataflow()) && StringUtils.isNotBlank(si.getSenderOrReceiver()))
-                .map(si -> usmSender.findOrganizationByDataFlowAndEndpoint(si.getDataflow(), si.getSenderOrReceiver()))
-                .map(sender -> new SubscriptionSearchCriteria.SenderCriterion(sender.getOrganisationId(), sender.getEndpointId(), sender.getChannelId()))
-                .orElse(BAD_SENDER);
     }
 }
