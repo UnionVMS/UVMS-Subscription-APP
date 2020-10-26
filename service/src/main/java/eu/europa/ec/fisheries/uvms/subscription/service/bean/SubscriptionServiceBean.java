@@ -70,6 +70,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionSe
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmClient;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.FaReportUtil;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.FaReportUtility;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SenderInformation;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
@@ -104,7 +105,7 @@ class SubscriptionServiceBean implements SubscriptionService {
     private SubscriptionDao subscriptionDAO;
 
     @Inject
-    private FaReportUtil faReportUtil;
+    private FaReportUtility faReportUtility;
 
     @Inject
     private UsmClient usmClient;
@@ -167,13 +168,13 @@ class SubscriptionServiceBean implements SubscriptionService {
 
     @Override
     public SubscriptionPermissionResponse hasActiveSubscriptions(ForwardReportToSubscriptionRequest request, SenderInformation senderInformation) {
-        SubscriptionSearchCriteria.SenderCriterion senderCriterion = faReportUtil.extractSenderCriterion(senderInformation);
-        Stream<FaReportUtil.ReportContext> reportContextStream = faReportUtil.extractReportsFromRequest(request);
+        SubscriptionSearchCriteria.SenderCriterion senderCriterion = faReportUtility.extractSenderCriterion(senderInformation);
+        Stream<FaReportUtil.ReportContext> reportContextStream = faReportUtility.extractReportsFromRequest(request);
 
         List<SubscriptionEntity> subscriptionEntities = new ArrayList<>();
 
         reportContextStream.forEach(reportContext -> {
-            subscriptionEntities.addAll(faReportUtil.findTriggeredSubscriptions(reportContext, senderCriterion));
+            subscriptionEntities.addAll(faReportUtility.findTriggeredSubscriptions(reportContext, senderCriterion));
         });
 
         SubscriptionPermissionResponse response = new SubscriptionPermissionResponse();
