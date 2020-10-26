@@ -25,6 +25,7 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,7 +38,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardReportToSubscriptionRequest;
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
 import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
@@ -50,6 +53,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetGroupEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.AreaDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.AssetDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
@@ -62,9 +66,12 @@ import eu.europa.ec.fisheries.uvms.subscription.service.mapper.SubscriptionMappe
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.AssetPageRetrievalMessage;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionAuditProducer;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionProducerBean;
-import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmClient;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmClient;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.FaReportUtil;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.FaReportUtility;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SenderInformation;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
@@ -96,6 +103,9 @@ class SubscriptionServiceBean implements SubscriptionService {
 
     @Inject
     private SubscriptionDao subscriptionDAO;
+
+    @Inject
+    private FaReportUtility faReportUtility;
 
     @Inject
     private UsmClient usmClient;
@@ -152,6 +162,23 @@ class SubscriptionServiceBean implements SubscriptionService {
             response.setSubscriptionCheck(YES);
         }*/
         response.setSubscriptionCheck(SubscriptionPermissionAnswer.YES);
+        return response;
+    }
+
+
+    @Override
+    public SubscriptionPermissionResponse hasActiveSubscriptions(ForwardReportToSubscriptionRequest request, SenderInformation senderInformation) {
+        SubscriptionSearchCriteria.SenderCriterion senderCriterion = faReportUtility.extractSenderCriterion(senderInformation);
+        Stream<FaReportUtil.ReportContext> reportContextStream = faReportUtility.extractReportsFromRequest(request);
+
+        List<SubscriptionEntity> subscriptionEntities = new ArrayList<>();
+
+        reportContextStream.forEach(reportContext -> {
+            subscriptionEntities.addAll(faReportUtility.findTriggeredSubscriptions(reportContext, senderCriterion));
+        });
+
+        SubscriptionPermissionResponse response = new SubscriptionPermissionResponse();
+        response.setSubscriptionCheck(subscriptionEntities.size() > 0 ? SubscriptionPermissionAnswer.YES : SubscriptionPermissionAnswer.NO);
         return response;
     }
 
