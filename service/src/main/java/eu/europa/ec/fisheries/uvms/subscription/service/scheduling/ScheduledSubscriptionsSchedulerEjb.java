@@ -41,18 +41,18 @@ import lombok.extern.slf4j.Slf4j;
  *     }
  * }</pre>
  */
-@Singleton
-@Startup
+//@Singleton
+//@Startup
 @Slf4j
 public class ScheduledSubscriptionsSchedulerEjb {
 
-	@Inject
+//	@Inject
 	private DateTimeService dateTimeService;
 
-	@Inject
+//	@Inject
 	private SubscriptionSchedulerService subscriptionSchedulerService;
 
-	@Schedule(hour = "*", minute = "*/1", info = "activateScheduledSubscriptions")
+//	@Schedule(hour = "*", minute = "*/1", info = "activateScheduledSubscriptions")
 	public void activatePendingSubscriptionExecutions() {
 		log.debug("Scheduled Subscription SchedulerEjb started");
 		subscriptionSchedulerService.activateScheduledSubscriptions(dateTimeService.getNowAsDate());
