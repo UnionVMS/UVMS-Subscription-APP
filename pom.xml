@@ -55,6 +55,7 @@
 		<version.resteasy-test>4.4.2.Final</version.resteasy-test>
 		<version.weld-junit5>2.0.1.Final</version.weld-junit5>
 		<version.zip4j>2.6.1</version.zip4j>
+		<asset.rest.client.version>${uvms.asset.module.version}</asset.rest.client.version>
 
 		<focus-pom.maven.surefire.plugin.version>2.22.2</focus-pom.maven.surefire.plugin.version>
 	</properties>
@@ -142,6 +143,11 @@
 				<groupId>eu.europa.ec.fisheries.uvms.asset</groupId>
 				<artifactId>asset-model</artifactId>
 				<version>${uvms.asset.module.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>eu.europa.ec.fisheries.uvms.asset</groupId>
+				<artifactId>asset-rest-client</artifactId>
+				<version>${asset.rest.client.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
