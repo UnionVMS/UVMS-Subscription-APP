@@ -73,6 +73,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionPr
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmClient;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.FaReportUtil;
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
@@ -147,6 +148,9 @@ public class SubscriptionServiceBeanTest {
 
 	@Produces @Mock
 	private AssetSender assetSender;
+
+	@Produces @Mock
+	private FaReportUtil faReportUtil;
 
 	@Produces
 	private SubscriptionMapper mapper = new SubscriptionMapperImpl();
