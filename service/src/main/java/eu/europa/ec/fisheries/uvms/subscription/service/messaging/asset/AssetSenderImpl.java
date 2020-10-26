@@ -16,23 +16,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import eu.europa.ec.fisheries.uvms.asset.rest.client.AssetClient;
 import eu.europa.ec.fisheries.wsdl.asset.module.AssetGroupsForAssetRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.AssetIdsForGroupRequest;
-import eu.europa.ec.fisheries.wsdl.asset.module.AssetModuleMethod;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHistGuidsRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByMultipleAssetHistGuidsResponse;
-import eu.europa.ec.fisheries.wsdl.asset.types.AssetGroupsForAssetQueryElement;
-import eu.europa.ec.fisheries.wsdl.asset.types.AssetGroupsForAssetResponseElement;
-import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
-import eu.europa.ec.fisheries.wsdl.asset.types.AssetIdsForGroupGuidQueryElement;
-import eu.europa.ec.fisheries.wsdl.asset.types.AssetIdsForGroupGuidResponseElement;
-import eu.europa.ec.fisheries.wsdl.asset.types.AssetListPagination;
-import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
-import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersWithConnectIdHolder;
+import eu.europa.ec.fisheries.wsdl.asset.types.*;
 
 /**
  * Implementation of {@link AssetSender}
@@ -63,7 +56,6 @@ public class AssetSenderImpl implements AssetSender {
     @Override
     public VesselIdentifiersHolder findVesselIdentifiers(String assetHistGuid) {
         FindVesselIdsByAssetHistGuidRequest request = new FindVesselIdsByAssetHistGuidRequest();
-        request.setMethod(AssetModuleMethod.FIND_VESSEL_IDS_BY_ASSET_HIST_GUID);
         request.setAssetHistoryGuid(assetHistGuid);
         FindVesselIdsByAssetHistGuidResponse response = assetClient.findVesselIdsByAssetHistGuid(request);
         return response.getIdentifiers();
@@ -72,19 +64,21 @@ public class AssetSenderImpl implements AssetSender {
     @Override
     public List<AssetHistGuidIdWithVesselIdentifiers> findMultipleVesselIdentifiers(List<String> assetHistGuids) {
         FindVesselIdsByMultipleAssetHistGuidsRequest request = new FindVesselIdsByMultipleAssetHistGuidsRequest();
-        request.setMethod(AssetModuleMethod.FIND_VESSEL_IDS_BY_MULTIPLE_ASSET_HIST_GUID);
         request.getAssetHistoryGuids().addAll(assetHistGuids);
-        FindVesselIdsByMultipleAssetHistGuidsResponse response = assetClient.findVesselIdsByMultipleAssetHistGuid(request);
+
+        FindVesselIdsByMultipleAssetHistGuidsResponse response = assetClient.
+                findVesselIdsByMultipleAssetHistGuid(request);
         return response.getIdentifiers();
     }
 
     @Override
     public String findAssetHistoryGuid(String assetGuid, Date occurrenceDate) {
         FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest request = new FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest();
-        request.setMethod(AssetModuleMethod.FIND_ASSET_HIST_GUID_BY_ASSET_GUID_AND_OCCURRENCE_DATE);
         request.setAssetGuid(assetGuid);
         request.setOccurrenceDate(occurrenceDate);
-        FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse response = assetClient.findAssetHistGuidByAssetGuidAndOccurrenceDate(request);
+
+        FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse response = assetClient
+                .findAssetHistGuidByAssetGuidAndOccurrenceDate(request);
         return response.getAssetHistGuid();
     }
 
@@ -92,16 +86,18 @@ public class AssetSenderImpl implements AssetSender {
     @Override
     public List<String> findAssetGroupsForAsset(String assetGuid, Date occurrenceDate) {
         AssetGroupsForAssetRequest request = new AssetGroupsForAssetRequest();
-        request.setMethod(AssetModuleMethod.ASSET_GROUPS_FOR_ASSET);
         AssetGroupsForAssetQueryElement query = new AssetGroupsForAssetQueryElement();
         String refUuid = UUID.randomUUID().toString();
         query.setRefUuid(refUuid);
         query.setConnectId(assetGuid);
         query.setOccurrenceDate(occurrenceDate);
         request.getAssetGroupsForAssetQueryElement().add(query);
-        List<AssetGroupsForAssetResponseElement> response = assetClient.findAssetGroupsForAsset(request).getAssetGroupsForAssetResponseElementList();
-        AssetGroupsForAssetResponseElement assetGroupsForAssetResponseElement = response.stream().filter(a -> refUuid.equals(a.getRefUuid())).findAny().orElse(null);
-        return assetGroupsForAssetResponseElement != null ? assetGroupsForAssetResponseElement.getGroupUuid() : Collections.emptyList();
+        List<AssetGroupsForAssetResponseElement> response = assetClient
+                .findAssetGroupsForAsset(request).getAssetGroupsForAssetResponseElementList();
+        AssetGroupsForAssetResponseElement assetGroupsForAssetResponseElement = response.stream().
+                filter(a -> refUuid.equals(a.getRefUuid())).findAny().orElse(null);
+        return assetGroupsForAssetResponseElement != null ? assetGroupsForAssetResponseElement.getGroupUuid() :
+                Collections.emptyList();
     }
 
     @Override
@@ -114,9 +110,10 @@ public class AssetSenderImpl implements AssetSender {
         queryElement.setAssetGuid(assetGroupGuid);
         queryElement.setOccurrenceDate(occurrenceDate);
         AssetIdsForGroupRequest assetIdsForGroupRequest = new AssetIdsForGroupRequest();
-        assetIdsForGroupRequest.setMethod(AssetModuleMethod.ASSET_IDS_FOR_GROUP_GUID);
         assetIdsForGroupRequest.setAssetIdsForGroupGuidQueryElement(queryElement);
-        AssetIdsForGroupGuidResponseElement assetIdsForGroupGuidResponseElement = assetClient.findAssetIdentifiersForGroupGuid(assetIdsForGroupRequest);
-        return assetIdsForGroupGuidResponseElement != null ? assetIdsForGroupGuidResponseElement.getVesselIdentifiers() : Collections.emptyList();
+        AssetIdsForGroupGuidResponseElement assetIdsForGroupGuidResponseElement = assetClient.
+                findAssetIdentifiersForGroupGuid(assetIdsForGroupRequest);
+        return assetIdsForGroupGuidResponseElement != null ? assetIdsForGroupGuidResponseElement.getVesselIdentifiers() :
+                Collections.emptyList();
     }
 }

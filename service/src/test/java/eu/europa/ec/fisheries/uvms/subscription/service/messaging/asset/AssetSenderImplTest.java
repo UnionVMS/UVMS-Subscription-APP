@@ -18,16 +18,13 @@ import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
-import eu.europa.ec.fisheries.wsdl.asset.module.AssetGroupsForAssetRequest;
+import eu.europa.ec.fisheries.uvms.asset.rest.client.AssetClient;
 import eu.europa.ec.fisheries.wsdl.asset.module.AssetIdsForGroupRequest;
-import eu.europa.ec.fisheries.wsdl.asset.module.AssetModuleMethod;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindAssetHistGuidByAssetGuidAndOccurrenceDateResponse;
 import eu.europa.ec.fisheries.wsdl.asset.module.FindVesselIdsByAssetHistGuidRequest;
@@ -74,7 +71,6 @@ public class AssetSenderImplTest {
 		verify(assetClient).findVesselIdsByAssetHistGuid(captor.capture());
 		FindVesselIdsByAssetHistGuidRequest request = captor.getValue();
 		assertEquals(ASSET_GUID1, request.getAssetHistoryGuid());
-		assertEquals(AssetModuleMethod.FIND_VESSEL_IDS_BY_ASSET_HIST_GUID, request.getMethod());
 	}
 
 	@Test
@@ -85,7 +81,6 @@ public class AssetSenderImplTest {
 		ArgumentCaptor<FindVesselIdsByMultipleAssetHistGuidsRequest> captor = ArgumentCaptor.forClass(FindVesselIdsByMultipleAssetHistGuidsRequest.class);
 		verify(assetClient).findVesselIdsByMultipleAssetHistGuid(captor.capture());
 		FindVesselIdsByMultipleAssetHistGuidsRequest request = captor.getValue();
-		assertEquals(AssetModuleMethod.FIND_VESSEL_IDS_BY_MULTIPLE_ASSET_HIST_GUID, request.getMethod());
 		assertEquals(Arrays.asList(ASSET_GUID1, ASSET_GUID2), request.getAssetHistoryGuids());
 	}
 
@@ -100,7 +95,6 @@ public class AssetSenderImplTest {
 		ArgumentCaptor<FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest> captor = ArgumentCaptor.forClass(FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest.class);
 		verify(assetClient).findAssetHistGuidByAssetGuidAndOccurrenceDate(captor.capture());
 		FindAssetHistGuidByAssetGuidAndOccurrenceDateRequest request = captor.getValue();
-		assertEquals(AssetModuleMethod.FIND_ASSET_HIST_GUID_BY_ASSET_GUID_AND_OCCURRENCE_DATE, request.getMethod());
 		assertEquals(ASSET_GUID1, request.getAssetGuid());
 		assertEquals(date, request.getOccurrenceDate());
 	}
@@ -130,7 +124,6 @@ public class AssetSenderImplTest {
 		ArgumentCaptor<AssetIdsForGroupRequest> captor = ArgumentCaptor.forClass(AssetIdsForGroupRequest.class);
 		verify(assetClient).findAssetIdentifiersForGroupGuid(captor.capture());
 		AssetIdsForGroupRequest request = captor.getValue();
-		assertEquals(AssetModuleMethod.ASSET_IDS_FOR_GROUP_GUID, request.getMethod());
 		assertEquals(assetGroupGuid, request.getAssetIdsForGroupGuidQueryElement().getAssetGuid());
 		assertEquals(occurrenceDate, request.getAssetIdsForGroupGuidQueryElement().getOccurrenceDate());
 		assertEquals(pageNumber, request.getAssetIdsForGroupGuidQueryElement().getPagination().getPage());
