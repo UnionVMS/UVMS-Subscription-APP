@@ -433,6 +433,7 @@ class SubscriptionServiceBean implements SubscriptionService {
     }
 
     @Override
+    @AllowedRoles(MANAGE_SUBSCRIPTION)
     public void setSubscriptionActive(@NotNull Long id, Boolean active) {
         SubscriptionEntity entityById = subscriptionDAO.findById(id);
         if (entityById == null) {
