@@ -433,6 +433,7 @@ class SubscriptionServiceBean implements SubscriptionService {
     }
 
     @Override
+    @SneakyThrows
     @AllowedRoles(MANAGE_SUBSCRIPTION)
     public void setSubscriptionActive(@NotNull Long id, Boolean active) {
         SubscriptionEntity entityById = subscriptionDAO.findById(id);
@@ -441,6 +442,7 @@ class SubscriptionServiceBean implements SubscriptionService {
         }
         entityById.setActive(active);
         subscriptionDAO.update(entityById);
+        sendLogToAudit(mapToAuditLog(SUBSCRIPTION_AUDIT_TYPE, "Update", makeAuditAffectedObject(entityById), authenticationContext.getUserPrincipal().getName()));
     }
 
     private String makeAuditAffectedObject(SubscriptionEntity subscription) {
