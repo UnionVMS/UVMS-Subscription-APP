@@ -1,29 +1,10 @@
 package eu.europa.ec.fisheries.uvms.subscription.service.trigger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.Area;
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.FluxReportIdentifier;
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardReportToSubscriptionRequest;
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.ReportToSubscription;
+import com.google.common.collect.Lists;
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.*;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionFinder;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionSpatialService;
+import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.ActivityCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
@@ -45,6 +26,17 @@ import un.unece.uncefact.data.standard.reusableaggregatebusinessinformationentit
 import un.unece.uncefact.data.standard.reusableaggregatebusinessinformationentity._20.FishingActivity;
 import un.unece.uncefact.data.standard.unqualifieddatatype._20.DateTimeType;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
 @ApplicationScoped
 @Slf4j
 public class FaReportUtil implements FaReportUtility {
@@ -53,6 +45,9 @@ public class FaReportUtil implements FaReportUtility {
 
     @Inject
     private SubscriptionFinder subscriptionFinder;
+
+    @Inject
+    private SubscriptionDao subscriptionDao;
 
     @Inject
     private SubscriptionSpatialService subscriptionSpatialService;
@@ -181,6 +176,22 @@ public class FaReportUtil implements FaReportUtility {
                 .map(si -> usmSender.findOrganizationByDataFlowAndEndpoint(si.getDataflow(), si.getSenderOrReceiver()))
                 .map(sender -> new SubscriptionSearchCriteria.SenderCriterion(sender.getOrganisationId(), sender.getEndpointId(), sender.getChannelId()))
                 .orElse(BAD_SENDER);
+    }
+
+    @Override
+    public List<SubscriptionEntity> findTriggeredSubscriptionsForFAQuery(ForwardQueryToSubscriptionRequest forwardQueryToSubscriptionRequest,
+                                                                         SubscriptionSearchCriteria.SenderCriterion senderCriterion) {
+
+        List<String> assetHistGuids = Lists.newArrayList(forwardQueryToSubscriptionRequest.getQueryToSubscription().getAssetHistGuids());
+        ZonedDateTime validAt = ZonedDateTime.ofInstant((new Date()).toInstant(), ZoneId.of("UTC"));
+        List<SubscriptionSearchCriteria.AssetCriterion> assets = new ArrayList<>();
+        assets.addAll(assetHistGuids.stream().map(this::makeAssetCriteria).collect(Collectors.toList()));
+        assets.addAll(assetHistGuids.stream().
+                flatMap(assetHistGuid -> this.makeAssetGroupCriteria(new Date(), assetHistGuid).stream()).
+                filter(Objects::nonNull).
+                collect(Collectors.toList()));
+
+        return subscriptionFinder.findTriggeredSubscriptions(null, assets, null, senderCriterion, validAt, Collections.singleton(TriggerType.INC_FA_QUERY));
     }
 
     @Getter
