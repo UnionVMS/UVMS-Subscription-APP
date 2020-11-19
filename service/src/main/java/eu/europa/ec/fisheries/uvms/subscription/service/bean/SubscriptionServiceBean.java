@@ -10,36 +10,7 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
-import static eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper.mapToAuditLog;
-import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum.MANAGE_SUBSCRIPTION;
-import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum.VIEW_SUBSCRIPTION;
-import static java.lang.Boolean.TRUE;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.transaction.Transactional;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.time.Instant;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardQueryToSubscriptionRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardReportToSubscriptionRequest;
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
 import eu.europa.ec.fisheries.uvms.commons.message.api.MessageException;
@@ -47,18 +18,10 @@ import eu.europa.ec.fisheries.uvms.commons.service.interceptor.AuditActionEnum;
 import eu.europa.ec.fisheries.uvms.subscription.service.authentication.AuthenticationContext;
 import eu.europa.ec.fisheries.uvms.subscription.service.authorisation.AllowedRoles;
 import eu.europa.ec.fisheries.uvms.subscription.service.dao.SubscriptionDao;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.AreaEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.AssetGroupEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
-import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.*;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.AreaDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.AssetDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfigurationDto;
-import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionExecutionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.*;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionListResponseDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.search.SubscriptionListQueryImpl;
 import eu.europa.ec.fisheries.uvms.subscription.service.mapper.CustomMapper;
@@ -86,6 +49,26 @@ import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExist
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper.mapToAuditLog;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum.MANAGE_SUBSCRIPTION;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum.VIEW_SUBSCRIPTION;
+import static java.lang.Boolean.TRUE;
 
 @ApplicationScoped
 @Slf4j
@@ -131,7 +114,6 @@ class SubscriptionServiceBean implements SubscriptionService {
     @Inject
     private AuthenticationContext authenticationContext;
 
-
     @Override
     @AllowedRoles(VIEW_SUBSCRIPTION)
     public SubscriptionDto findById(@NotNull Long id) {
@@ -176,6 +158,19 @@ class SubscriptionServiceBean implements SubscriptionService {
         reportContextStream.forEach(reportContext -> {
             subscriptionEntities.addAll(faReportUtility.findTriggeredSubscriptions(reportContext, senderCriterion));
         });
+
+        SubscriptionPermissionResponse response = new SubscriptionPermissionResponse();
+        response.setSubscriptionCheck(subscriptionEntities.size() > 0 ? SubscriptionPermissionAnswer.YES : SubscriptionPermissionAnswer.NO);
+        return response;
+    }
+
+    @Override
+    public SubscriptionPermissionResponse hasActiveSubscriptions(ForwardQueryToSubscriptionRequest forwardQueryToSubscriptionRequest, SenderInformation senderInformation) {
+        SubscriptionSearchCriteria.SenderCriterion senderCriterion = faReportUtility.extractSenderCriterion(senderInformation);
+
+        List<SubscriptionEntity> subscriptionEntities = new ArrayList<>();
+
+        subscriptionEntities.addAll(faReportUtility.findTriggeredSubscriptionsForFAQuery(forwardQueryToSubscriptionRequest, senderCriterion));
 
         SubscriptionPermissionResponse response = new SubscriptionPermissionResponse();
         response.setSubscriptionCheck(subscriptionEntities.size() > 0 ? SubscriptionPermissionAnswer.YES : SubscriptionPermissionAnswer.NO);

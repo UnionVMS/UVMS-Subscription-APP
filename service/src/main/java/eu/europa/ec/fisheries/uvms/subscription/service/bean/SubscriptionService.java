@@ -9,11 +9,8 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
+import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardQueryToSubscriptionRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardReportToSubscriptionRequest;
-import eu.europa.ec.fisheries.uvms.activity.model.schemas.ReportToSubscription;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionListQuery;
@@ -22,6 +19,9 @@ import eu.europa.ec.fisheries.uvms.subscription.service.dto.list.SubscriptionLis
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SenderInformation;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 public interface SubscriptionService {
 	SubscriptionPermissionResponse hasActiveSubscriptions(SubscriptionDataQuery query);
@@ -49,4 +49,7 @@ public interface SubscriptionService {
     SubscriptionDto createManual(@Valid @NotNull SubscriptionDto subscription);
     
     void setSubscriptionActive(@NotNull Long id, Boolean active);
+
+	SubscriptionPermissionResponse hasActiveSubscriptions(ForwardQueryToSubscriptionRequest forwardQueryToSubscriptionRequest,
+														  SenderInformation senderInformation);
 }
