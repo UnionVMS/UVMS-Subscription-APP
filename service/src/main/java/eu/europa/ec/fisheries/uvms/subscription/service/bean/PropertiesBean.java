@@ -30,11 +30,15 @@ class PropertiesBean implements Properties {
         log.debug("In PropertiesBean(Singleton)::startup()");
 
         try {
-            InputStream propsStream =
-                    PropertiesBean.class.getResourceAsStream("/config.properties");
+            InputStream propsStream = PropertiesBean.class.getResourceAsStream("/config.properties");
             props = new java.util.Properties();
 
             props.load(propsStream);
+            propsStream.close();
+
+            InputStream propsStream2 = PropertiesBean.class.getResourceAsStream("/app-version.properties");
+            props.load(propsStream2);
+            propsStream2.close();
         } catch (IOException e) {
             throw new UncheckedIOException("PropertiesBean initialization error", e);
         }
