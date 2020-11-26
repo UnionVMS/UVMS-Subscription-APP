@@ -10,6 +10,7 @@
 
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
+import eu.europa.ec.fisheries.schema.movement.source.v1.MovementToSubscriptionRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardQueryToSubscriptionRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardReportToSubscriptionRequest;
 import eu.europa.ec.fisheries.uvms.commons.domain.DateRange;
@@ -34,6 +35,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSen
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmClient;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.FaReportUtil;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.FaReportUtility;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.MovementTriggeredSubscriptionFinder;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SenderInformation;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
@@ -49,6 +51,7 @@ import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExist
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.collections.CollectionUtils;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -68,6 +71,8 @@ import java.util.stream.Stream;
 import static eu.europa.ec.fisheries.uvms.audit.model.mapper.AuditLogMapper.mapToAuditLog;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum.MANAGE_SUBSCRIPTION;
 import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionFeaturesEnum.VIEW_SUBSCRIPTION;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.NO;
+import static eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer.YES;
 import static java.lang.Boolean.TRUE;
 
 @ApplicationScoped
@@ -114,6 +119,9 @@ class SubscriptionServiceBean implements SubscriptionService {
     @Inject
     private AuthenticationContext authenticationContext;
 
+    @Inject
+    private MovementTriggeredSubscriptionFinder movementTriggeredSubscriptionFinder;
+
     @Override
     @AllowedRoles(VIEW_SUBSCRIPTION)
     public SubscriptionDto findById(@NotNull Long id) {
@@ -143,7 +151,7 @@ class SubscriptionServiceBean implements SubscriptionService {
         } else {
             response.setSubscriptionCheck(YES);
         }*/
-        response.setSubscriptionCheck(SubscriptionPermissionAnswer.YES);
+        response.setSubscriptionCheck(YES);
         return response;
     }
 
@@ -160,7 +168,7 @@ class SubscriptionServiceBean implements SubscriptionService {
         });
 
         SubscriptionPermissionResponse response = new SubscriptionPermissionResponse();
-        response.setSubscriptionCheck(subscriptionEntities.size() > 0 ? SubscriptionPermissionAnswer.YES : SubscriptionPermissionAnswer.NO);
+        response.setSubscriptionCheck(subscriptionEntities.size() > 0 ? YES : NO);
         return response;
     }
 
@@ -173,8 +181,26 @@ class SubscriptionServiceBean implements SubscriptionService {
         subscriptionEntities.addAll(faReportUtility.findTriggeredSubscriptionsForFAQuery(forwardQueryToSubscriptionRequest, senderCriterion));
 
         SubscriptionPermissionResponse response = new SubscriptionPermissionResponse();
-        response.setSubscriptionCheck(subscriptionEntities.size() > 0 ? SubscriptionPermissionAnswer.YES : SubscriptionPermissionAnswer.NO);
+        response.setSubscriptionCheck(subscriptionEntities.size() > 0 ? YES : NO);
         return response;
+    }
+
+    @Override
+    public SubscriptionPermissionResponse hasActiveSubscriptions(MovementToSubscriptionRequest movementToSubscriptionRequest,
+                                                                 SenderInformation senderInformation) {
+        SubscriptionSearchCriteria.SenderCriterion senderCriterion = movementTriggeredSubscriptionFinder.extractSenderCriterion(senderInformation);
+        SubscriptionPermissionResponse subscriptionPermissionResponse = new SubscriptionPermissionResponse();
+        SubscriptionPermissionAnswer subscriptionPermissionAnswer = movementToSubscriptionRequest.getMovementTypes().stream().
+                anyMatch(
+                        movementType ->
+                                CollectionUtils.isEmpty(
+                                        movementTriggeredSubscriptionFinder.findTriggeredSubscriptions(movementType, senderCriterion).
+                                                filter(Objects::nonNull).
+                                                collect(Collectors.toList()))
+                ) ? NO : YES;
+        subscriptionPermissionResponse.setSubscriptionCheck(subscriptionPermissionAnswer);
+
+        return subscriptionPermissionResponse;
     }
 
     /**

@@ -9,6 +9,7 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.bean;
 
+import eu.europa.ec.fisheries.schema.movement.source.v1.MovementToSubscriptionRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardQueryToSubscriptionRequest;
 import eu.europa.ec.fisheries.uvms.activity.model.schemas.ForwardReportToSubscriptionRequest;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.EmailBodyEntity;
@@ -52,4 +53,5 @@ public interface SubscriptionService {
 
 	SubscriptionPermissionResponse hasActiveSubscriptions(ForwardQueryToSubscriptionRequest forwardQueryToSubscriptionRequest,
 														  SenderInformation senderInformation);
+	SubscriptionPermissionResponse hasActiveSubscriptions(MovementToSubscriptionRequest movementToSubscriptionRequest, SenderInformation senderInformation);
 }

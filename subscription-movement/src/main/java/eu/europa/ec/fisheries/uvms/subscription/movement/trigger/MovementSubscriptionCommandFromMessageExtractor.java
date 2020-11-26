@@ -50,13 +50,12 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntit
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionDataEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.TriggeredSubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.AssetCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
-import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
-import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SubscriptionCommandFromMessageExtractor;
-import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsFactory;
-import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmSender;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.*;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.uvms.subscription.service.util.SequenceIntIterator;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
@@ -66,15 +65,17 @@ import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.MessageFormatException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Implementation of {@link SubscriptionCommandFromMessageExtractor} for movement messages.
  */
 @ApplicationScoped
-public class MovementSubscriptionCommandFromMessageExtractor implements SubscriptionCommandFromMessageExtractor {
+public class MovementSubscriptionCommandFromMessageExtractor implements SubscriptionCommandFromMessageExtractor, MovementTriggeredSubscriptionFinder {
 
 	private static final String SOURCE = "movement";
 	private static final Predicate<TriggeredSubscriptionDataEntity> BY_KEY_MOVEMENT_GUID_PREFIX = d -> d.getKey().startsWith(KEY_MOVEMENT_GUID_PREFIX);
+	private static final SubscriptionSearchCriteria.SenderCriterion BAD_SENDER = new SubscriptionSearchCriteria.SenderCriterion(-1L, -1L, -1L);
 
 	private SubscriptionFinder subscriptionFinder;
 	private DatatypeFactory datatypeFactory;
@@ -82,7 +83,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	private DateTimeService dateTimeService;
 	private TriggerCommandsFactory triggerCommandsFactory;
 	private SubscriptionSpatialService subscriptionSpatialService;
-
+	private UsmSender usmSender;
 	/**
 	 * Constructor for injection.
 	 *
@@ -96,13 +97,15 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	@Inject
 	public MovementSubscriptionCommandFromMessageExtractor(SubscriptionFinder subscriptionFinder, DatatypeFactory datatypeFactory, AssetSender assetSender, 
 														   DateTimeService dateTimeService, TriggerCommandsFactory triggerCommandsFactory,
-														   SubscriptionSpatialService subscriptionSpatialService) {
+														   SubscriptionSpatialService subscriptionSpatialService,
+														   UsmSender usmSender) {
 		this.subscriptionFinder = subscriptionFinder;
 		this.datatypeFactory = datatypeFactory;
 		this.assetSender = assetSender;
 		this.dateTimeService = dateTimeService;
 		this.triggerCommandsFactory = triggerCommandsFactory;
 		this.subscriptionSpatialService = subscriptionSpatialService;
+		this.usmSender = usmSender;
 	}
 
 	/**
@@ -140,7 +143,30 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		return movementTypes.stream()
 				.flatMap(t -> makeCommandsForMovement(t, senderCriterion, movementGuidToTriggeringMap, receptionDateTime));
 	}
-	
+
+	@Override
+	public Stream<SubscriptionEntity> findTriggeredSubscriptions(MovementType movement, SenderCriterion senderCriterion) {
+		if (movement.getPositionTime() == null) {
+			return Stream.empty();
+		}
+		ZonedDateTime validAt = ZonedDateTime.ofInstant(movement.getPositionTime().toInstant(), ZoneId.of("UTC"));
+		List<AreaCriterion> areas = extractAreas(movement).collect(Collectors.toList());
+		List<AssetCriterion> assets = new ArrayList<>();
+		assets.add(new AssetCriterion(AssetType.ASSET, movement.getConnectId()));
+		List<String> assetGroupsForAsset = assetSender.findAssetGroupsForAsset(movement.getConnectId(), movement.getPositionTime());
+		assets.addAll(assetGroupsForAsset.stream().map(a -> new AssetCriterion(AssetType.VGROUP, a)).collect(Collectors.toList()));
+		return subscriptionFinder.findTriggeredSubscriptions(areas, assets, null, senderCriterion, validAt, Collections.singleton(TriggerType.INC_POSITION)).stream();
+	}
+
+	@Override
+	public SenderCriterion extractSenderCriterion(SenderInformation senderInformation) {
+		return Optional.ofNullable(senderInformation)
+				.filter(si -> StringUtils.isNotBlank(si.getDataflow()) && StringUtils.isNotBlank(si.getSenderOrReceiver()))
+				.map(si -> usmSender.findOrganizationByDataFlowAndEndpoint(si.getDataflow(), si.getSenderOrReceiver()))
+				.map(sender -> new SubscriptionSearchCriteria.SenderCriterion(sender.getOrganisationId(), sender.getEndpointId(), sender.getChannelId()))
+				.orElse(BAD_SENDER);
+	}
+
 	private CreateMovementBatchResponse unmarshal(String representation) {
 		try {
 			return JAXBUtils.unMarshallMessage(representation, CreateMovementBatchResponse.class);
@@ -151,7 +177,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 
 	private Stream<Command> makeCommandsForMovement(MovementType movement, SenderCriterion senderCriterion, Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap, ZonedDateTime receptionDateTime) {
 		return Stream.concat(
-				findTriggeredSubscriptions(movement, senderCriterion)
+				findTriggeredSubscriptionsAndMapToMovementAndSubscription(movement, senderCriterion)
 						.map(movementAndSubscription -> makeTriggeredSubscriptionEntity(movementAndSubscription, movementGuidToTriggeringsMap, receptionDateTime))
 						.map(this::makeTriggerSubscriptionCommand),
 				Stream.of(movement)
@@ -160,18 +186,8 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		);
 	}
 
-	private Stream<MovementAndSubscription> findTriggeredSubscriptions(MovementType movement, SenderCriterion senderCriterion) {
-		if (movement.getPositionTime() == null) {
-			return Stream.empty();
-		}
-		ZonedDateTime validAt = ZonedDateTime.ofInstant(movement.getPositionTime().toInstant(), ZoneId.of("UTC"));
-		List<AreaCriterion> areas = extractAreas(movement).collect(Collectors.toList());
-		List<AssetCriterion> assets = new ArrayList<>();
-		assets.add(new AssetCriterion(AssetType.ASSET, movement.getConnectId()));
-		List<String> assetGroupsForAsset = assetSender.findAssetGroupsForAsset(movement.getConnectId(), movement.getPositionTime());
-		assets.addAll(assetGroupsForAsset.stream().map(a -> new AssetCriterion(AssetType.VGROUP, a)).collect(Collectors.toList()));
-		return subscriptionFinder.findTriggeredSubscriptions(areas, assets, null, senderCriterion, validAt, Collections.singleton(TriggerType.INC_POSITION)).stream()
-				.map(subscription -> new MovementAndSubscription(movement, subscription));
+	private Stream<MovementAndSubscription> findTriggeredSubscriptionsAndMapToMovementAndSubscription(MovementType movement, SenderCriterion senderCriterion) {
+		return findTriggeredSubscriptions(movement, senderCriterion).map(subscription -> new MovementAndSubscription(movement, subscription));
 	}
 
 	private Stream<AreaCriterion> extractAreas(MovementType movement) {
