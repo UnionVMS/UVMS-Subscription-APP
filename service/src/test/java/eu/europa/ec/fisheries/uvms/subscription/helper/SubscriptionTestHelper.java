@@ -54,7 +54,7 @@ public class SubscriptionTestHelper {
     }
 
     public static SubscriptionListQuery createDateRangeQuery(String startDate, String endDate) {
-        return createQuery(null, null, null, null, null, null, startDate == null ? null : LocalDate.parse(startDate, DTF).atStartOfDay(ZoneId.of("UTC")), endDate == null ? null : LocalDate.parse(endDate, DTF).atStartOfDay(ZoneId.of("UTC")), null, null, null, null, null);
+        return createQuery(null, null, null, null, null, null, startDate == null ? null : LocalDate.parse(startDate, DTF).atStartOfDay(ZoneId.of("UTC")), endDate == null ? null : LocalDate.parse(endDate, DTF).atStartOfDay(ZoneId.of("UTC")), null, null, null, null, null, null);
     }
 
     public static ZonedDateTime zdt(String date) {
@@ -63,7 +63,7 @@ public class SubscriptionTestHelper {
 
     public static SubscriptionListQuery createQuery(String name, Boolean active, Long organisation, Long endpoint, Long channel,
                                                     String description, ZonedDateTime startDate, ZonedDateTime endDate, ZonedDateTime validAt,
-                                                    OutgoingMessageType messageType, DirectionType direction, ColumnType field, Collection<TriggerType> triggerTypes) {
+                                                    OutgoingMessageType messageType, DirectionType direction, ColumnType field, Collection<TriggerType> triggerTypes, Boolean alert) {
         SubscriptionListQuery query = mock(SubscriptionListQuery.class);
         SubscriptionSearchCriteria searchCriteria = mock(SubscriptionSearchCriteria.class);
         PaginationData pagination = mock(PaginationData.class);
@@ -81,6 +81,7 @@ public class SubscriptionTestHelper {
         when(searchCriteria.getValidAt()).thenReturn(validAt);
         when(searchCriteria.getMessageType()).thenReturn(messageType);
         when(searchCriteria.getWithAnyTriggerType()).thenReturn(triggerTypes);
+        when(searchCriteria.getAlert()).thenReturn(alert);
         when(query.getCriteria()).thenReturn(searchCriteria);
 
         when(pagination.getPageSize()).thenReturn(25);
@@ -104,6 +105,7 @@ public class SubscriptionTestHelper {
         subscriber.setOrganisationId(rnd.nextLong());
         output.setSubscriber(subscriber);
         output.setMessageType(OutgoingMessageType.NONE);
+        output.setAlert(rnd.nextBoolean());
         subscriptionEntity.setOutput(output);
         subscriptionEntity.setDescription(randomAlphabetic(200));
         subscriptionEntity.setName(randomAlphabetic(40));

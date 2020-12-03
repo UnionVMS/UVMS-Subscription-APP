@@ -136,7 +136,7 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
     @Test
     void testCount() {
-        SubscriptionListQuery query = createQuery(null, true, null, null, null, "", null, null, null, null, null, null, null);
+        SubscriptionListQuery query = createQuery(null, true, null, null, null, "", null, null, null, null, null, null, null, null);
         Long count = sut.count(query.getCriteria());
         assertEquals(3L, count);
     }
@@ -150,18 +150,18 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
     protected static Stream<Arguments> queryParametersWithCriteria(){
         return Stream.of(
-                Arguments.of(createQuery("subscription3", null, null, null, null, "", null, null, null, null, null, null, null),1),
-                Arguments.of(createQuery("", null, null, 2L, 11L, "", null, null, null, null, null, null, null),4),
-                Arguments.of(createQuery("", null, null, null, null, "", null, null, null, null, null, null, null),4),
-                Arguments.of(createQuery("3", null, null, null, null, "", null, null, null, null, null, null, null),1),
-                Arguments.of(createQuery("subscription2", null, null, null, null, "", null, null, null, OutgoingMessageType.FA_QUERY, null, null, null),1),
-                Arguments.of(createQuery("", true, null, null, null, "", null, null, null, null, null, null, null),3),
-                Arguments.of(createQuery("subscription4", false, 11L, null, 11L, "", null, null, null, null, null, null, null),1),
-                Arguments.of(createQuery("", true, null, null, null, "tade", null, null, null, null, null, null, null),2),
-                Arguments.of(createQuery("", true, null, null, null, "", null, null, zdt("20190101"), null, null, null, null),1),
-                Arguments.of(createQuery("", true, null, null, null, "", null, null, zdt("20190101"), null, null, null, java.util.Collections.emptyList()),1),
-                Arguments.of(createQuery("", true, null, null, null, "", null, null, null, null, null, null, java.util.Collections.singleton(TriggerType.MANUAL)),1),
-                Arguments.of(createQuery("", true, null, null, null, "", null, null, null, null, null, null, Arrays.asList(TriggerType.SCHEDULER, TriggerType.MANUAL)),2)
+                Arguments.of(createQuery("subscription3", null, null, null, null, "", null, null, null, null, null, null, null, null),1),
+                Arguments.of(createQuery("", null, null, 2L, 11L, "", null, null, null, null, null, null, null, null),4),
+                Arguments.of(createQuery("", null, null, null, null, "", null, null, null, null, null, null, null, null),4),
+                Arguments.of(createQuery("3", null, null, null, null, "", null, null, null, null, null, null, null, null),1),
+                Arguments.of(createQuery("subscription2", null, null, null, null, "", null, null, null, OutgoingMessageType.FA_QUERY, null, null, null, null),1),
+                Arguments.of(createQuery("", true, null, null, null, "", null, null, null, null, null, null, null, null),3),
+                Arguments.of(createQuery("subscription4", false, 11L, null, 11L, "", null, null, null, null, null, null, null, null),1),
+                Arguments.of(createQuery("", true, null, null, null, "tade", null, null, null, null, null, null, null, null),2),
+                Arguments.of(createQuery("", true, null, null, null, "", null, null, zdt("20190101"), null, null, null, null, null),1),
+                Arguments.of(createQuery("", true, null, null, null, "", null, null, zdt("20190101"), null, null, null, java.util.Collections.emptyList(), null),1),
+                Arguments.of(createQuery("", true, null, null, null, "", null, null, null, null, null, null, java.util.Collections.singleton(TriggerType.MANUAL), null),1),
+                Arguments.of(createQuery("", true, null, null, null, "", null, null, null, null, null, null, Arrays.asList(TriggerType.SCHEDULER, TriggerType.MANUAL), null),2)
         );
     }
 
@@ -195,10 +195,10 @@ public class SubscriptionDaoImplTest extends BaseSubscriptionInMemoryTest {
 
     protected static Stream<Arguments> queryParametersWithOrderingAsc() {
         return Stream.of(
-                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.NAME, null), new Long[] {1L, 2L, 3L, 4L}),
-                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.DESCRIPTION, null), new Long[] {1L, 2L, 3L, 4L}),
-                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.MESSAGETYPE, null), new Long[] {2L, 3L, 1L, 4L}),
-                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.TRIGGERTYPE, null), new Long[] {2L, 3L, 1L, 4L})
+                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.NAME, null, null), new Long[] {1L, 2L, 3L, 4L}),
+                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.DESCRIPTION, null, null), new Long[] {1L, 2L, 3L, 4L}),
+                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.MESSAGETYPE, null, null), new Long[] {2L, 3L, 1L, 4L}),
+                Arguments.of(createQuery(null, null, null, null, null, null, null, null, null, null, DirectionType.ASC, ColumnType.TRIGGERTYPE, null, null), new Long[] {2L, 3L, 1L, 4L})
         );
     }
 

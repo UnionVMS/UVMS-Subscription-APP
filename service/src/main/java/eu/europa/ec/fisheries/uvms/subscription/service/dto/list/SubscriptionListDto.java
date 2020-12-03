@@ -20,4 +20,5 @@ public class SubscriptionListDto {
 	private String channelName;
 	private String messageType;
 	private String triggerType;
+	private boolean alert;
 }

@@ -24,6 +24,7 @@ public interface SubscriptionSearchCriteria {
 	ZonedDateTime getEndDate();
 	ZonedDateTime getValidAt();
 	OutgoingMessageType getMessageType();
+	Boolean getAlert();
 	/** Demand that the subscription fulfills any of the given area criteria. */
 	Collection<AreaCriterion> getInAnyArea();
 	/** Return subscriptions that have no area (i.e. {@code hasAreas = false}), even if there are areas in the {@link #getInAnyArea()} criterion. */
