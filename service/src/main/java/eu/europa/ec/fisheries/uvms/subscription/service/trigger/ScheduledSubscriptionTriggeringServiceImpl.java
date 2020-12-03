@@ -85,7 +85,7 @@ class ScheduledSubscriptionTriggeringServiceImpl implements ScheduledSubscriptio
         validateScheduledSubscriptionProcessingState(subscriptionEntity);
 
         if (isOutOfValidityPeriod(subscriptionEntity)) {
-            invalidateNextScheduleExexutionDate(subscriptionEntity);
+            invalidateNextScheduleExecutionDate(subscriptionEntity);
         } else {
             enqueueAssetGroupRetrievalMessages(subscriptionEntity);
             enqueueAssetRetrievalMessages(subscriptionEntity);
@@ -135,7 +135,7 @@ class ScheduledSubscriptionTriggeringServiceImpl implements ScheduledSubscriptio
                         SCHEDULED_SUBSCRIPTIONS_JMS_MESSAGE_PAGE_SIZE));
     }
     
-    private void invalidateNextScheduleExexutionDate(SubscriptionEntity subscriptionEntity) {
+    private void invalidateNextScheduleExecutionDate(SubscriptionEntity subscriptionEntity) {
         subscriptionEntity.getExecution().setNextScheduledExecution(null);
     }
 
@@ -145,7 +145,7 @@ class ScheduledSubscriptionTriggeringServiceImpl implements ScheduledSubscriptio
     }
 
     private boolean isOutOfValidityPeriod(SubscriptionEntity subscriptionEntity) {
-        return dateTimeService.getNowAsDate().after(subscriptionEntity.getValidityPeriod().getEndDate());
+        return subscriptionEntity.getValidityPeriod() == null || dateTimeService.getNowAsDate().after(subscriptionEntity.getValidityPeriod().getEndDate());
     }
 
     private Date calculateNextScheduledExecutionDate(SubscriptionEntity subscriptionEntity) {
