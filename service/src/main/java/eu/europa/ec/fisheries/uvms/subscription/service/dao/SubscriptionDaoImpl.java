@@ -170,6 +170,9 @@ class SubscriptionDaoImpl implements SubscriptionDao {
         if(criteria.getActive() != null){
             predicates.add(cb.equal(subscription.get(SubscriptionEntity_.active), criteria.getActive()));
         }
+        if(criteria.getAlert() != null) {
+            predicates.add(cb.equal(subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.alert), criteria.getAlert()));
+        }
         if(criteria.getOrganisation() != null){
             predicates.add(cb.equal(subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.subscriber).get(SubscriptionSubscriber_.organisationId), criteria.getOrganisation()));
         }
