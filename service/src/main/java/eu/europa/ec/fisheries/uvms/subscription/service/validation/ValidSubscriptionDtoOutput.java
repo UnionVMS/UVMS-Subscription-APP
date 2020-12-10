@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = SubscriptionDtoOutputValidator.class)
 public @interface ValidSubscriptionDtoOutput {
 
-    String message() default "Subscription output is not valid";
+    String message() default "";
 
     Class<?>[] groups() default { };
 
