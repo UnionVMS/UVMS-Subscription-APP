@@ -9,6 +9,7 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.service.validation;
 
+import static eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidationUtil.require;
 import static eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidationUtil.requirePropertyNotNullWithMessage;
 
 import javax.validation.ConstraintValidator;
@@ -29,9 +30,16 @@ public class SubscriptionDtoOutputValidator implements ConstraintValidator<Valid
         boolean valid = true;
         if (subscriptionDto != null && subscriptionDto.getOutput() != null) {
             SubscriptionOutputDto output = subscriptionDto.getOutput();
-
+            
+            if(output.getMessageType() == OutgoingMessageType.FA_QUERY || output.getMessageType() == OutgoingMessageType.FA_REPORT || output.getMessageType() == OutgoingMessageType.POSITION) {
+                valid = requirePropertyNotNullWithMessage(context, output.getVesselIds(), "output.vesselsIds", "At least one identifier must be selected");
+                valid &= require(context, "At least one identifier must be selected", output)
+                        .path("vesselsIds", SubscriptionOutputDto::getVesselIds)
+                        .toBe(vesselIds -> !vesselIds.isEmpty());
+            }
+            
             if(output.getMessageType() == OutgoingMessageType.FA_QUERY || output.getMessageType() == OutgoingMessageType.FA_REPORT) {
-                valid = requirePropertyNotNullWithMessage(context, output.getLogbook(), "output.logbook", "Logbook is required");
+                valid &= requirePropertyNotNullWithMessage(context, output.getLogbook(), "output.logbook", "Logbook is required");
                 valid &= requirePropertyNotNullWithMessage(context, output.getConsolidated(), "output.consolidated", "Consolidated is required");
 
                 if(TriggerType.MANUAL != subscriptionDto.getExecution().getTriggerType()) {

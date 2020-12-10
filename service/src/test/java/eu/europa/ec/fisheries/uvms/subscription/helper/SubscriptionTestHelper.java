@@ -20,6 +20,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Random;
 
@@ -41,6 +42,7 @@ import eu.europa.fisheries.uvms.subscription.model.enums.ColumnType;
 import eu.europa.fisheries.uvms.subscription.model.enums.DirectionType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import org.mapstruct.ap.internal.util.Collections;
 
@@ -115,9 +117,9 @@ public class SubscriptionTestHelper {
 
     public static SubscriptionDto createSubscriptionDtoWithEmailConfig(Long id, String name, Boolean active, OutgoingMessageType messageType, Boolean hasEmail,
                                                         Long organisationId, Long endpointId, Long channelId, Boolean consolidated, Integer history, SubscriptionTimeUnit historyUnit,
-                                                        Boolean logbook, TriggerType triggerType, Integer frequency, SubscriptionTimeUnit frequencyUnit, String timeExpression,
+                                                        Boolean logbook, EnumSet<SubscriptionVesselIdentifier> vesselIds, TriggerType triggerType, Integer frequency, SubscriptionTimeUnit frequencyUnit, String timeExpression,
                                                         Date startDate, Date endDate, String body, Boolean isPdf, Boolean zipAttachments, String password, Boolean passwordIsPlaceholder, Boolean isXml ) {
-        SubscriptionDto dto = createSubscriptionDto(id, name,active, messageType, hasEmail, organisationId, endpointId, channelId, consolidated, history, historyUnit, logbook, triggerType, frequency, frequencyUnit, timeExpression,startDate, endDate);
+        SubscriptionDto dto = createSubscriptionDto(id, name,active, messageType, hasEmail, organisationId, endpointId, channelId, consolidated, history, historyUnit, logbook, vesselIds, triggerType, frequency, frequencyUnit, timeExpression,startDate, endDate);
         if(hasEmail != null && hasEmail) {
             SubscriptionEmailConfigurationDto emailConfiguration = new SubscriptionEmailConfigurationDto();
             emailConfiguration.setBody(body);
@@ -136,10 +138,10 @@ public class SubscriptionTestHelper {
     public static SubscriptionDto createManualSubscriptionDtoWithEmailConfig(Long id, String name, Boolean active, OutgoingMessageType messageType, Boolean hasEmail,
                                                                        Long organisationId, Long endpointId, Long channelId, Boolean consolidated,
                                                                        Integer history, SubscriptionTimeUnit historyUnit, Date queryStartDate, Date queryEndDate,
-                                                                       Boolean logbook, Integer frequency, SubscriptionTimeUnit frequencyUnit, String timeExpression, Date startDate, Date endDate,
+                                                                       Boolean logbook, EnumSet<SubscriptionVesselIdentifier> vesselIds, Integer frequency, SubscriptionTimeUnit frequencyUnit, String timeExpression, Date startDate, Date endDate,
                                                                        String body, Boolean isPdf, Boolean zipAttachments, String password, Boolean passwordIsPlaceholder, Boolean isXml ) {
 
-        SubscriptionDto dto = createManualSubscriptionDto(id, name,active, messageType, hasEmail, organisationId, endpointId, channelId, consolidated, history, historyUnit, queryStartDate, queryEndDate, logbook, frequency, frequencyUnit, timeExpression,startDate, endDate);
+        SubscriptionDto dto = createManualSubscriptionDto(id, name,active, messageType, hasEmail, organisationId, endpointId, channelId, consolidated, history, historyUnit, queryStartDate, queryEndDate, logbook, vesselIds, frequency, frequencyUnit, timeExpression,startDate, endDate);
 
         if(hasEmail != null && hasEmail) {
             SubscriptionEmailConfigurationDto emailConfiguration = new SubscriptionEmailConfigurationDto();
@@ -159,18 +161,19 @@ public class SubscriptionTestHelper {
     public static SubscriptionDto createManualSubscriptionDto(Long id, String name, Boolean active, OutgoingMessageType messageType, Boolean hasEmail,
                                                                              Long organisationId, Long endpointId, Long channelId, Boolean consolidated,
                                                                              Integer history, SubscriptionTimeUnit historyUnit,Date queryStartDate, Date queryEndDate,
-                                                                             Boolean logbook, Integer frequency, SubscriptionTimeUnit frequencyUnit, String timeExpression, Date startDate, Date endDate) {
+                                                                             Boolean logbook, EnumSet<SubscriptionVesselIdentifier> vesselIds, Integer frequency, 
+                                                                             SubscriptionTimeUnit frequencyUnit, String timeExpression, Date startDate, Date endDate) {
 
-        SubscriptionDto dto = createSubscriptionDto(id, name,active, messageType, hasEmail, organisationId, endpointId, channelId, consolidated, history, historyUnit, logbook, TriggerType.MANUAL, frequency, frequencyUnit, timeExpression,startDate, endDate);
+        SubscriptionDto dto = createSubscriptionDto(id, name,active, messageType, hasEmail, organisationId, endpointId, channelId, consolidated,history, historyUnit, logbook, vesselIds,TriggerType.MANUAL, frequency, frequencyUnit, timeExpression,startDate, endDate);
         dto.getOutput().setQueryStartDate(queryStartDate);
         dto.getOutput().setQueryEndDate(queryEndDate);
         return dto;
     }
 
     public static SubscriptionDto createSubscriptionDto(Long id, String name, Boolean active, OutgoingMessageType messageType, Boolean hasEmail,
-                                                       Long organisationId, Long endpointId, Long channelId, Boolean consolidated, Integer history, SubscriptionTimeUnit historyUnit,
-                                                       Boolean logbook, TriggerType triggerType, Integer frequency, SubscriptionTimeUnit frequencyUnit, String timeExpression,
-                                                       Date startDate, Date endDate) {
+                                                        Long organisationId, Long endpointId, Long channelId, Boolean consolidated, Integer history, SubscriptionTimeUnit historyUnit,
+                                                        Boolean logbook, EnumSet<SubscriptionVesselIdentifier> vesselIds, TriggerType triggerType, Integer frequency, SubscriptionTimeUnit frequencyUnit, String timeExpression,
+                                                        Date startDate, Date endDate) {
         SubscriptionDto dto = new SubscriptionDto();
         dto.setId(id);
         dto.setName(name);
@@ -192,6 +195,7 @@ public class SubscriptionTestHelper {
         output.setHistory(history);
         output.setHistoryUnit(historyUnit);
         output.setLogbook(logbook);
+        output.setVesselIds(vesselIds);
         dto.setOutput(output);
 
         SubscriptionExecutionDto execution = new SubscriptionExecutionDto();
@@ -209,10 +213,10 @@ public class SubscriptionTestHelper {
 
     public static SubscriptionDto createManualSubscriptionDto(Long id, String name, Boolean active, OutgoingMessageType messageType, Long organisationId,
                                                               Long endpointId, Long channelId, Boolean consolidated, Integer history, SubscriptionTimeUnit historyUnit,
-                                                              Boolean logbook, Date startDate, Date endDate, Boolean includeAssets, Boolean includeAssetGroups) {
+                                                              Boolean logbook, EnumSet<SubscriptionVesselIdentifier> vesselIds, Date startDate, Date endDate, Boolean includeAssets, Boolean includeAssetGroups) {
         SubscriptionDto subscriptionDto = createSubscriptionDto(id, name, active, messageType,
                 false, organisationId, endpointId, channelId, consolidated, history, historyUnit,
-                logbook, TriggerType.MANUAL, 0, SubscriptionTimeUnit.DAYS, null,
+                logbook, vesselIds, TriggerType.MANUAL, 0, SubscriptionTimeUnit.DAYS, null,
                 startDate, endDate);
         subscriptionDto.getExecution().setImmediate(true);
         subscriptionDto.setAssets(new HashSet<>());

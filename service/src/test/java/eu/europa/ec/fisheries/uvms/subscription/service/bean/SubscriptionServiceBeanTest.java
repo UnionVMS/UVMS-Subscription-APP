@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -74,6 +75,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmClient;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.SubscriptionSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.FaReportUtility;
+import eu.europa.ec.fisheries.uvms.subscription.service.trigger.MovementTriggeredSubscriptionFinder;
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
 import eu.europa.ec.fisheries.wsdl.subscription.module.AreaType;
@@ -81,6 +83,7 @@ import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionFaReportDocumentType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
+import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.ApplicationException;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
@@ -170,6 +173,9 @@ public class SubscriptionServiceBeanTest {
 	@Produces @Mock
 	private AuthenticationContext mockAuthenticationContext;
 
+	@Produces @Mock
+	private MovementTriggeredSubscriptionFinder movementTriggeredSubscriptionFinder;
+	
 	@Inject
 	private SubscriptionServiceBean sut;
 
@@ -275,7 +281,7 @@ public class SubscriptionServiceBeanTest {
 	void createManualSubscriptionWithoutQueryPeriodOrHistory() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, false,
 				null, null, null, null, null, null, null, null, null, null,
-				null, null, null, null);
+				null, null, null, null, null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
@@ -283,7 +289,7 @@ public class SubscriptionServiceBeanTest {
 	void createManualSubscriptionWithoutWithInvalidHistory() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, false,
 				null, null, null, null, -1, null, null, null, null, null,
-				null, null, null, null);
+				null, null, null, null, null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
@@ -291,7 +297,7 @@ public class SubscriptionServiceBeanTest {
 	void createManualSubscriptionWithQueryPeriodWithoutHistory() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, false,
 				null, null, null, null, null, null, today, tomorrow, null, null,
-				null, null, null, null);
+				null, null, null, null, null);
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 		assertDoesNotThrow(() -> sut.create(subscription));
 	}
@@ -299,8 +305,8 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void createManualSubscriptionWithQueryPeriodWithoutHistoryForFAQueryType() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID,false, null, null, today, tomorrow, false, null,
-				null, null, null, null);
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID,false, null, null, today, tomorrow, false, EnumSet.of(SubscriptionVesselIdentifier.CFR),
+				null, null, null, null, null);
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 		assertDoesNotThrow(() -> sut.create(subscription));
 	}
@@ -308,7 +314,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void createManualSubscriptionWithoutQueryPeriodWithoutHistoryForFAQueryType() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID,false, null, null, null, null, false, null,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID,false, null, null, null, null, false, EnumSet.of(SubscriptionVesselIdentifier.CFR), null,
 				null, null, null, null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
@@ -336,7 +342,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void testCreateWithValidArgumentsAndMessageTypeFA_QUERY() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, EnumSet.of(SubscriptionVesselIdentifier.CFR) , TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 		assertDoesNotThrow(() -> sut.create(dto));
 	}
@@ -344,7 +350,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void testCreateImmediatelyScheduledSubscription() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
 		dto.getExecution().setImmediate(Boolean.TRUE);
 		dateTimeService.setNow(LocalDateTime.now());
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
@@ -358,14 +364,14 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void testCreateWithInvalidArgumentsAndMessageTypePOSITION() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDto(SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.POSITION, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
 		assertThrows(ConstraintViolationException.class, () -> sut.create(dto));
 	}
 
 	@Test
 	void testCreateWithValidArgumentsAndMessageTypePOSITION() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDto(SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.POSITION, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, TriggerType.INC_POSITION, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.INC_POSITION, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 		assertDoesNotThrow(() -> sut.create(dto));
 	}
@@ -373,7 +379,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void testCreateWithValidArgumentsAndMessageTypeFA_REPORT() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_REPORT, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 		assertDoesNotThrow(() -> sut.create(dto));
 	}
@@ -381,7 +387,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void createSubscriptionWithNullName() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto( SUBSCR_ID, null, Boolean.TRUE, OutgoingMessageType.NONE, false,
-				null, null, null, null, 1, null, today, tomorrow, null, null,
+				null, null, null, null, 1, null, today, tomorrow, null, null, null,
 				null, null, null, null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
@@ -389,91 +395,105 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void createSubscriptionWithEmptyName() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto( SUBSCR_ID, "", Boolean.TRUE, OutgoingMessageType.NONE, false,
-				null, null, null, null, null, null, today, tomorrow, null, null, null, null,null,null);
+				null, null, null, null, null, null, today, tomorrow, null, null, null, null, null,null,null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithNullActive() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, null, OutgoingMessageType.NONE, false,
-				null, null, null, null, null, null,today, tomorrow, null, null, null, null , null, null);
+				null, null, null, null, null, null,today, tomorrow, null, null, null, null, null , null, null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithNullMessageType() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, null, false,
-				null, null, null, null, null, null,today, tomorrow, null, null, null, null, null, null);
+				null, null, null, null, null, null,today, tomorrow, null, null, null, null, null, null, null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAQueryMessageTypeAndInvalidSubscriber() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
-				null, null, null, true, 1, SubscriptionTimeUnit.DAYS, true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
+				null, null, null, true, 1, SubscriptionTimeUnit.DAYS, true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAQueryMessageTypeAndInvalidOutput() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null,null, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null,null, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAQueryMessageTypeAndSchedulerTriggerTypeAndInvalidExecution() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, null, null, null, null, null);
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, null, null, null, null, null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAQueryMessageTypeAndInvalidNegativeHistory() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, -1, SubscriptionTimeUnit.DAYS, true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", null, null);
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, -1, SubscriptionTimeUnit.DAYS, true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", null, null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAReportMessageTypeAndInvalidSubscriber() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_REPORT, false,
-				null, null, null, true, 1, SubscriptionTimeUnit.DAYS, true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
+				null, null, null, true, 1, SubscriptionTimeUnit.DAYS, true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAReportMessageTypeAndInvalidOutput() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_REPORT, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null,null, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null,null, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
+	
+	@Test
+	void createSubscriptionWithFAReportMessageTypeAndNullVesselIds() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, null, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", null, null);
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
+	
+	@Test
+	void createSubscriptionWithFAReportMessageTypeAndEmptyVesselIds() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, EnumSet.noneOf(SubscriptionVesselIdentifier.class), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", null, null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAReportMessageTypeAndSchedulerTriggerTypeAndInvalidExecution() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_REPORT, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, null, null, null, null, null);
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, null, null, null, null, null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithFAReportMessageTypeAndInvalidNegativeHistory() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_REPORT, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, -1, SubscriptionTimeUnit.DAYS, true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", null, null);
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, -1, SubscriptionTimeUnit.DAYS, true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", null, null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createSubscriptionWithTriggerTypeSchedulerAndInvalidTimeExpression() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "120:00", null, null);
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "120:00", null, null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
 
 	@Test
 	void createValidSubscriptionWithNoneMessageTypeAndNullSubscriber() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, false,
-				null, null, null, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
+				null, null, null, true, 1, SubscriptionTimeUnit.DAYS,true, null, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date());
 
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 
@@ -483,7 +503,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
     void createSubscriptionWithValidEmailConfig() {
         SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
-                null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null, null,
+                null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null, null, null,
 				null, null, null, null, EMAIL_BODY, false, true, PASSWORD, true, false);
 
         when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
@@ -494,7 +514,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
     void createSubscriptionWithHasEmailNull() {
         SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, null,
-                null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null, null,
+                null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null, null,null,
                 null, null, null, null, null , null , null, null , null, null);
         assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
     }
@@ -502,7 +522,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
     void createSubscriptionWithHasEmailTrueAndNullEmailConfiguration() {
         SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
-                null, null, null, null, 12, SubscriptionTimeUnit.HOURS,null,  null, null, null, null,
+                null, null, null, null, 12, SubscriptionTimeUnit.HOURS,null,  null, null, null,null, null,
                 null, null, null, null, null , null , null , null, null);
         assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
     }
@@ -510,7 +530,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
     void createSubscriptionWithHasEmailTrueAndNullEmailBody() {
         SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
-                null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null,null, null, null, null, null, null, null,
+                null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null,null, null, null,null, null, null, null, null,
                 null, null, null, null, null , null);
         assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
     }
@@ -518,7 +538,7 @@ public class SubscriptionServiceBeanTest {
     @Test
     void createSubscriptionWithHasEmailFalseAndNullEmailConfiguration() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, false,
-				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null,null, null, null, null, null, null, null,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null,null, null, null, null, null, null, null, null,
 				null, null, null, null, null , null);
 
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
@@ -530,7 +550,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void createSubscriptionWithFAQueryMessageTypeAndInvalidOutputAndWithHasEmailFalseAndNullEmailConfiguration() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null,null, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null,null, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
 		null, null, null, null, null , null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
@@ -540,7 +560,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void createSubscriptionWithFAReportMessageTypeAndInvalidOutputAndWithHasEmailFalseAndNullEmailConfiguration() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_REPORT, false,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null,null, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null,null, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
 		null, null, null, null, null , null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
 	}
@@ -548,7 +568,7 @@ public class SubscriptionServiceBeanTest {
     @Test
     void createSubscriptionWithHasEmailFalseAndNullEmailBody() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
-				null, null, null, null, 15, SubscriptionTimeUnit.HOURS,  null, null, null, null,
+				null, null, null, null, 15, SubscriptionTimeUnit.HOURS,  null, null, null, null, null,
 				null, null, null, null, null , null , null ,null, null , null);
 		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
     }
@@ -556,7 +576,7 @@ public class SubscriptionServiceBeanTest {
     @Test
     void createSubscriptionWithHasEmailTrueAndNullPassword() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
-				null, null, null, null, 12, SubscriptionTimeUnit.HOURS,null,null, null, null, null, null, null, null,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS,null,null, null, null, null, null, null, null, null,
 				EMAIL_BODY, false, true, null, true, false );
 
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
@@ -567,7 +587,7 @@ public class SubscriptionServiceBeanTest {
     @Test
     void createSubscriptionWithHasEmailTrueAndEmptyPassword() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
-				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null, null,null, null, null, null, null,
 				EMAIL_BODY, false, true, "", true, false );
 
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
@@ -578,7 +598,7 @@ public class SubscriptionServiceBeanTest {
     @Test
 	void activateDeactivatedSubscription() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.FALSE, OutgoingMessageType.NONE, true,
-				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null, null,
 				EMAIL_BODY, false, true, "", true, false );
 
 		SubscriptionEntity subscriptionEntity = mapper.mapDtoToEntity(subscription);
@@ -592,7 +612,7 @@ public class SubscriptionServiceBeanTest {
     @Test
 	void deactivateActivatedSubscription() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.FALSE, OutgoingMessageType.NONE, true,
-				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null, null,
 				EMAIL_BODY, false, true, "", true, false );
 
 		SubscriptionEntity subscriptionEntity = mapper.mapDtoToEntity(subscription);
@@ -606,7 +626,7 @@ public class SubscriptionServiceBeanTest {
     @Test
 	void deactivateDeactivatedSubscription() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.FALSE, OutgoingMessageType.NONE, true,
-				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null, null,
 				EMAIL_BODY, false, true, "", true, false );
 
 		SubscriptionEntity subscriptionEntity = mapper.mapDtoToEntity(subscription);
@@ -620,7 +640,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void activateActivatedSubscription() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.FALSE, OutgoingMessageType.NONE, true,
-				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null, null,
 				EMAIL_BODY, false, true, "", true, false );
 
 		SubscriptionEntity subscriptionEntity = mapper.mapDtoToEntity(subscription);
@@ -634,7 +654,7 @@ public class SubscriptionServiceBeanTest {
     @Test
 	void createScheduledSubscription() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createManualSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.NONE, true,
-				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null,
+				null, null, null, null, 12, SubscriptionTimeUnit.HOURS, null, null, null,null, null, null, null, null, null,
 				EMAIL_BODY, false, true, "", true, false );
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 		subscription.getExecution().setTriggerType(TriggerType.SCHEDULER);
@@ -677,7 +697,7 @@ public class SubscriptionServiceBeanTest {
 	@MethodSource("testCreateWithExpressionParamsInput")
 	void testCreate(String timeExpression, String expectedNextScheduledExecution) {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, timeExpression, new Date(), new Date(),
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, timeExpression, new Date(), new Date(),
 				EMAIL_BODY, true, true, PASSWORD, false, false);
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
 		when(subscriptionDAO.createEmailBodyEntity(any())).thenAnswer(iom -> iom.getArgument(0));
@@ -725,7 +745,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void testCreateWithNonEmptyStartConditions() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
 				EMAIL_BODY, true, true, PASSWORD, false, false);
 		dto.setAssets(Collections.singleton(new AssetDto(null, "guid", "name", AssetType.ASSET)));
 		dto.setAreas(Collections.singleton(new AreaDto(null, 1L, AreaType.USERAREA)));
@@ -750,7 +770,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void createSubscriptionWithAssetCriteria() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
 				EMAIL_BODY, true, true, PASSWORD, false, false);
 
 		Set<AssetDto> assetDtoSet = new HashSet<>();
@@ -791,7 +811,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void createSubscriptionWithEmailConfigAndNoPassword() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
 				EMAIL_BODY, true, true, null, false, false);
 
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
@@ -806,7 +826,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void testPrepareManualSubscriptionRequest() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDto( SUBSCR_ID, null, null, OutgoingMessageType.FA_QUERY, null,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null,null, null, null, null, null, new Date(), new Date());
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, null, null, null,null, EnumSet.of(SubscriptionVesselIdentifier.CFR), null, null, null, null, new Date(), new Date());
 		SubscriptionDto manualSubscriptionDto = sut.prepareManualRequest(subscription);
 		assertEquals(Boolean.TRUE, manualSubscriptionDto.getActive());
 		assertEquals(Boolean.FALSE, manualSubscriptionDto.getOutput().getHasEmail());
@@ -818,7 +838,7 @@ public class SubscriptionServiceBeanTest {
 	@MethodSource("testCreateManualSubscriptionParams")
 	void testCreateManualSubscription(boolean includeAssets, boolean includeAssetGroups, boolean includeAreas) {
 		SubscriptionDto dto = SubscriptionTestHelper.createManualSubscriptionDto(SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, new Date(), new Date(),
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS, true, EnumSet.of(SubscriptionVesselIdentifier.CFR), new Date(), new Date(),
 				includeAssets, includeAssetGroups);
 
 		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
@@ -912,7 +932,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void updateSubscriptionWithEmailConfigAndPasswordIsPlaceHolderTrueAndStoredPasswordNotEmpty() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
 				EMAIL_BODY, true, true, "xxx", true, false);
 
 		when(subscriptionDAO.findById(17L)).thenReturn(new SubscriptionEntity());
@@ -930,7 +950,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void updateSubscriptionWithEmailConfigAndPasswordIsPlaceHolderTrueAndStoredPasswordNull() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
 				EMAIL_BODY, true, true, "******", true, false);
 
 		when(subscriptionDAO.findById(17L)).thenReturn(new SubscriptionEntity());
@@ -947,7 +967,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void updateSubscriptionWithEmailConfigAndPasswordIsPlaceHolderFalse() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
 				EMAIL_BODY, true, true, "new_pass", false, false);
 
 		when(subscriptionDAO.findById(17L)).thenReturn(new SubscriptionEntity());
@@ -963,7 +983,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void updateSubscriptionWithEmailConfigAndPasswordIsPlaceHolderFalseAndNewPasswordEmpty() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
 				EMAIL_BODY, true, true, "", false, false);
 
 		when(subscriptionDAO.findById(17L)).thenReturn(new SubscriptionEntity());
@@ -979,7 +999,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void updateSubscriptionWithEmailConfigAndPasswordIsPlaceHolderFalseAndNewPasswordNull() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
 				EMAIL_BODY, true, true, null, false, false);
 
 		when(subscriptionDAO.findById(17L)).thenReturn(new SubscriptionEntity());
@@ -995,7 +1015,7 @@ public class SubscriptionServiceBeanTest {
 	@Test
 	void updateSubscriptionWithEmailConfigAndPasswordIsPlaceHolderNull() {
 		SubscriptionDto dto = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE, OutgoingMessageType.FA_QUERY, true,
-				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
 				EMAIL_BODY, true, true, null, null, false);
 
 		when(subscriptionDAO.findById(17L)).thenReturn(new SubscriptionEntity());
