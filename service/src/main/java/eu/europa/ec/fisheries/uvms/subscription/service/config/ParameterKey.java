@@ -19,7 +19,10 @@ public enum ParameterKey {
 
     SUBSCRIPTION_EMAIL_DEFAULT_SUBJECT("subscription.email.default.subject","Subscription default email subject"),
     SUBSCRIPTION_EMAIL_DEFAULT_SENDER("subscription.email.default.sender","Subscription default email sender"),
-    SUBSCRIPTION_EMAIL_DEFAULT_BODY("subscription.email.default.body","Subscription default email body");
+    SUBSCRIPTION_EMAIL_DEFAULT_BODY("subscription.email.default.body","Subscription default email body"),
+    AUTHZ_FA_QUERY("subscription.authz.fa.query","Whether to run the authorisation logic for incoming FA Queries"),
+    AUTHZ_FA_REPORT("subscription.authz.fa.report","Whether to run the authorisation logic for incoming FA Reports"),
+    AUTHZ_VMS_REPORT("subscription.authz.vms.report","Whether to run the authorisation logic for incoming VMS (position) Reports");
 
     private final String key;
     private final String description;

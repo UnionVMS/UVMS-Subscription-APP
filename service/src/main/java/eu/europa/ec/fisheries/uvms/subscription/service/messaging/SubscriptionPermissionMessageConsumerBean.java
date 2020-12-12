@@ -34,6 +34,7 @@ import eu.europa.ec.fisheries.uvms.commons.message.context.PropagateFluxEnvelope
 import eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionService;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.SenderInformation;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -64,6 +65,9 @@ public class SubscriptionPermissionMessageConsumerBean implements MessageListene
 
     @Inject
     private FluxEnvelopeHolder fluxEnvelopeHolder;
+
+    @Inject
+    private MessageAuthorisationConfig messageAuthorisationConfig;
 
     @Override
     @PropagateFluxEnvelopeData
@@ -101,24 +105,32 @@ public class SubscriptionPermissionMessageConsumerBean implements MessageListene
 
     private void reviewSubscriptionsForFAReportMessage(MapToSubscriptionRequest mapToSubscriptionRequest, String jmsCorrelationID,
                                                        String jmsMessageID, Destination jmsReplyTo) throws JAXBException, MessageException {
+        if (!messageAuthorisationConfig.mustAuthoriseIncomingFaReport()) {
+            permitMessage(jmsCorrelationID, jmsMessageID, jmsReplyTo);
+            return;
+        }
         SenderInformation senderInformation = buildSenderInformation();
         ForwardReportToSubscriptionRequest forwardReportToSubscriptionRequest = JAXBUtils.unMarshallMessage(mapToSubscriptionRequest.getRequest(), ForwardReportToSubscriptionRequest.class);
         SubscriptionPermissionResponse dataRequestAllowed = subscriptionService.hasActiveSubscriptions(forwardReportToSubscriptionRequest, senderInformation);
         log.info("[INFO] Checked permissions... Going to send back : " + dataRequestAllowed.getSubscriptionCheck());
         String messageToSend = marshallJaxBObjectToString(dataRequestAllowed);
         subscriptionProducer.sendMessageWithSpecificIds(messageToSend, jmsReplyTo, null, jmsMessageID, jmsCorrelationID);
-        log.info("[END] Answer sent to queue : " + jmsReplyTo);
+        log.debug("[END] Answer sent to queue : " + jmsReplyTo);
     }
 
     private void reviewSubscriptionsForFAQueryMessage(MapToSubscriptionRequest mapToSubscriptionRequest, String jmsCorrelationID,
                                                       String jmsMessageID, Destination jmsReplyTo) throws JAXBException, MessageException, ActivityModelMarshallException {
+        if (!messageAuthorisationConfig.mustAuthoriseIncomingFaQuery()) {
+            permitMessage(jmsCorrelationID, jmsMessageID, jmsReplyTo);
+            return;
+        }
         SenderInformation senderInformation = buildSenderInformation();
         ForwardQueryToSubscriptionRequest forwardQueryToSubscriptionRequest = JAXBMarshaller.unmarshallTextMessage(mapToSubscriptionRequest.getRequest(), ForwardQueryToSubscriptionRequest.class);
         SubscriptionPermissionResponse dataRequestAllowed = subscriptionService.hasActiveSubscriptions(forwardQueryToSubscriptionRequest, senderInformation);
         log.info("[INFO] Checked permissions... Going to send back : " + dataRequestAllowed.getSubscriptionCheck());
         String messageToSend = marshallJaxBObjectToString(dataRequestAllowed);
         subscriptionProducer.sendMessageWithSpecificIds(messageToSend, jmsReplyTo, null, jmsMessageID, jmsCorrelationID);
-        log.info("[END] Answer sent to queue : " + jmsReplyTo);
+        log.debug("[END] Answer sent to queue : " + jmsReplyTo);
     }
 
     private void reviewSubscriptionsForActivity(TextMessage textMessage, Destination jmsReplyTo, String jmsMessageID, String jmsCorrelationID)
@@ -139,13 +151,17 @@ public class SubscriptionPermissionMessageConsumerBean implements MessageListene
 
     private void reviewSubscriptionsForMovement(TextMessage textMessage, Destination jmsReplyTo, String jmsMessageID, String jmsCorrelationID)
             throws JMSException, JAXBException, MessageException {
+        if (!messageAuthorisationConfig.mustAuthoriseIncomingVmsReport()) {
+            permitMessage(jmsCorrelationID, jmsMessageID, jmsReplyTo);
+            return;
+        }
         SenderInformation senderInformation = buildSenderInformation();
         MovementToSubscriptionRequest movementToSubscriptionRequest = unMarshallMessage(textMessage.getText(), MovementToSubscriptionRequest.class);
         SubscriptionPermissionResponse dataRequestAllowed = subscriptionService.hasActiveSubscriptions(movementToSubscriptionRequest, senderInformation);
         log.info("[INFO] Checked permissions... Going to send back : " + dataRequestAllowed.getSubscriptionCheck());
         String messageToSend = marshallJaxBObjectToString(dataRequestAllowed);
         subscriptionProducer.sendMessageWithSpecificIds(messageToSend, jmsReplyTo, null, jmsMessageID, jmsCorrelationID);
-        log.info("[END] Answer sent to queue : " + jmsReplyTo);
+        log.debug("[END] Answer sent to queue : " + jmsReplyTo);
     }
 
     private SenderInformation buildSenderInformation() {
@@ -156,4 +172,10 @@ public class SubscriptionPermissionMessageConsumerBean implements MessageListene
         return senderInformation;
     }
 
+    private void permitMessage(String jmsCorrelationID, String jmsMessageID, Destination jmsReplyTo) throws JAXBException, MessageException {
+        SubscriptionPermissionResponse response = new SubscriptionPermissionResponse();
+        response.setSubscriptionCheck(SubscriptionPermissionAnswer.YES);
+        String messageToSend = marshallJaxBObjectToString(response);
+        subscriptionProducer.sendMessageWithSpecificIds(messageToSend, jmsReplyTo, null, jmsMessageID, jmsCorrelationID);
+    }
 }

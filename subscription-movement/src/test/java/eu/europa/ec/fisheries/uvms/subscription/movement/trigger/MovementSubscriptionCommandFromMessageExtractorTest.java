@@ -49,6 +49,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.Subscripti
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.SubscriptionSearchCriteria.SenderCriterion;
 import eu.europa.ec.fisheries.uvms.subscription.service.messaging.asset.AssetSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.search.AreaCriterion;
+import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.StopConditionCriteria;
 import eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggerCommandsFactory;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
@@ -85,6 +86,9 @@ public class MovementSubscriptionCommandFromMessageExtractorTest {
 
 	@Produces @Mock
 	private TriggerCommandsFactory triggerCommandsFactory;
+
+	@Produces @Mock
+	private UsmSender usmSender;
 
 	@Inject
 	private MovementSubscriptionCommandFromMessageExtractor sut;
