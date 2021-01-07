@@ -146,6 +146,8 @@ class SubscriptionDaoImpl implements SubscriptionDao {
                 return subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.messageType);
             case TRIGGERTYPE:
                 return subscription.get(SubscriptionEntity_.execution).get(SubscriptionExecution_.triggerType);
+            case ALERT:
+                return subscription.get(SubscriptionEntity_.output).get(SubscriptionOutput_.alert);
             default:
                 return subscription.get(SubscriptionEntity_.id);
         }
