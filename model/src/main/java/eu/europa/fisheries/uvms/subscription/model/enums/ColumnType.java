@@ -21,6 +21,7 @@ public enum ColumnType {
     ORGANISATION("organisation"),
     MESSAGETYPE("messageType"),
     TRIGGERTYPE("triggerType"),
+    ALERT("alert"),
     ID("id");
 
     private final String propertyName;
