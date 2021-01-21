@@ -47,6 +47,7 @@ import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
+import eu.europa.fisheries.uvms.subscription.model.exceptions.ApplicationException;
 import eu.europa.fisheries.uvms.subscription.model.exceptions.EntityDoesNotExistException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -185,6 +186,15 @@ class SubscriptionServiceBean implements SubscriptionService {
         return response;
     }
 
+    private List<Organisation> getOrganisationsFromUsm(String scopeName, String roleName) {
+        try {
+            return usmClient.getAllOrganisations(scopeName, roleName, authenticationContext.getUserPrincipal().getName());
+        } catch (ApplicationException e) {
+            log.error("Error getting organizations from USM (" + e.getMessage() + ")", e);
+        }
+        return null;
+    }
+
     @Override
     public SubscriptionPermissionResponse hasActiveSubscriptions(MovementToSubscriptionRequest movementToSubscriptionRequest,
                                                                  SenderInformation senderInformation) {
@@ -223,8 +233,8 @@ class SubscriptionServiceBean implements SubscriptionService {
 
         List<SubscriptionEntity> subscriptionEntities = subscriptionDAO.listSubscriptions(updatedQueryParams);
 
-        List<Organisation> organisations = usmClient.getAllOrganisations(scopeName, roleName, authenticationContext.getUserPrincipal().getName());
-        if (organisations != null) {
+        List<Organisation> organisations = getOrganisationsFromUsm(scopeName, roleName);
+        if (organisations != null && !organisations.isEmpty()) {
             responseDto.setList(customMapper.enrichSubscriptionList(subscriptionEntities, organisations));
         } else {
             responseDto.setList(subscriptionEntities.stream().map(mapper::asListDto).collect(Collectors.toList()));
