@@ -15,9 +15,8 @@
         <!-- PROPERTIES USED FOR LOGBACK -->
         <application.name>${project.parent.artifactId}</application.name> 
         <application.version>${project.parent.version}</application.version>
-        <application.logfile>/app/logs/${project.parent.artifactId}/${project.parent.artifactId}.log</application.logfile>
-        <application.error.logfile>/app/logs/${project.parent.artifactId}/${project.parent.artifactId}-error.log</application.error.logfile>
-
+        <application.logfile>${project.parent.artifactId}/${project.parent.artifactId}.log</application.logfile>
+        <application.logfile.message.pattern>%replace(%rEx){'[\r\n]+', '~~'}%nopex %n</application.logfile.message.pattern>
         <usm_deployment_descriptor_force_update>false</usm_deployment_descriptor_force_update>
         
         <!-- persistence.xml CONFIGS -->
@@ -31,6 +30,12 @@
             <id>oracle</id>
             <properties>
                 <hibernate.dialect>org.hibernate.dialect.Oracle10gDialect</hibernate.dialect>
+            </properties>
+        </profile>
+        <profile>
+            <id>multilineLog</id>
+            <properties>
+                <application.logfile.message.pattern>%n</application.logfile.message.pattern>
             </properties>
         </profile>
     </profiles>
