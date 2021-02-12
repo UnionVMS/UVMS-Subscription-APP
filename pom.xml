@@ -43,7 +43,7 @@
 
 		<defaultLibBundleDir>APP-INF/lib</defaultLibBundleDir>
 		<netbeans.hint.jdkPlatform>JDK_1.8</netbeans.hint.jdkPlatform>
-		<hibernate.version>5.1.9.Final</hibernate.version>
+		<hibernate.version>5.3.17.Final</hibernate.version>
 
 		<version.glassfish.el>3.0.1-b11</version.glassfish.el>
 		<version.glassfish.json>1.1.4</version.glassfish.json>
@@ -82,12 +82,12 @@
 				<artifactId>audit-model</artifactId>
 				<version>${audit.model.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>fish.focus.uvms.maven</groupId>
-				<artifactId>uvms-pom-gis-deps</artifactId>
-				<version>1.21</version>
-				<type>pom</type>
-			</dependency>
+			<!--<dependency>-->
+				<!--<groupId>fish.focus.uvms.maven</groupId>-->
+				<!--<artifactId>uvms-pom-gis-deps</artifactId>-->
+				<!--<version>1.21</version>-->
+				<!--<type>pom</type>-->
+			<!--</dependency>-->
 			<dependency>
 				<groupId>eu.europa.ec.fisheries.uvms.commons</groupId>
 				<artifactId>uvms-commons-message</artifactId>
@@ -187,6 +187,11 @@
 				<artifactId>hibernate-jpamodelgen</artifactId>
 				<version>${version.hibernate-jpamodelgen}</version>
 				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-spatial</artifactId>
+				<version>${hibernate.version}</version>
 			</dependency>
 
 			<dependency>
