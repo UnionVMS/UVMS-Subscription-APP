@@ -47,6 +47,13 @@ public class SubscriptionDtoOutputValidator implements ConstraintValidator<Valid
                     valid &= requirePropertyNotNullWithMessage(context, output.getHistoryUnit(), "output.historyUnit", "History unit is required");
                 }
             }
+            
+            if(output.getMessageType() == OutgoingMessageType.FA_QUERY) {
+                valid &= require(context, "No email configuration must be set when output is FA Query", output)
+                        .path("hasEmail", SubscriptionOutputDto::getHasEmail)
+                        .toBe(hasEmail -> !hasEmail); //hasEmail must be false
+            }
+            
             if (Boolean.TRUE.equals(output.getHasEmail())) {
                 valid &= requirePropertyNotNullWithMessage(context, output.getEmailConfiguration(), "output.emailConfiguration", "EmailConfiguration is required");
             }
