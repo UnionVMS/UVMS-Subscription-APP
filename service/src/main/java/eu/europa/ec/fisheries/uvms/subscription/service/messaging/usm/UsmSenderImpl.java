@@ -56,7 +56,7 @@ class UsmSenderImpl implements UsmSender {
 		}
 		String dataflow = endpoint.getChannels().stream()
 				.filter(channel -> channel.getId() == channelId)
-				.map(Channel::getDataFlow)
+				.map(Channel::getService)
 				.findFirst()
 				.orElseThrow(() -> new EntityDoesNotExistException("Cannot find channelId " + channelId + " under endpoint " + endpointId));
 		return new ReceiverAndDataflow(endpoint.getUri(), dataflow);
