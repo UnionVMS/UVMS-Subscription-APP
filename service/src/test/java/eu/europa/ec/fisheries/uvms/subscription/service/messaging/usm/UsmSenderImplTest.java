@@ -70,7 +70,7 @@ class UsmSenderImplTest {
     void testFindReceiverAndDataflow() {
         Channel channel = new Channel();
         channel.setId(CHANNEL_ID);
-        channel.setDataFlow(DATAFLOW);
+        channel.setService(DATAFLOW);
         EndPoint endpoint = new EndPoint();
         endpoint.setId(ENDPOINT_ID);
         endpoint.setUri(URI);
