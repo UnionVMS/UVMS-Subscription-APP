@@ -176,9 +176,12 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 				});
 	}
 	
+	private XMLGregorianCalendar getFishingActivityDateTime(FishingActivity fishingActivityEntity) {
+		return fishingActivityEntity.getOccurrenceDateTime() != null ? fishingActivityEntity.getOccurrenceDateTime().getDateTime() : getFirstDateFromDelimitedPeriods(fishingActivityEntity.getSpecifiedDelimitedPeriods()).getDateTime();
+	}
+	
 	private void enrichWithUserAreas(ReportToSubscription reportToSubscription) {
-		List<XMLGregorianCalendar> dates = reportToSubscription.getFishingActivities().stream().map(fa ->
-				fa.getOccurrenceDateTime().getDateTime()).collect(Collectors.toList());
+		List<XMLGregorianCalendar> dates = reportToSubscription.getFishingActivities().stream().map(this::getFishingActivityDateTime).collect(Collectors.toList());
 		List<String> wktList = reportToSubscription.getActivitiesWktLists();
 		List<SubscriptionMovementMetaDataAreaTypeResponseElement> responseList = subscriptionSpatialService.getFishingActivitiesUserAreasEnrichmentByWkt(indexed(wktList,dates::get));
 		int index = 0;
