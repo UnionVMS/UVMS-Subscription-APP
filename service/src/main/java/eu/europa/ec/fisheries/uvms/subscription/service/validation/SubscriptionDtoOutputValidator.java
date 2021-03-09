@@ -16,6 +16,7 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionDto;
+import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionEmailConfigurationDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.dto.SubscriptionOutputDto;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.TriggerType;
@@ -56,6 +57,13 @@ public class SubscriptionDtoOutputValidator implements ConstraintValidator<Valid
             
             if (Boolean.TRUE.equals(output.getHasEmail())) {
                 valid &= requirePropertyNotNullWithMessage(context, output.getEmailConfiguration(), "output.emailConfiguration", "EmailConfiguration is required");
+                if(output.getMessageType() == OutgoingMessageType.POSITION) {
+
+                    valid &= require(context, "XML option not available in email configuration when output is Position", output)
+                            .path("emailConfiguration", SubscriptionOutputDto::getEmailConfiguration)
+                            .path("isXml", SubscriptionEmailConfigurationDto::getIsXml)
+                            .toBe(isXml -> !isXml); //isXml must be false
+                }
             }
         }
         return valid;
