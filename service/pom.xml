@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -10,22 +11,21 @@
 
     <artifactId>subscription-service</artifactId>
     <packaging>ejb</packaging>
-    
-    <properties>
 
+    <properties>
         <!-- PROPERTIES USED FOR LOGBACK -->
-        <application.name>${project.parent.artifactId}</application.name> 
+        <application.name>${project.parent.artifactId}</application.name>
         <application.version>${project.parent.version}</application.version>
         <application.logfile>${project.parent.artifactId}.log</application.logfile>
-        <application.logfile.message.pattern>%replace(%rEx){'[\r\n]+', '~~'}%nopex %n</application.logfile.message.pattern>
+        <application.logfile.message.pattern>%replace(%rEx){'[\r\n]+', '~~'}%nopex %n
+        </application.logfile.message.pattern>
         <usm_deployment_descriptor_force_update>false</usm_deployment_descriptor_force_update>
-        
         <!-- persistence.xml CONFIGS -->
         <hibernate.dialect>org.hibernate.dialect.PostgreSQL9Dialect</hibernate.dialect>
         <jta.data-source>java:jboss/datasources/uvms_subscription</jta.data-source>
         <jta.platform>org.hibernate.service.jta.platform.internal.JBossStandAloneJtaPlatform</jta.platform>
     </properties>
-    
+
     <profiles>
         <profile>
             <id>oracle</id>
@@ -34,10 +34,44 @@
             </properties>
         </profile>
         <profile>
-            <id>multilineLog</id>
-            <properties>
-                <application.logfile.message.pattern>%n</application.logfile.message.pattern>
-            </properties>
+            <id>logging-default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <resources>
+                    <resource>
+                        <filtering>true</filtering>
+                        <directory>src/main/logging/default</directory>
+                        <targetPath>${project.build.outputDirectory}</targetPath>
+                        <includes>
+                            <include>logback.xml</include>
+                        </includes>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
+        <profile>
+            <id>logging-cloud</id>
+            <build>
+                <resources>
+                    <resource>
+                        <filtering>true</filtering>
+                        <directory>src/main/logging/cloud</directory>
+                        <targetPath>${project.build.outputDirectory}</targetPath>
+                        <includes>
+                            <include>logback.xml</include>
+                        </includes>
+                    </resource>
+                </resources>
+            </build>
+            <dependencies>
+                <dependency>
+                    <groupId>com.j256.cloudwatchlogbackappender</groupId>
+                    <artifactId>cloudwatchlogbackappender</artifactId>
+                    <version>2.0</version>
+                </dependency>
+            </dependencies>
         </profile>
     </profiles>
 
@@ -88,12 +122,10 @@
             <groupId>eu.europa.ec.fisheries.uvms.commons</groupId>
             <artifactId>uvms-commons-date</artifactId>
         </dependency>
-
         <dependency>
             <groupId>eu.europa.ec.fisheries.uvms</groupId>
             <artifactId>config-library</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
@@ -106,28 +138,23 @@
             <groupId>eu.europa.ec.fisheries.uvms</groupId>
             <artifactId>uvms-test</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-jpamodelgen</artifactId>
         </dependency>
-
         <dependency>
             <groupId>eu.europa.ec.fisheries.uvms.user</groupId>
             <artifactId>user-model</artifactId>
             <version>${user.model.version}</version>
         </dependency>
-
         <dependency>
             <groupId>eu.europa.ec.fisheries.uvms</groupId>
             <artifactId>usm4uvms</artifactId>
@@ -139,7 +166,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
         <!-- TEST -->
         <dependency>
             <groupId>com.ninja-squad</groupId>
@@ -192,12 +218,17 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-ejb-plugin</artifactId>
             </plugin>
-
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>properties-maven-plugin</artifactId>
@@ -215,11 +246,5 @@
                 </executions>
             </plugin>
         </plugins>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
     </build>
 </project>
