@@ -41,6 +41,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.util.DateTimeService;
 import eu.europa.ec.fisheries.wsdl.asset.types.AssetHistGuidIdWithVesselIdentifiers;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionElement;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
@@ -176,14 +177,26 @@ class SubscriptionServiceBean implements SubscriptionService {
     @Override
     public SubscriptionPermissionResponse hasActiveSubscriptions(ForwardQueryToSubscriptionRequest forwardQueryToSubscriptionRequest, SenderInformation senderInformation) {
         SubscriptionSearchCriteria.SenderCriterion senderCriterion = faReportUtility.extractSenderCriterion(senderInformation);
+        return prepareSubscriptionPermissionResponse(faReportUtility.findTriggeredSubscriptionsForFAQuery(forwardQueryToSubscriptionRequest, senderCriterion));
+    }
 
+    private SubscriptionPermissionResponse prepareSubscriptionPermissionResponse(List<SubscriptionEntity> triggeredSubscriptionsForFAQuery){
         List<SubscriptionEntity> subscriptionEntities = new ArrayList<>();
+        subscriptionEntities.addAll(triggeredSubscriptionsForFAQuery);
 
-        subscriptionEntities.addAll(faReportUtility.findTriggeredSubscriptionsForFAQuery(forwardQueryToSubscriptionRequest, senderCriterion));
+        List<SubscriptionElement> subElements = new ArrayList<>();
+        for(SubscriptionEntity subEntity: subscriptionEntities){
+            SubscriptionElement subElement = new SubscriptionElement();
+            subElement.setHistory(subEntity.getOutput() == null ? null:subEntity.getOutput().getHistory());
+            subElement.setTimeUnit(subEntity.getOutput() == null ? null:subEntity.getOutput().getHistoryUnit() == null ? null : subEntity.getOutput().getHistoryUnit().name());
+            subElements.add(subElement);
+        }
 
         SubscriptionPermissionResponse response = new SubscriptionPermissionResponse();
         response.setSubscriptionCheck(subscriptionEntities.size() > 0 ? YES : NO);
+        response.getSubElements().addAll(subElements);
         return response;
+
     }
 
     private List<Organisation> getOrganisationsFromUsm(String scopeName, String roleName) {
