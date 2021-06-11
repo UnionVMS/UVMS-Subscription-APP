@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.SubscriptionHasUniqueName;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidManualSubscriptionDto;
 import eu.europa.ec.fisheries.uvms.subscription.service.validation.ValidScheduledSubscriptionDto;
