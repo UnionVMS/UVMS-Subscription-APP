@@ -141,7 +141,7 @@ public class ActivitySubscriptionCommandFromMessageExtractor implements Subscrip
 	}
 
 	@Override
-	public Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion, ZonedDateTime receptionDateTime) {
+	public Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion,String messageGuid, ZonedDateTime receptionDateTime) {
 		Map<String, Map<Long, TriggeredSubscriptionEntity>> assetHistoryGuidToTriggeringsMap = new HashMap<>();
 		return Stream.of(unmarshal(representation))
 				.flatMap(this::extractReportsFromRequest)

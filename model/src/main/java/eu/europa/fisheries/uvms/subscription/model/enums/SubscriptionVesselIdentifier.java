@@ -18,5 +18,6 @@ public enum SubscriptionVesselIdentifier {
 	IRCS,
 	ICCAT,
 	EXT_MARK,
-	UVI
+	UVI,
+	GFCM
 }

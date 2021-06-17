@@ -40,7 +40,7 @@ public interface SubscriptionCommandFromMessageExtractor {
 	 * @param receptionDateTime The reception date time, used for stop conditions
 	 * @return A possibly empty but never null stream of commands to execute in order to process this message
 	 */
-	Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion, ZonedDateTime receptionDateTime);
+	Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion,String movementGuid, ZonedDateTime receptionDateTime);
 
 	/**
 	 * Return a function that can extract the {@link TriggeredSubscriptionDataEntity} that are important for

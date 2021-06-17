@@ -144,7 +144,7 @@ class ManualSubscriptionCommandFromMessageExtractorTest {
         when(triggerCommandsFactory.createAssetPageRetrievalCommand(any())).thenReturn(assetPageRetrievalCommand);
         //skip area filtering
         when(areaFiltererComponent.filterAssetsBySubscriptionAreas( any(),any(),any())).thenAnswer(i-> i.getArgument(0));
-        Stream<Command> result = sut.extractCommands(AssetPageRetrievalMessage.encodeMessage(receivedMessageFromQueue), null, NOWZDT);
+        Stream<Command> result = sut.extractCommands(AssetPageRetrievalMessage.encodeMessage(receivedMessageFromQueue), null,"123",NOWZDT);
 
         assertNotNull(result);
         assertEquals(3, result.count());
@@ -192,7 +192,7 @@ class ManualSubscriptionCommandFromMessageExtractorTest {
         when(assetSender.findAssetIdentifiersByAssetGroupGuid(assetGroupName, dateTimeService.getNowAsDate(), pageNumber, pageSize)).thenReturn(groupAssets);
         //skip area filtering
         when(areaFiltererComponent.filterAssetsBySubscriptionAreas(any(),any(),any())).thenAnswer(i-> i.getArgument(0));
-        Stream<Command> result = sut.extractCommands(encodedMessageFromQueue, null, NOWZDT);
+        Stream<Command> result = sut.extractCommands(encodedMessageFromQueue, null, "123", NOWZDT);
 
         assertNotNull(result);
         assertEquals(4, result.count());

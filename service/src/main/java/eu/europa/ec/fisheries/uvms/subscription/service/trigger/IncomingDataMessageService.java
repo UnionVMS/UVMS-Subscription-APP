@@ -23,5 +23,5 @@ public interface IncomingDataMessageService {
 	 * @param receptionDateTime The reception date time, used for stop conditions
 	 * @param senderInformation The sender information
 	 */
-	void handle(String subscriptionSource, String representation, SenderInformation senderInformation, ZonedDateTime receptionDateTime);
+	void handle(String subscriptionSource, String representation, SenderInformation senderInformation,String messageGuid, ZonedDateTime receptionDateTime);
 }

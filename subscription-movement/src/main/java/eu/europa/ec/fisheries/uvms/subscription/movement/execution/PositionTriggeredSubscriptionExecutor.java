@@ -78,13 +78,13 @@ public class PositionTriggeredSubscriptionExecutor implements SubscriptionExecut
             populateVesselIdentifierList(subscription, vesselIdentifiers, idsHolder);
             String vesselCountry = idsHolder.getCountryCode();
             List<String> movementGuids = extractMovementGuids(dataMap);
-            String generatedMessageId = movementSender.forwardPosition(
+            List<String> generatedMessageId = movementSender.forwardPosition(
                     vesselIdentifiers,
                     vesselCountry,
                     movementGuids,
                     receiverAndDataflow.getReceiver(),
                     receiverAndDataflow.getDataflow());
-            execution.getMessageIds().add(generatedMessageId);
+            execution.getMessageIds().addAll(generatedMessageId);
         }
     }
 
