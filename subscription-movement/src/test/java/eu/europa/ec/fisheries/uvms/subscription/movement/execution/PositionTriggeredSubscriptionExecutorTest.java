@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -155,7 +156,7 @@ class PositionTriggeredSubscriptionExecutorTest {
     }
 
     private void setupMocks() {
-        when(movementSender.forwardPosition(any(), any(), any(), any(), any())).thenReturn(A_MESSAGE_ID);
+        when(movementSender.forwardPosition(any(), any(), any(), any(), any())).thenReturn(new ArrayList<>());
         VesselIdentifiersHolder idsHolder = new VesselIdentifiersHolder();
         idsHolder.setCfr(VESSEL_CFR);
         idsHolder.setIrcs(VESSEL_IRCS);

@@ -46,6 +46,7 @@ public class IncomingDataMessageServiceImplTest {
 	private static final String SUBSCRIPTION_SOURCE = "SUBSCRIPTION_SOURCE";
 	private static final String REPRESENTATION = "REPRESENTATION";
 	private static final long ORGANISATION_ID = 111L;
+	private static final String MESSAGE_ID = "test";
 	private static final long ENDPOINT_ID = 222L;
 	private static final long CHANNEL_ID = 333L;
 
@@ -73,14 +74,14 @@ public class IncomingDataMessageServiceImplTest {
 		ZonedDateTime zdt = ZonedDateTime.now();
 		Command cmd1 = mock(Command.class);
 		Command cmd2 = mock(Command.class);
-		when(subscriptionCommandFromMessageExtractor.extractCommands(REPRESENTATION, new SenderCriterion(ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID), zdt)).thenReturn(Arrays.stream(new Command[]{cmd1, cmd2}));
+		when(subscriptionCommandFromMessageExtractor.extractCommands(REPRESENTATION, new SenderCriterion(ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID),MESSAGE_ID, zdt)).thenReturn(Arrays.stream(new Command[]{cmd1, cmd2}));
 		OrganisationEndpointAndChannelId organisationEndpointAndChannelId = new OrganisationEndpointAndChannelId();
 		organisationEndpointAndChannelId.setOrganisationId(ORGANISATION_ID);
 		organisationEndpointAndChannelId.setEndpointId(ENDPOINT_ID);
 		organisationEndpointAndChannelId.setChannelId(CHANNEL_ID);
 		when(usmSender.findOrganizationByDataFlowAndEndpoint("a", "b")).thenReturn(organisationEndpointAndChannelId);
 
-		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION, new SenderInformation("a","b"), zdt);
+		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION, new SenderInformation("a","b"), MESSAGE_ID, zdt);
 
 		verify(cmd1).execute();
 		verify(cmd2).execute();
@@ -91,9 +92,9 @@ public class IncomingDataMessageServiceImplTest {
 		ZonedDateTime zdt = ZonedDateTime.now();
 		Command cmd1 = mock(Command.class);
 		Command cmd2 = mock(Command.class);
-		when(subscriptionCommandFromMessageExtractor.extractCommands(eq(REPRESENTATION), any(), eq(zdt))).thenReturn(Arrays.stream(new Command[]{cmd1, cmd2}));
+		when(subscriptionCommandFromMessageExtractor.extractCommands(eq(REPRESENTATION), any(), MESSAGE_ID, eq(zdt))).thenReturn(Arrays.stream(new Command[]{cmd1, cmd2}));
 
-		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION, null, zdt);
+		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION, null, MESSAGE_ID, zdt);
 
 		verify(cmd1).execute();
 		verify(cmd2).execute();
@@ -105,16 +106,16 @@ public class IncomingDataMessageServiceImplTest {
 		ZonedDateTime zdt = ZonedDateTime.now();
 		Command cmd1 = mock(Command.class);
 		Command cmd2 = mock(Command.class);
-		when(subscriptionCommandFromMessageExtractor.extractCommands(eq(REPRESENTATION), any(), eq(zdt))).thenReturn(Arrays.stream(new Command[]{cmd1, cmd2}));
+		when(subscriptionCommandFromMessageExtractor.extractCommands(eq(REPRESENTATION), any(), MESSAGE_ID, eq(zdt))).thenReturn(Arrays.stream(new Command[]{cmd1, cmd2}));
 
-		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION, new SenderInformation(" ", "SR"), zdt);
+		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION, new SenderInformation(" ", "SR"), MESSAGE_ID, zdt);
 
 		verify(cmd1).execute();
 		verify(cmd2).execute();
 		verifyNoMoreInteractions(usmSender);
 
 		ArgumentCaptor<SenderCriterion> captor = ArgumentCaptor.forClass(SenderCriterion.class);
-		verify(subscriptionCommandFromMessageExtractor).extractCommands(anyString(), captor.capture(), any());
+		verify(subscriptionCommandFromMessageExtractor).extractCommands(anyString(), captor.capture(), MESSAGE_ID, any());
 		assertTrue(captor.getValue().getOrganisationId() < 0);
 		assertTrue(captor.getValue().getEndpointId() < 0);
 		assertTrue(captor.getValue().getChannelId() < 0);
@@ -125,16 +126,16 @@ public class IncomingDataMessageServiceImplTest {
 		ZonedDateTime zdt = ZonedDateTime.now();
 		Command cmd1 = mock(Command.class);
 		Command cmd2 = mock(Command.class);
-		when(subscriptionCommandFromMessageExtractor.extractCommands(eq(REPRESENTATION), any(), eq(zdt))).thenReturn(Arrays.stream(new Command[]{cmd1, cmd2}));
+		when(subscriptionCommandFromMessageExtractor.extractCommands(eq(REPRESENTATION), any(), MESSAGE_ID, eq(zdt))).thenReturn(Arrays.stream(new Command[]{cmd1, cmd2}));
 
-		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION, new SenderInformation("DF", " "), zdt);
+		sut.handle(SUBSCRIPTION_SOURCE, REPRESENTATION, new SenderInformation("DF", " "),MESSAGE_ID, zdt);
 
 		verify(cmd1).execute();
 		verify(cmd2).execute();
 		verifyNoMoreInteractions(usmSender);
 
 		ArgumentCaptor<SenderCriterion> captor = ArgumentCaptor.forClass(SenderCriterion.class);
-		verify(subscriptionCommandFromMessageExtractor).extractCommands(anyString(), captor.capture(), any());
+		verify(subscriptionCommandFromMessageExtractor).extractCommands(anyString(), captor.capture(), MESSAGE_ID, any());
 		assertTrue(captor.getValue().getOrganisationId() < 0);
 		assertTrue(captor.getValue().getEndpointId() < 0);
 		assertTrue(captor.getValue().getChannelId() < 0);
@@ -142,6 +143,6 @@ public class IncomingDataMessageServiceImplTest {
 
 	@Test
 	void testHandleThrowsForUnknownSource() {
-		assertThrows(IllegalStateException.class, () -> sut.handle("unknown source", REPRESENTATION, null, ZonedDateTime.now()));
+		assertThrows(IllegalStateException.class, () -> sut.handle("unknown source", REPRESENTATION, null,MESSAGE_ID, ZonedDateTime.now()));
 	}
 }

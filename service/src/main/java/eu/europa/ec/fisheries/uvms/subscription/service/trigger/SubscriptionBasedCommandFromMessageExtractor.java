@@ -95,7 +95,7 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
     }
 
     @Override
-    public Stream<Command> extractCommands(String representation, SenderCriterion ignoredSenderCriterion, ZonedDateTime receptionDateTime) {
+    public Stream<Command> extractCommands(String representation, SenderCriterion ignoredSenderCriterion,String messageGuid, ZonedDateTime receptionDateTime) {
         AssetPageRetrievalMessage assetPageRetrievalMessage = AssetPageRetrievalMessage.decodeMessage(representation);
         SubscriptionEntity subscription = subscriptionFinder.findSubscriptionById(assetPageRetrievalMessage.getSubscriptionId());
 

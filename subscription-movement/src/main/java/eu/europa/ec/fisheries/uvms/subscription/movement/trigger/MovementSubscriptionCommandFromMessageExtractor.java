@@ -84,6 +84,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	private TriggerCommandsFactory triggerCommandsFactory;
 	private SubscriptionSpatialService subscriptionSpatialService;
 	private UsmSender usmSender;
+	private String messageGuid;
 	/**
 	 * Constructor for injection.
 	 *
@@ -132,7 +133,8 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	}
 
 	@Override
-	public Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion, ZonedDateTime receptionDateTime) {
+	public Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion,String movementGuid, ZonedDateTime receptionDateTime) {
+		this.messageGuid = movementGuid;
 		Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringMap = new HashMap<>();
 		List<MovementType> movementTypes = Stream.of(unmarshal(representation))
 				.filter(message -> message.getResponse() == SimpleResponse.OK)
@@ -247,7 +249,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 				.filter(data -> data.getKey().startsWith(KEY_MOVEMENT_GUID_PREFIX))
 				.count();
 		Optional.ofNullable(movementAndSubscription.getMovement().getGuid())
-				.ifPresent(movementGuid -> triggeredSubscriptionData.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_MOVEMENT_GUID_PREFIX + nextIndex, movementGuid)));
+				.ifPresent(movementGuid -> triggeredSubscriptionData.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_MOVEMENT_GUID_PREFIX + nextIndex , movementGuid + "_" + messageGuid)));
 	}
 
 	private Command makeTriggerSubscriptionCommand(TriggeredSubscriptionEntity triggeredSubscription) {

@@ -44,6 +44,7 @@ import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionDataQuery;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionElement;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionAnswer;
 import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionPermissionResponse;
+import eu.europa.ec.fisheries.wsdl.subscription.module.SubscriptionVesselIdentifier;
 import eu.europa.ec.fisheries.wsdl.user.types.Organisation;
 import eu.europa.fisheries.uvms.subscription.model.enums.AssetType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionTimeUnit;
@@ -189,6 +190,8 @@ class SubscriptionServiceBean implements SubscriptionService {
             SubscriptionElement subElement = new SubscriptionElement();
             subElement.setHistory(subEntity.getOutput() == null ? null:subEntity.getOutput().getHistory());
             subElement.setTimeUnit(subEntity.getOutput() == null ? null:subEntity.getOutput().getHistoryUnit() == null ? null : subEntity.getOutput().getHistoryUnit().name());
+            subElement.setGenerateNewReportIds(subEntity.getOutput() == null ? null:subEntity.getOutput().getGenerateNewReportId());
+            subElement.getSubscriptionVesselIdentifier().addAll(subEntity.getOutput() == null ? new ArrayList<>():subEntity.getOutput().getVesselIds() == null? new ArrayList<>(): vesselIdentifierMap(subEntity.getOutput().getVesselIds()));
             subElements.add(subElement);
         }
 
@@ -196,6 +199,17 @@ class SubscriptionServiceBean implements SubscriptionService {
         response.setSubscriptionCheck(subscriptionEntities.size() > 0 ? YES : NO);
         response.getSubElements().addAll(subElements);
         return response;
+
+    }
+
+    private List<SubscriptionVesselIdentifier> vesselIdentifierMap(EnumSet<eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier> vesselIdentifiers){
+
+        List<SubscriptionVesselIdentifier> subscriptionVesselIdentifiersList = new ArrayList<>();
+
+        for(eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier subscriptionVesselIdentifier:vesselIdentifiers){
+            subscriptionVesselIdentifiersList.add(SubscriptionVesselIdentifier.fromValue(subscriptionVesselIdentifier.name()));
+        }
+        return subscriptionVesselIdentifiersList;
 
     }
 

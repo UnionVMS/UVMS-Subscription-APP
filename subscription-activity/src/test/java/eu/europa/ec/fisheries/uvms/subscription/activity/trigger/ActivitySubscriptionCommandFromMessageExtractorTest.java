@@ -130,7 +130,7 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
 
     @Test
     void testJAXBExceptionResultsInApplicationException() {
-        assertThrows(MessageFormatException.class, () -> sut.extractCommands("bad",null, RECEPTION_DT));
+        assertThrows(MessageFormatException.class, () -> sut.extractCommands("bad",null,"123", RECEPTION_DT));
     }
 
     @Test
@@ -157,7 +157,7 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
         dateTimeService.setNow(NOW);
         SubscriptionSearchCriteria.SenderCriterion senderCriterion = new SubscriptionSearchCriteria.SenderCriterion(1L, 2L, 3L);
 
-        List<Command> commands = sut.extractCommands(representation, senderCriterion, RECEPTION_DT).collect(Collectors.toList());
+        List<Command> commands = sut.extractCommands(representation, senderCriterion,"123", RECEPTION_DT).collect(Collectors.toList());
         assertEquals(6, commands.size());
 
         ArgumentCaptor<TriggeredSubscriptionEntity> triggeredSubscriptionCaptor = ArgumentCaptor.forClass(TriggeredSubscriptionEntity.class);
@@ -266,7 +266,7 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
         dateTimeService.setNow(NOW);
         SubscriptionSearchCriteria.SenderCriterion senderCriterion = new SubscriptionSearchCriteria.SenderCriterion(1L, 2L, 3L);
 
-        List<Command> commands = sut.extractCommands(representation, senderCriterion, RECEPTION_DT).collect(Collectors.toList());
+        List<Command> commands = sut.extractCommands(representation, senderCriterion, "123",RECEPTION_DT).collect(Collectors.toList());
 
         assertEquals(5, commands.size());
         ArgumentCaptor<TriggeredSubscriptionEntity> triggeredSubscriptionCaptor = ArgumentCaptor.forClass(TriggeredSubscriptionEntity.class);
@@ -351,7 +351,7 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
         dateTimeService.setNow(NOW);
         SubscriptionSearchCriteria.SenderCriterion senderCriterion = new SubscriptionSearchCriteria.SenderCriterion(1L, 2L, 3L);
 
-        List<Command> commands = sut.extractCommands(representation, senderCriterion, RECEPTION_DT).collect(Collectors.toList());
+        List<Command> commands = sut.extractCommands(representation, senderCriterion,"213", RECEPTION_DT).collect(Collectors.toList());
 
         assertEquals(4, commands.size()); //4 commands for finding subscriptions by stop criteria
 
@@ -412,7 +412,7 @@ class ActivitySubscriptionCommandFromMessageExtractorTest {
 
     private void verifyEmptyStreamForResource(String resourceName) {
         String representation = readResource(resourceName);
-        long size = sut.extractCommands(representation,null, RECEPTION_DT).count();
+        long size = sut.extractCommands(representation,null, "123",RECEPTION_DT).count();
         assertEquals(0, size);
         verifyNoInteractions(subscriptionFinder);
     }

@@ -11,8 +11,10 @@ package eu.europa.ec.fisheries.uvms.subscription.movement.communication;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -72,17 +74,39 @@ class MovementSenderImpl implements MovementSender {
     }
 
     @Override
-    public String forwardPosition(Map<String, String> vesselIdentifiers, String vesselFlagState, List<String> movementGuidList, String receiver, String dataflow) {
+    public List<String> forwardPosition(Map<String, String> vesselIdentifiers, String vesselFlagState, List<String> movementGuidList, String receiver, String dataflow) {
         ForwardPositionRequest request = new ForwardPositionRequest();
         request.setMethod(MovementModuleMethod.FORWARD_POSITION);
         request.setVesselIdentifyingProperties(populateVesselIdentifyingProperties(vesselIdentifiers, vesselFlagState));
         request.setDataflow(dataflow);
         request.setReceiver(receiver);
-        movementGuidList.forEach(movementGuid -> request.getMovementGuids().add(movementGuid));
+        List<String> responseList = new ArrayList<>();
+        HashMap<String,List<String>> guidMap = new HashMap<>();
+        String movementGuid;
+        String messageGuid;
+        for(String guidList :movementGuidList){
+            String[] guidParts = guidList.split("_");
+            movementGuid = guidParts[0];
+            messageGuid =  guidParts[1];
+            List<String> movementGuids = guidMap.get(messageGuid);
+            if(movementGuids != null && !movementGuids.isEmpty()){
+                movementGuids.add(movementGuid);
+            } else{
+                ArrayList<String> list = new ArrayList<>();
+                list.add(messageGuid);
+                guidMap.put(messageGuid,list);
+            }
+        }
 
-        ForwardPositionResponse response = movementClient.sendRequest(request,ForwardPositionResponse.class);
+        for(List<String> movementValues : guidMap.values()){
+            request.getMovementGuids().addAll(movementValues);
+            ForwardPositionResponse response = movementClient.sendRequest(request,ForwardPositionResponse.class);
+            responseList.add(response.getMessageId());
+        }
 
-        return response != null ? response.getMessageId() : "";
+
+
+        return responseList;
     }
 
     private VesselIdentifyingProperties populateVesselIdentifyingProperties(Map<String, String> vesselIdentifiers, String vesselFlagState) {

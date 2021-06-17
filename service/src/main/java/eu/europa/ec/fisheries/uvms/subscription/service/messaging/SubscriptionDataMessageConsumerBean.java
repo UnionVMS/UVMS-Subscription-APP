@@ -75,7 +75,7 @@ public class SubscriptionDataMessageConsumerBean implements MessageListener {
 					((TextMessage) message).getText(), SenderInformation.fromProperties(
 						fluxEnvelopeData.map(FluxEnvelopePropagatedData::getDataflow).orElse(null),
 						fluxEnvelopeData.map(FluxEnvelopePropagatedData::getSenderOrReceiver).orElse(null)
-					),
+					),fluxEnvelopeData.map(FluxEnvelopePropagatedData::getMessageGuid).orElse(null),
 					fluxEnvelopeData.map(FluxEnvelopePropagatedData::getReceptionDateTime).orElseGet(() -> dateTimeService.getNow().atZone(ZoneId.of("UTC")))
 			);
 		} catch (JMSException e) {
