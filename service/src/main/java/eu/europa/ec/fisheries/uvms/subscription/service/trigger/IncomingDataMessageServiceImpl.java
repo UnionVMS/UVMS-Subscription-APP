@@ -64,11 +64,11 @@ class IncomingDataMessageServiceImpl implements IncomingDataMessageService {
 	}
 
 	@Override
-	public void handle(String subscriptionSource, String representation, SenderInformation senderInformation, ZonedDateTime receptionDateTime) {
+	public void handle(String subscriptionSource, String representation, SenderInformation senderInformation, String messageGuid, ZonedDateTime receptionDateTime) {
 		SubscriptionCommandFromMessageExtractor extractor = Optional.ofNullable(extractors.get(subscriptionSource))
 				.orElseThrow(() -> new IllegalStateException("unknown subscription source: " + subscriptionSource));
 		SenderCriterion senderCriterion = extractSenderCriterion(senderInformation);
-		extractor.extractCommands(representation, senderCriterion, receptionDateTime).forEach(Command::execute);
+		extractor.extractCommands(representation, senderCriterion,messageGuid , receptionDateTime).forEach(Command::execute);
 	}
 
 	private SenderCriterion extractSenderCriterion(SenderInformation senderInformation) {

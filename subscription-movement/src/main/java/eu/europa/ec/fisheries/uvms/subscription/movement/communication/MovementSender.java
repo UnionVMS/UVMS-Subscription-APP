@@ -46,7 +46,7 @@ public interface MovementSender {
 	 * @param dataflow The dataflow
 	 * @return an OK or NOTOK string when success or failure respectively
 	 */
-    String forwardPosition(Map<String, String> vesselIdentifiers,
+    List<String> forwardPosition(Map<String, String> vesselIdentifiers,
 						   String vesselRegistrationState,
 						   List<String> movementGuidList,
 						   String receiver,
