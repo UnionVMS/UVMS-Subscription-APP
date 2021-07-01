@@ -10,9 +10,12 @@
 package eu.europa.ec.fisheries.uvms.subscription.movement.execution;
 
 import static eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil.KEY_MOVEMENT_GUID_PREFIX;
+import static eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil.KEY_VESSEL_TRANSPORT_MEANS;
+import static eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil.SPLITTER;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.xml.bind.JAXBException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils;
 import eu.europa.ec.fisheries.uvms.subscription.movement.communication.MovementSender;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionEntity;
 import eu.europa.ec.fisheries.uvms.subscription.service.domain.SubscriptionExecutionEntity;
@@ -31,6 +35,7 @@ import eu.europa.ec.fisheries.uvms.subscription.service.messaging.usm.UsmSender;
 import eu.europa.ec.fisheries.wsdl.asset.types.VesselIdentifiersHolder;
 import eu.europa.fisheries.uvms.subscription.model.enums.OutgoingMessageType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
+import un.unece.uncefact.data.standard.reusableaggregatebusinessinformationentity._20.VesselPositionEvent;
 
 /**
  * Implementation of {@link SubscriptionExecutor} for executing Forward Position queries.
@@ -78,10 +83,12 @@ public class PositionTriggeredSubscriptionExecutor implements SubscriptionExecut
             populateVesselIdentifierList(subscription, vesselIdentifiers, idsHolder);
             String vesselCountry = idsHolder.getCountryCode();
             List<String> movementGuids = extractMovementGuids(dataMap);
+            HashMap<String,VesselPositionEvent> vesselTransportMeans = extractVesselTransportMeans(dataMap);
             List<String> generatedMessageId = movementSender.forwardPosition(
                     vesselIdentifiers,
                     vesselCountry,
                     movementGuids,
+                    vesselTransportMeans,
                     receiverAndDataflow.getReceiver(),
                     receiverAndDataflow.getDataflow());
             execution.getMessageIds().addAll(generatedMessageId);
@@ -94,6 +101,26 @@ public class PositionTriggeredSubscriptionExecutor implements SubscriptionExecut
                 .sorted(Comparator.comparingInt(e -> Integer.parseInt(e.getKey().substring(KEY_MOVEMENT_GUID_PREFIX.length()))))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
+    }
+
+    private HashMap<String,VesselPositionEvent> extractVesselTransportMeans(Map<String, String> dataMap) {
+        List<String> vesselTransportMeans = dataMap.entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith(KEY_VESSEL_TRANSPORT_MEANS))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+
+        HashMap<String,VesselPositionEvent> map = new HashMap<>();
+        for(String vesselTransportMean:vesselTransportMeans){
+            String[] splitedParts = vesselTransportMean.split(SPLITTER);
+            String movGuid = splitedParts[0];
+            try {
+                VesselPositionEvent vesselPositionEvent = JAXBUtils.unMarshallMessage(splitedParts[1], VesselPositionEvent.class);
+                map.put(movGuid,vesselPositionEvent);
+            } catch (JAXBException e) {
+                e.printStackTrace();
+            }
+        }
+        return map;
     }
 
     private VesselIdentifiersHolder extractVesselIds(TriggeredSubscriptionEntity triggeredSubscription, Map<String, String> dataMap) {

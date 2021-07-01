@@ -12,5 +12,6 @@
     <include file="/schema/asset.xml" />
     <include file="/schema/assetgroup.xml" />
     <include file="/schema/parameter.xml" />
+    <include file="/schema/UNIONVMS-5121.xml" />
 
 </databaseChangeLog>

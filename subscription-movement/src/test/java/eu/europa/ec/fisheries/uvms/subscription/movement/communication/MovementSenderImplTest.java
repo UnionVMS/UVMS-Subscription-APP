@@ -100,7 +100,7 @@ class MovementSenderImplTest {
         response.setResponse(SimpleResponse.OK);
         when(movementClient.sendRequest(any(),any())).thenReturn(response);
 
-        List<String> result = sut.forwardPosition(vesselIdentifiers, vesselFlagState, movementGuids, "receiver", "dataflow");
+        List<String> result = sut.forwardPosition(vesselIdentifiers, vesselFlagState, movementGuids, new HashMap<>(),"receiver", "dataflow");
 
         ArgumentCaptor<ForwardPositionRequest> requestCaptor = ArgumentCaptor.forClass(ForwardPositionRequest.class);
         verify(movementClient).sendRequest(requestCaptor.capture(),any());

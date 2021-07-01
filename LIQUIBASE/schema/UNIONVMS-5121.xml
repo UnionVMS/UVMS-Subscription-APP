@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+    <changeSet id="UNIONVMS-5121" author="nomikosi">
+        <modifyDataType
+                columnName="value"
+                newDataType="varchar(1000)"
+                tableName="triggered_subscription_data"/>
+
+
+        <rollback>
+            <modifyDataType
+                    columnName="value"
+                    newDataType="varchar(200)"
+                    tableName="triggered_subscription_data"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

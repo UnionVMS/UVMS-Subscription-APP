@@ -25,7 +25,13 @@ import eu.europa.ec.fisheries.schema.movement.module.v1.ForwardPositionResponse;
 import eu.europa.ec.fisheries.schema.movement.module.v1.GetConnectIdsByDateAndGeometryRequest;
 import eu.europa.ec.fisheries.schema.movement.module.v1.GetConnectIdsByDateAndGeometryResponse;
 import eu.europa.ec.fisheries.schema.movement.module.v1.MovementModuleMethod;
+import eu.europa.ec.fisheries.schema.movement.v1.CodeType;
+import eu.europa.ec.fisheries.schema.movement.v1.DateTimeType;
+import eu.europa.ec.fisheries.schema.movement.v1.MeasureType;
+import eu.europa.ec.fisheries.schema.movement.v1.VesselPositionEventType;
 import eu.europa.fisheries.uvms.subscription.model.enums.SubscriptionVesselIdentifier;
+import un.unece.uncefact.data.standard.reusableaggregatebusinessinformationentity._20.VesselGeographicalCoordinate;
+import un.unece.uncefact.data.standard.reusableaggregatebusinessinformationentity._20.VesselPositionEvent;
 
 /**
  * Implementation of {@link MovementSender}.
@@ -74,12 +80,13 @@ class MovementSenderImpl implements MovementSender {
     }
 
     @Override
-    public List<String> forwardPosition(Map<String, String> vesselIdentifiers, String vesselFlagState, List<String> movementGuidList, String receiver, String dataflow) {
+    public List<String> forwardPosition(Map<String, String> vesselIdentifiers, String vesselFlagState, List<String> movementGuidList, HashMap<String, VesselPositionEvent> vesselTransportMeans, String receiver, String dataflow) {
         ForwardPositionRequest request = new ForwardPositionRequest();
         request.setMethod(MovementModuleMethod.FORWARD_POSITION);
         request.setVesselIdentifyingProperties(populateVesselIdentifyingProperties(vesselIdentifiers, vesselFlagState));
         request.setDataflow(dataflow);
         request.setReceiver(receiver);
+
         List<String> responseList = new ArrayList<>();
         HashMap<String,List<String>> guidMap = new HashMap<>();
         String movementGuid;
@@ -93,21 +100,79 @@ class MovementSenderImpl implements MovementSender {
                 movementGuids.add(movementGuid);
             } else{
                 ArrayList<String> list = new ArrayList<>();
-                list.add(messageGuid);
+                list.add(movementGuid);
                 guidMap.put(messageGuid,list);
             }
         }
 
         for(List<String> movementValues : guidMap.values()){
+            List<VesselPositionEvent> vesselPositionEventList = new ArrayList<>();
+            for(String movGuid: movementValues){
+                VesselPositionEvent vesselPositionEvent = vesselTransportMeans.get(movGuid);
+                vesselPositionEventList.add(vesselPositionEvent);
+            }
             request.getMovementGuids().addAll(movementValues);
+            request.getSpecifiedVesselPositionEvent().addAll(mapVesselPostionEventListToResponseType(vesselPositionEventList));
             ForwardPositionResponse response = movementClient.sendRequest(request,ForwardPositionResponse.class);
             responseList.add(response.getMessageId());
         }
 
-
-
         return responseList;
     }
+
+    private List<VesselPositionEventType> mapVesselPostionEventListToResponseType(List<VesselPositionEvent> vesselPositionEventList){
+
+        List<VesselPositionEventType> responseList = new ArrayList<>();
+        for(VesselPositionEvent vesselPositionEvent:vesselPositionEventList){
+            VesselPositionEventType vesselPositionEventType = new VesselPositionEventType();
+            vesselPositionEventType.setActivityTypeCode(mapToCodeType(vesselPositionEvent.getActivityTypeCode()));
+            vesselPositionEventType.setCourseValueMeasure(mapMeasureType(vesselPositionEvent.getCourseValueMeasure()));
+            vesselPositionEventType.setObtainedOccurrenceDateTime(mapDateTimeType(vesselPositionEvent.getObtainedOccurrenceDateTime()));
+            vesselPositionEventType.setSpecifiedVesselGeographicalCoordinate(mapVesselGeographicalCoordinate(vesselPositionEvent.getSpecifiedVesselGeographicalCoordinate()));
+            vesselPositionEventType.setSpeedValueMeasure(mapMeasureType(vesselPositionEvent.getSpeedValueMeasure()));
+            vesselPositionEventType.setTypeCode(mapToCodeType(vesselPositionEvent.getTypeCode()));
+            responseList.add(vesselPositionEventType);
+        }
+        return responseList;
+    }
+
+    eu.europa.ec.fisheries.schema.movement.v1.VesselGeographicalCoordinateType mapVesselGeographicalCoordinate(un.unece.uncefact.data.standard.reusableaggregatebusinessinformationentity._20.VesselGeographicalCoordinate vesselGeographicalCoordinate){
+        eu.europa.ec.fisheries.schema.movement.v1.VesselGeographicalCoordinateType responseVesselGeographicalCoordinate = new eu.europa.ec.fisheries.schema.movement.v1.VesselGeographicalCoordinateType();
+        responseVesselGeographicalCoordinate.setLongitudeMeasure(mapMeasureType(vesselGeographicalCoordinate.getLongitudeMeasure()));
+        responseVesselGeographicalCoordinate.setLatitudeMeasure(mapMeasureType(vesselGeographicalCoordinate.getLatitudeMeasure()));
+        return  responseVesselGeographicalCoordinate;
+
+    }
+
+    DateTimeType mapDateTimeType(un.unece.uncefact.data.standard.unqualifieddatatype._20.DateTimeType dateTimeType){
+        if(dateTimeType == null){
+            return null;
+        }
+        DateTimeType responseDateTimeType = new DateTimeType();
+        responseDateTimeType.setDateTime(dateTimeType.getDateTime().toGregorianCalendar().getTime());
+        return responseDateTimeType;
+    }
+
+    MeasureType mapMeasureType(un.unece.uncefact.data.standard.unqualifieddatatype._20.MeasureType measureType){
+        if(measureType == null ){
+            return null;
+        }
+        MeasureType responseMeasureType = new MeasureType();
+        responseMeasureType.setUnitCode(measureType.getUnitCode());
+        responseMeasureType.setValue(measureType.getValue());
+        return responseMeasureType;
+    }
+
+    CodeType mapToCodeType(un.unece.uncefact.data.standard.unqualifieddatatype._20.CodeType codeType){
+        if( codeType == null){
+            return null;
+        }
+        CodeType  responseCodeType = new CodeType();
+        responseCodeType.setValue(codeType.getValue());
+        responseCodeType.setListID(codeType.getListID());
+        return responseCodeType;
+    }
+
 
     private VesselIdentifyingProperties populateVesselIdentifyingProperties(Map<String, String> vesselIdentifiers, String vesselFlagState) {
         VesselIdentifyingProperties vesselIdentifyingProperties = new VesselIdentifyingProperties();
