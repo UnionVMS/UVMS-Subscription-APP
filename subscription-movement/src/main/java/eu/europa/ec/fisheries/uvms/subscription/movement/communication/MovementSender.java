@@ -9,7 +9,10 @@
  */
 package eu.europa.ec.fisheries.uvms.subscription.movement.communication;
 
+import un.unece.uncefact.data.standard.reusableaggregatebusinessinformationentity._20.VesselPositionEvent;
+
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +52,7 @@ public interface MovementSender {
     List<String> forwardPosition(Map<String, String> vesselIdentifiers,
 						   String vesselRegistrationState,
 						   List<String> movementGuidList,
+						   HashMap<String,VesselPositionEvent> vesselTransportMeans,
 						   String receiver,
 						   String dataflow);
 }

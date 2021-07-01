@@ -10,13 +10,18 @@
 package eu.europa.ec.fisheries.uvms.subscription.movement.trigger;
 
 import static eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil.KEY_MOVEMENT_GUID_PREFIX;
+import static eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil.KEY_VESSEL_TRANSPORT_MEANS;
+import static eu.europa.ec.fisheries.uvms.subscription.service.trigger.TriggeredSubscriptionDataUtil.SPLITTER;
 import static eu.europa.fisheries.uvms.subscription.model.enums.TriggeredSubscriptionStatus.ACTIVE;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -35,6 +40,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
 import eu.europa.ec.fisheries.schema.movement.common.v1.SimpleResponse;
 import eu.europa.ec.fisheries.schema.movement.module.v1.CreateMovementBatchResponse;
 import eu.europa.ec.fisheries.schema.movement.v1.MovementBaseType;
@@ -42,6 +48,8 @@ import eu.europa.ec.fisheries.schema.movement.v1.MovementMetaDataAreaType;
 import eu.europa.ec.fisheries.schema.movement.v1.MovementType;
 import eu.europa.ec.fisheries.schema.movement.v1.MovementTypeType;
 import eu.europa.ec.fisheries.uvms.commons.message.impl.JAXBUtils;
+import eu.europa.ec.fisheries.uvms.config.model.exception.ModelMarshallException;
+import eu.europa.ec.fisheries.uvms.config.model.mapper.JAXBMarshaller;
 import eu.europa.ec.fisheries.uvms.subscription.movement.mapper.MovementModelMapper;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.Command;
 import eu.europa.ec.fisheries.uvms.subscription.service.bean.SubscriptionFinder;
@@ -66,6 +74,11 @@ import eu.europa.fisheries.uvms.subscription.model.exceptions.MessageFormatExcep
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import un.unece.uncefact.data.standard.reusableaggregatebusinessinformationentity._20.VesselGeographicalCoordinate;
+import un.unece.uncefact.data.standard.reusableaggregatebusinessinformationentity._20.VesselPositionEvent;
+import un.unece.uncefact.data.standard.unqualifieddatatype._20.CodeType;
+import un.unece.uncefact.data.standard.unqualifieddatatype._20.DateTimeType;
+import un.unece.uncefact.data.standard.unqualifieddatatype._20.MeasureType;
 
 /**
  * Implementation of {@link SubscriptionCommandFromMessageExtractor} for movement messages.
@@ -75,6 +88,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 
 	private static final String SOURCE = "movement";
 	private static final Predicate<TriggeredSubscriptionDataEntity> BY_KEY_MOVEMENT_GUID_PREFIX = d -> d.getKey().startsWith(KEY_MOVEMENT_GUID_PREFIX);
+	private static final Predicate<TriggeredSubscriptionDataEntity> BY_KEY_VESSEL_TRANSPORT_MEANS_PREFIX = d -> d.getKey().startsWith(KEY_VESSEL_TRANSPORT_MEANS);
 	private static final SubscriptionSearchCriteria.SenderCriterion BAD_SENDER = new SubscriptionSearchCriteria.SenderCriterion(-1L, -1L, -1L);
 
 	private SubscriptionFinder subscriptionFinder;
@@ -212,7 +226,9 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 				result = createNewTriggeredSubscriptionEntity(input, receptionDateTime);
 				triggerings.put(input.getSubscription().getId(), result);
 			} else {
+				String matchingVesselPositionEvent = createMatchingVesselPositionEvent(input.getMovement());
 				addMovementGuidToTriggeredSubscriptionData(input, result.getData(), result);
+				addVesselPositionEvent(input, result.getData(), result,matchingVesselPositionEvent);
 			}
 		}
 		return result;
@@ -240,8 +256,19 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 			XMLGregorianCalendar xmlCalendar = datatypeFactory.newXMLGregorianCalendar(calendar);
 			result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_OCCURRENCE, xmlCalendar.toXMLFormat()));
 		});
+
+		String matchingVesselPositionEvent = createMatchingVesselPositionEvent(input.getMovement());
 		addMovementGuidToTriggeredSubscriptionData(input, result, triggeredSubscription);
+		addVesselPositionEvent(input, result, triggeredSubscription,matchingVesselPositionEvent);
 		triggeredSubscription.setData(result);
+	}
+
+	private void addVesselPositionEvent(MovementAndSubscription movementAndSubscription, Set<TriggeredSubscriptionDataEntity> triggeredSubscriptionData, TriggeredSubscriptionEntity triggeredSubscription,String matchingVesselPositionEvent){
+		long nextIndex = triggeredSubscriptionData.stream()
+				.filter(data -> data.getKey().startsWith(TriggeredSubscriptionDataUtil.KEY_VESSEL_TRANSPORT_MEANS))
+				.count();
+		Optional.ofNullable(movementAndSubscription.getMovement().getGuid())
+				.ifPresent(movementGuid -> triggeredSubscriptionData.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_VESSEL_TRANSPORT_MEANS + nextIndex , matchingVesselPositionEvent)));
 	}
 
 	private void addMovementGuidToTriggeredSubscriptionData(MovementAndSubscription movementAndSubscription, Set<TriggeredSubscriptionDataEntity> triggeredSubscriptionData, TriggeredSubscriptionEntity triggeredSubscription) {
@@ -252,15 +279,78 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 				.ifPresent(movementGuid -> triggeredSubscriptionData.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, KEY_MOVEMENT_GUID_PREFIX + nextIndex , movementGuid + "_" + messageGuid)));
 	}
 
+	private String createMatchingVesselPositionEvent(MovementType movement){
+		VesselPositionEvent event = new VesselPositionEvent();
+
+		MeasureType courseValueMeasure = new MeasureType();
+		courseValueMeasure.setUnitCode(movement.getReportedCourse() == null ? null : movement.getReportedCourse().toString());
+		event.setCourseValueMeasure(courseValueMeasure);
+
+		DateTimeType dateTimeType = new DateTimeType();
+
+		try {
+			Instant instant = movement.getPositionTime().toInstant();
+			dateTimeType.setDateTime(DatatypeFactory.newInstance().newXMLGregorianCalendar(instant.toString()));
+		} catch (DatatypeConfigurationException e) {
+			e.printStackTrace();
+		}
+		event.setObtainedOccurrenceDateTime(dateTimeType);
+
+		VesselGeographicalCoordinate vesselGeographicalCoordinate = new VesselGeographicalCoordinate();
+		MeasureType latitudeMeasureType = new MeasureType();
+		latitudeMeasureType.setValue(BigDecimal.valueOf(movement.getPosition().getLatitude()));
+		vesselGeographicalCoordinate.setLatitudeMeasure(latitudeMeasureType);
+		MeasureType longitudeMeasureType = new MeasureType();
+		longitudeMeasureType.setValue(BigDecimal.valueOf(movement.getPosition().getLongitude()));
+		vesselGeographicalCoordinate.setLongitudeMeasure(longitudeMeasureType);
+		event.setSpecifiedVesselGeographicalCoordinate(vesselGeographicalCoordinate);
+
+		MeasureType speedValueMeasure = new MeasureType();
+		speedValueMeasure.setUnitCode(movement.getReportedSpeed() == null ? null : movement.getReportedSpeed().toString());
+		event.setSpeedValueMeasure(speedValueMeasure);
+
+		CodeType typeCode = new CodeType();
+		MovementTypeType movementType = movement.getMovementType();
+		switch(movementType){
+			case ENT:
+				typeCode.setValue("ENTRY");
+				break;
+			case EXI:
+				typeCode.setValue("EXIT");
+				break;
+			case MAN:
+				typeCode.setValue("MANUAL");
+				break;
+			case POS:
+				typeCode.setValue("POSITION");
+				break;
+				default:
+		}
+
+		typeCode.setListID("FLUX_VESSEL_POSITION_TYPE");
+		event.setTypeCode(typeCode);
+		try {
+			return movement.getGuid() + SPLITTER + JAXBMarshaller.marshallJaxBObjectToString(event);
+		} catch (ModelMarshallException e) {
+			return "";
+		}
+	}
+
 	private Command makeTriggerSubscriptionCommand(TriggeredSubscriptionEntity triggeredSubscription) {
 		return triggerCommandsFactory.createTriggerSubscriptionFromSpecificMessageCommand(triggeredSubscription, getDataForDuplicatesExtractor(), this::processTriggering);
 	}
 
 	private boolean processTriggering(TriggeredSubscriptionEntity triggeredSubscriptionCandidate, TriggeredSubscriptionEntity existingTriggeredSubscription) {
-		SequenceIntIterator indexes = new SequenceIntIterator((int) existingTriggeredSubscription.getData().stream().filter(BY_KEY_MOVEMENT_GUID_PREFIX).count());
+		SequenceIntIterator guidIndex = new SequenceIntIterator((int) existingTriggeredSubscription.getData().stream().filter(BY_KEY_MOVEMENT_GUID_PREFIX).count());
 		triggeredSubscriptionCandidate.getData().stream()
 				.filter(BY_KEY_MOVEMENT_GUID_PREFIX)
-				.map(data -> new TriggeredSubscriptionDataEntity(existingTriggeredSubscription, KEY_MOVEMENT_GUID_PREFIX + indexes.nextInt(), data.getValue()))
+				.map(data -> new TriggeredSubscriptionDataEntity(existingTriggeredSubscription, KEY_MOVEMENT_GUID_PREFIX + guidIndex.nextInt(), data.getValue()))
+				.forEach(existingTriggeredSubscription.getData()::add);
+
+		SequenceIntIterator vtmIndex = new SequenceIntIterator((int) existingTriggeredSubscription.getData().stream().filter(BY_KEY_VESSEL_TRANSPORT_MEANS_PREFIX).count());
+		triggeredSubscriptionCandidate.getData().stream()
+				.filter(BY_KEY_VESSEL_TRANSPORT_MEANS_PREFIX)
+				.map(data -> new TriggeredSubscriptionDataEntity(existingTriggeredSubscription, TriggeredSubscriptionDataUtil.KEY_VESSEL_TRANSPORT_MEANS + vtmIndex.nextInt(), data.getValue()))
 				.forEach(existingTriggeredSubscription.getData()::add);
 		return true;
 	}

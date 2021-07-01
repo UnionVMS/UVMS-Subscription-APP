@@ -13,6 +13,8 @@ public class TriggeredSubscriptionDataUtil {
 	public static final String KEY_CONNECT_ID = "connectId";
 	public static final String KEY_OCCURRENCE = "occurrence";
 	public static final String KEY_MOVEMENT_GUID_PREFIX = "movementGuidIndex_";
+	public static final String KEY_VESSEL_TRANSPORT_MEANS = "vesselTransportMeans_";
+	public static final String SPLITTER = "@#@";
 	public static final String KEY_REPORT_ID_PREFIX = "reportId_";
 
 	@SuppressWarnings("unused")
