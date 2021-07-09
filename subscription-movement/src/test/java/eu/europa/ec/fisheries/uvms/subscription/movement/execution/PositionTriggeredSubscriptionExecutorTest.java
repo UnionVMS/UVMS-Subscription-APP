@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -116,7 +117,7 @@ class PositionTriggeredSubscriptionExecutorTest {
         ArgumentCaptor<String> receiverCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> dataflowCaptor = ArgumentCaptor.forClass(String.class);
 
-        verify(movementSender).forwardPosition(vesselIdentifiersCaptor.capture(), countryCaptor.capture(), movementGuidsCaptor.capture(), receiverCaptor.capture(), dataflowCaptor.capture());
+        verify(movementSender).forwardPosition(vesselIdentifiersCaptor.capture(), countryCaptor.capture(), movementGuidsCaptor.capture(), new HashMap<>(),receiverCaptor.capture(), dataflowCaptor.capture());
         assertNull(execution.getExecutionTime());
         assertEquals(QUEUED, execution.getStatus());
 
@@ -156,7 +157,7 @@ class PositionTriggeredSubscriptionExecutorTest {
     }
 
     private void setupMocks() {
-        when(movementSender.forwardPosition(any(), any(), any(), any(), any())).thenReturn(new ArrayList<>());
+        when(movementSender.forwardPosition(any(), any(), any(), any(), any(),any())).thenReturn(new ArrayList<>());
         VesselIdentifiersHolder idsHolder = new VesselIdentifiersHolder();
         idsHolder.setCfr(VESSEL_CFR);
         idsHolder.setIrcs(VESSEL_IRCS);
