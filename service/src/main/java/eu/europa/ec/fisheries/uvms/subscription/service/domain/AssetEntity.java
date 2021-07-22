@@ -63,6 +63,9 @@ public class AssetEntity implements Serializable {
     @Column(name = "uvi")
     private String uvi;
 
+    @Column(name = "gfcm")
+    private String gfcm;
+
     @ManyToOne()
     @JoinColumn(name = "subscription_id")
     private SubscriptionEntity subscription;
