@@ -1076,7 +1076,7 @@ public class SubscriptionServiceBeanTest {
 		idHolder.setCfr(NEW_CFR);
 		idHolder.setIrcs(NEW_IRCS);
 		idHolder.setIccat(NEW_ICCAT);
-		idHolder.setExtMark(NEW_EXT_MARK);
+		idHolder.setExtmark(NEW_EXT_MARK);
 		idHolder.setUvi(NEW_UVI);
 		ids.setIdentifiers(idHolder);
 		doReturn(Collections.singletonList(ids)).when(assetSender).findMultipleVesselIdentifiers(eq(Collections.singletonList(ASSET_NEW_GUID)));
