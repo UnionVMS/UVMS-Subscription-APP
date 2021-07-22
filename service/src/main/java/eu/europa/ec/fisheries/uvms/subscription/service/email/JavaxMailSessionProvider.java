@@ -22,13 +22,12 @@ import javax.mail.Session;
  */
 @ApplicationScoped
 public class JavaxMailSessionProvider {
+	@Resource(name = "java:jboss/mail/Default")
+	private Session mailSession;
 
-    @Resource(lookup = "java:jboss/mail/Default")
-    private Session mailSession;
-
-    @Produces
-    @Dependent
-    Session getMailSession() {
-        return mailSession;
-    }
+	@Produces
+	@Dependent
+	Session getMailSession() {
+		return mailSession;
+	}
 }
