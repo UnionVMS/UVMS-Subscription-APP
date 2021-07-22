@@ -115,7 +115,7 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 		idsHolder.setIrcs(dataMap.get(VesselIdentifierSchemeIdEnum.IRCS.name()));
 		idsHolder.setIccat(dataMap.get(VesselIdentifierSchemeIdEnum.ICCAT.name()));
 		idsHolder.setUvi(dataMap.get(VesselIdentifierSchemeIdEnum.UVI.name()));
-		idsHolder.setExtMark(dataMap.get(VesselIdentifierSchemeIdEnum.EXT_MARK.name()));
+		idsHolder.setExtmark(dataMap.get(VesselIdentifierSchemeIdEnum.EXT_MARK.name()));
 		return idsHolder;
 	}
 
@@ -124,7 +124,8 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 		addIdentifier(subscription, vesselIdentifiers, idsHolder.getIrcs(), SubscriptionVesselIdentifier.IRCS, VesselIdentifierSchemeIdEnum.IRCS);
 		addIdentifier(subscription, vesselIdentifiers, idsHolder.getIccat(), SubscriptionVesselIdentifier.ICCAT, VesselIdentifierSchemeIdEnum.ICCAT);
 		addIdentifier(subscription, vesselIdentifiers, idsHolder.getUvi(), SubscriptionVesselIdentifier.UVI, VesselIdentifierSchemeIdEnum.UVI);
-		addIdentifier(subscription, vesselIdentifiers, idsHolder.getExtMark(), SubscriptionVesselIdentifier.EXT_MARK, VesselIdentifierSchemeIdEnum.EXT_MARK);
+		addIdentifier(subscription, vesselIdentifiers, idsHolder.getExtmark(), SubscriptionVesselIdentifier.EXT_MARK, VesselIdentifierSchemeIdEnum.EXT_MARK);
+		addIdentifier(subscription, vesselIdentifiers, idsHolder.getGfcm(), SubscriptionVesselIdentifier.GFCM, VesselIdentifierSchemeIdEnum.GFCM);
 	}
 
 	private void addIdentifier(SubscriptionEntity subscription, List<VesselIdentifierType> vesselIdentifiers, String identifier, SubscriptionVesselIdentifier configuredSchemeId, VesselIdentifierSchemeIdEnum outputSchemeId) {
