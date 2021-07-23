@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -98,6 +99,7 @@ class MovementSenderImpl implements MovementSender {
             List<String> movementGuids = guidMap.get(messageGuid);
             if(movementGuids != null && !movementGuids.isEmpty()){
                 movementGuids.add(movementGuid);
+                guidMap.put(messageGuid,movementGuids);
             } else{
                 ArrayList<String> list = new ArrayList<>();
                 list.add(movementGuid);
@@ -105,16 +107,18 @@ class MovementSenderImpl implements MovementSender {
             }
         }
 
-        for(List<String> movementValues : guidMap.values()){
-            List<VesselPositionEvent> vesselPositionEventList = new ArrayList<>();
-            for(String movGuid: movementValues){
+        for(Map.Entry<String, List<String>> entry : guidMap.entrySet()){
+           List<VesselPositionEvent> vesselPositionEventList = new ArrayList<>();
+            for(String movGuid: entry.getValue()){
                 VesselPositionEvent vesselPositionEvent = vesselTransportMeans.get(movGuid);
                 vesselPositionEventList.add(vesselPositionEvent);
             }
-            request.getMovementGuids().addAll(movementValues);
+            request.getMovementGuids().addAll(entry.getValue());
             request.getSpecifiedVesselPositionEvent().addAll(mapVesselPostionEventListToResponseType(vesselPositionEventList));
             ForwardPositionResponse response = movementClient.sendRequest(request,ForwardPositionResponse.class);
             responseList.add(response.getMessageId());
+            request.getMovementGuids().clear();
+            request.getSpecifiedVesselPositionEvent().clear();
         }
 
         return responseList;
