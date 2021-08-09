@@ -299,7 +299,7 @@ class ManualSubscriptionCommandFromMessageExtractorTest {
                     holder.setIrcs(a.getIrcs());
                     holder.setIccat(a.getIccat());
                     holder.setUvi(a.getUvi());
-                    holder.setExtMark(a.getExtMark());
+                    holder.setExtmark(a.getExtMark());
                     return holder;
                 }).collect(Collectors.toList());
     }

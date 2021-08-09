@@ -377,6 +377,7 @@ class SubscriptionServiceBean implements SubscriptionService {
                         asset.setIrcs(assetEntity.getIrcs());
                         asset.setUvi(assetEntity.getUvi());
                         asset.setExtMark(assetEntity.getExtMark());
+                        asset.setGfcm(assetEntity.getGfcm());
                         return null;
                     } else {
                         return asset;
@@ -401,7 +402,8 @@ class SubscriptionServiceBean implements SubscriptionService {
                 asset.setIrcs(identifiers.getIrcs());
                 asset.setIccat(identifiers.getIccat());
                 asset.setUvi(identifiers.getUvi());
-                asset.setExtMark(identifiers.getExtMark());
+                asset.setExtMark(identifiers.getExtmark());
+                asset.setGfcm(identifiers.getGfcm());
             }
         });
     }

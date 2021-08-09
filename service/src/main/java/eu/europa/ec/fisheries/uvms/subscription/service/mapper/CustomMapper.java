@@ -104,7 +104,7 @@ public class CustomMapper {
         assetEntity.setCfr(vesselIdentifiersHolder.getCfr());
         assetEntity.setIccat(vesselIdentifiersHolder.getIccat());
         assetEntity.setUvi(vesselIdentifiersHolder.getUvi());
-        assetEntity.setExtMark(vesselIdentifiersHolder.getExtMark());
+        assetEntity.setExtMark(vesselIdentifiersHolder.getExtmark());
         return assetEntity;
     }
 }

@@ -217,7 +217,7 @@ public abstract class SubscriptionBasedCommandFromMessageExtractor implements Su
         assetEntity.setCfr(element.getCfr());
         assetEntity.setIccat(element.getIccat());
         assetEntity.setUvi(element.getUvi());
-        assetEntity.setExtMark(element.getExtMark());
+        assetEntity.setExtMark(element.getExtmark());
         return assetEntity;
     }
 

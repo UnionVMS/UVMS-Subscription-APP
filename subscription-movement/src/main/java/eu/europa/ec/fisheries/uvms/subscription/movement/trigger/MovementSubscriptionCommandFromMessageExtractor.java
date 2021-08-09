@@ -98,7 +98,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 	private TriggerCommandsFactory triggerCommandsFactory;
 	private SubscriptionSpatialService subscriptionSpatialService;
 	private UsmSender usmSender;
-	private String messageGuid;
+
 	/**
 	 * Constructor for injection.
 	 *
@@ -148,7 +148,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 
 	@Override
 	public Stream<Command> extractCommands(String representation, SenderCriterion senderCriterion,String movementGuid, ZonedDateTime receptionDateTime) {
-		this.messageGuid = movementGuid;
+
 		Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringMap = new HashMap<>();
 		List<MovementType> movementTypes = Stream.of(unmarshal(representation))
 				.filter(message -> message.getResponse() == SimpleResponse.OK)
@@ -157,7 +157,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 				.collect(Collectors.toList());
 		enrichWithUserAreas(movementTypes);
 		return movementTypes.stream()
-				.flatMap(t -> makeCommandsForMovement(t, senderCriterion, movementGuidToTriggeringMap, receptionDateTime));
+				.flatMap(t -> makeCommandsForMovement(t, senderCriterion, movementGuidToTriggeringMap, receptionDateTime, movementGuid));
 	}
 
 	@Override
@@ -191,10 +191,10 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		}
 	}
 
-	private Stream<Command> makeCommandsForMovement(MovementType movement, SenderCriterion senderCriterion, Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap, ZonedDateTime receptionDateTime) {
+	private Stream<Command> makeCommandsForMovement(MovementType movement, SenderCriterion senderCriterion, Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap, ZonedDateTime receptionDateTime,String messageGuid) {
 		return Stream.concat(
 				findTriggeredSubscriptionsAndMapToMovementAndSubscription(movement, senderCriterion)
-						.map(movementAndSubscription -> makeTriggeredSubscriptionEntity(movementAndSubscription, movementGuidToTriggeringsMap, receptionDateTime))
+						.map(movementAndSubscription -> makeTriggeredSubscriptionEntity(movementAndSubscription, movementGuidToTriggeringsMap, receptionDateTime,messageGuid))
 						.map(this::makeTriggerSubscriptionCommand),
 				Stream.of(movement)
 						.map(this::makeStopConditionCriteria)
@@ -212,40 +212,40 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 				.map(area -> new AreaCriterion(AreaType.fromValue(area.getAreaType()), Long.valueOf(area.getRemoteId())));
 	}
 
-	private TriggeredSubscriptionEntity makeTriggeredSubscriptionEntity(MovementAndSubscription input, Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap, ZonedDateTime receptionDateTime) {
+	private TriggeredSubscriptionEntity makeTriggeredSubscriptionEntity(MovementAndSubscription input, Map<String, Map<Long, TriggeredSubscriptionEntity>> movementGuidToTriggeringsMap, ZonedDateTime receptionDateTime,String messageGuid) {
 		TriggeredSubscriptionEntity result;
 		Map<Long, TriggeredSubscriptionEntity> triggerings = movementGuidToTriggeringsMap.get(input.getMovement().getGuid());
 		if (triggerings == null) {
-			result = createNewTriggeredSubscriptionEntity(input, receptionDateTime);
+			result = createNewTriggeredSubscriptionEntity(input, receptionDateTime,messageGuid);
 			triggerings = new HashMap<>();
 			triggerings.put(input.getSubscription().getId(), result);
 			movementGuidToTriggeringsMap.put(input.getMovement().getGuid(), triggerings);
 		} else {
 			result = triggerings.get(input.getSubscription().getId());
 			if (result == null) {
-				result = createNewTriggeredSubscriptionEntity(input, receptionDateTime);
+				result = createNewTriggeredSubscriptionEntity(input, receptionDateTime,messageGuid);
 				triggerings.put(input.getSubscription().getId(), result);
 			} else {
 				String matchingVesselPositionEvent = createMatchingVesselPositionEvent(input.getMovement());
-				addMovementGuidToTriggeredSubscriptionData(input, result.getData(), result);
+				addMovementGuidToTriggeredSubscriptionData(input, result.getData(), result,messageGuid);
 				addVesselPositionEvent(input, result.getData(), result,matchingVesselPositionEvent);
 			}
 		}
 		return result;
 	}
 
-	private TriggeredSubscriptionEntity createNewTriggeredSubscriptionEntity(MovementAndSubscription input, ZonedDateTime receptionDateTime) {
+	private TriggeredSubscriptionEntity createNewTriggeredSubscriptionEntity(MovementAndSubscription input, ZonedDateTime receptionDateTime,String movementGuid) {
 		TriggeredSubscriptionEntity result = new TriggeredSubscriptionEntity();
 		result.setSubscription(input.getSubscription());
 		result.setSource(SOURCE);
 		result.setCreationDate(dateTimeService.getNowAsDate());
 		result.setStatus(ACTIVE);
 		result.setEffectiveFrom(Date.from(receptionDateTime.toInstant()));
-		makeTriggeredSubscriptionData(result, input);
+		makeTriggeredSubscriptionData(result, input,movementGuid);
 		return result;
 	}
 
-	private void makeTriggeredSubscriptionData(TriggeredSubscriptionEntity triggeredSubscription, MovementAndSubscription input) {
+	private void makeTriggeredSubscriptionData(TriggeredSubscriptionEntity triggeredSubscription, MovementAndSubscription input,String movementGuid) {
 		Set<TriggeredSubscriptionDataEntity> result = new HashSet<>();
 		Optional.ofNullable(input.getMovement().getConnectId()).ifPresent(connectId ->
 				result.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_CONNECT_ID, connectId))
@@ -258,7 +258,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 		});
 
 		String matchingVesselPositionEvent = createMatchingVesselPositionEvent(input.getMovement());
-		addMovementGuidToTriggeredSubscriptionData(input, result, triggeredSubscription);
+		addMovementGuidToTriggeredSubscriptionData(input, result, triggeredSubscription,movementGuid);
 		addVesselPositionEvent(input, result, triggeredSubscription,matchingVesselPositionEvent);
 		triggeredSubscription.setData(result);
 	}
@@ -271,7 +271,7 @@ public class MovementSubscriptionCommandFromMessageExtractor implements Subscrip
 				.ifPresent(movementGuid -> triggeredSubscriptionData.add(new TriggeredSubscriptionDataEntity(triggeredSubscription, TriggeredSubscriptionDataUtil.KEY_VESSEL_TRANSPORT_MEANS + nextIndex , matchingVesselPositionEvent)));
 	}
 
-	private void addMovementGuidToTriggeredSubscriptionData(MovementAndSubscription movementAndSubscription, Set<TriggeredSubscriptionDataEntity> triggeredSubscriptionData, TriggeredSubscriptionEntity triggeredSubscription) {
+	private void addMovementGuidToTriggeredSubscriptionData(MovementAndSubscription movementAndSubscription, Set<TriggeredSubscriptionDataEntity> triggeredSubscriptionData, TriggeredSubscriptionEntity triggeredSubscription,String messageGuid) {
 		long nextIndex = triggeredSubscriptionData.stream()
 				.filter(data -> data.getKey().startsWith(KEY_MOVEMENT_GUID_PREFIX))
 				.count();

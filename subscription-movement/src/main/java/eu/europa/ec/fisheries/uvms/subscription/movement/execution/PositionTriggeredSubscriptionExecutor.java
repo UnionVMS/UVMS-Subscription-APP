@@ -134,7 +134,8 @@ public class PositionTriggeredSubscriptionExecutor implements SubscriptionExecut
         addIdentifier(subscription, vesselIdentifiers, idsHolder.getIrcs(), SubscriptionVesselIdentifier.IRCS);
         addIdentifier(subscription, vesselIdentifiers, idsHolder.getIccat(), SubscriptionVesselIdentifier.ICCAT);
         addIdentifier(subscription, vesselIdentifiers, idsHolder.getUvi(), SubscriptionVesselIdentifier.UVI);
-        addIdentifier(subscription, vesselIdentifiers, idsHolder.getExtMark(), SubscriptionVesselIdentifier.EXT_MARK);
+        addIdentifier(subscription, vesselIdentifiers, idsHolder.getExtmark(), SubscriptionVesselIdentifier.EXT_MARK);
+        addIdentifier(subscription, vesselIdentifiers, idsHolder.getGfcm(), SubscriptionVesselIdentifier.GFCM);
     }
 
     private void addIdentifier(SubscriptionEntity subscription, Map<String, String> vesselIdentifiers, String identifier, SubscriptionVesselIdentifier configuredSchemeId) {
