@@ -22,4 +22,6 @@ public class AreaDto {
 
     @NotNull
     private AreaType areaType;
+
+    private String value;
 }
