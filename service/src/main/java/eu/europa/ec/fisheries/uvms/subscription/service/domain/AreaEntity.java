@@ -56,4 +56,7 @@ public class AreaEntity implements Serializable {
     @NotNull
     private AreaType areaType;
 
+    @Column(name = "area_value_type")
+    private String value;
+
 }

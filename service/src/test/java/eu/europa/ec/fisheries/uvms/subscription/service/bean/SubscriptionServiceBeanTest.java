@@ -769,7 +769,7 @@ public class SubscriptionServiceBeanTest {
 				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, true, 1, SubscriptionTimeUnit.DAYS,true, EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.SCHEDULER, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
 				EMAIL_BODY, true, true, PASSWORD, false, false);
 		dto.setAssets(Collections.singleton(new AssetDto(null, "guid", "name", AssetType.ASSET)));
-		dto.setAreas(Collections.singleton(new AreaDto(null, 1L, AreaType.USERAREA)));
+		dto.setAreas(Collections.singleton(new AreaDto(null, 1L, AreaType.USERAREA,null)));
 		dto.setStartActivities(Collections.singleton(new SubscriptionFishingActivityDto(SubscriptionFaReportDocumentType.DECLARATION, "val")));
 		dto.setStopActivities(Collections.singleton(new SubscriptionFishingActivityDto(SubscriptionFaReportDocumentType.DECLARATION, "val1")));
 		dto.setSenders(Collections.singleton(new SubscriptionSubscriberDto(1L,2L,3L)));
@@ -870,7 +870,7 @@ public class SubscriptionServiceBeanTest {
 			when(assetSender.findMultipleVesselIdentifiers(guids)).thenReturn(Collections.singletonList(mockIds));
 		}
 		if (includeAreas) {
-			dto.setAreas(Collections.singleton(new AreaDto(33L, 11L, AreaType.GFCM)));
+			dto.setAreas(Collections.singleton(new AreaDto(33L, 11L, AreaType.GFCM,null)));
 		}
 
 		SubscriptionDto result = sut.createManual(dto);

@@ -123,8 +123,8 @@ public class SubscriptionMapperTest {
         dto.getStopActivities().add(new SubscriptionFishingActivityDto(NOTIFICATION, "d"));
 
         dto.setAreas(new HashSet<>());
-        dto.getAreas().add(new AreaDto(null, AREA_GID_1, PORT));
-        dto.getAreas().add(new AreaDto(33L, AREA_GID_2, USERAREA));
+        dto.getAreas().add(new AreaDto(null, AREA_GID_1, PORT,null));
+        dto.getAreas().add(new AreaDto(33L, AREA_GID_2, USERAREA,null));
 
         dto.setAssets(new HashSet<>());
         dto.getAssets().add(new AssetDto(null, ASSET_GUID_1, ASSET_NAME_1, AssetType.ASSET));
