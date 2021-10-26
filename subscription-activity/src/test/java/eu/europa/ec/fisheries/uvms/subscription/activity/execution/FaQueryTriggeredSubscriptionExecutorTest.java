@@ -127,7 +127,7 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 		ArgumentCaptor<List<VesselIdentifierType>> idsCaptor = ArgumentCaptor.forClass(List.class);
 		ArgumentCaptor<XMLGregorianCalendar> dateCaptor1 = ArgumentCaptor.forClass(XMLGregorianCalendar.class);
 		ArgumentCaptor<XMLGregorianCalendar> dateCaptor2 = ArgumentCaptor.forClass(XMLGregorianCalendar.class);
-		verify(activitySender).createAndSendQueryForVessel(idsCaptor.capture(), eq(true), dateCaptor1.capture(), dateCaptor2.capture(), eq(RECEIVER), eq(DATAFLOW));
+		verify(activitySender).createAndSendQueryForVessel(idsCaptor.capture(), eq(true), dateCaptor1.capture(), dateCaptor2.capture(), eq(RECEIVER), eq(DATAFLOW),false);
 		assertNull(execution.getExecutionTime());
 		assertEquals(QUEUED, execution.getStatus());
 		assertEquals(datatypeFactory.newXMLGregorianCalendar("2017-03-01T17:39:00Z"), dateCaptor1.getValue());
@@ -154,7 +154,7 @@ public class FaQueryTriggeredSubscriptionExecutorTest {
 		ArgumentCaptor<XMLGregorianCalendar> dateCaptor1 = ArgumentCaptor.forClass(XMLGregorianCalendar.class);
 		ArgumentCaptor<XMLGregorianCalendar> dateCaptor2 = ArgumentCaptor.forClass(XMLGregorianCalendar.class);
 		DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
-		verify(activitySender).createAndSendQueryForVessel(idsCaptor.capture(), eq(true), dateCaptor1.capture(), dateCaptor2.capture(), eq(RECEIVER), eq(DATAFLOW));
+		verify(activitySender).createAndSendQueryForVessel(idsCaptor.capture(), eq(true), dateCaptor1.capture(), dateCaptor2.capture(), eq(RECEIVER), eq(DATAFLOW),false);
 		assertNull(execution.getExecutionTime());
 		assertEquals(QUEUED, execution.getStatus());
 		assertEquals(datatypeFactory.newXMLGregorianCalendar("2020-06-11T12:01:02Z"), dateCaptor1.getValue());

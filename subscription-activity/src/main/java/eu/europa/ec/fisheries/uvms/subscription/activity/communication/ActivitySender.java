@@ -37,7 +37,7 @@ public interface ActivitySender {
 			  XMLGregorianCalendar startDate,
 			  XMLGregorianCalendar endDate,
 			  String receiver,
-			  String dataflow);
+			  String dataflow,boolean isManual);
 
 	/**
 	 * Ask Activity to generate a FA Query with a trip id.

@@ -57,8 +57,8 @@ class ActivitySenderImpl implements ActivitySender {
 	}
 
 	@Override
-	public String createAndSendQueryForVessel(List<VesselIdentifierType> vesselIdentifiers, boolean consolidated, XMLGregorianCalendar startDate, XMLGregorianCalendar endDate, String receiver, String dataflow) {
-		CreateAndSendFAQueryForVesselRequest request = new CreateAndSendFAQueryForVesselRequest(ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY_FOR_VESSEL, PluginType.FLUX, vesselIdentifiers, consolidated, startDate, endDate, receiver, dataflow);
+	public String createAndSendQueryForVessel(List<VesselIdentifierType> vesselIdentifiers, boolean consolidated, XMLGregorianCalendar startDate, XMLGregorianCalendar endDate, String receiver, String dataflow,boolean isManual) {
+		CreateAndSendFAQueryForVesselRequest request = new CreateAndSendFAQueryForVesselRequest(ActivityModuleMethod.CREATE_AND_SEND_FA_QUERY_FOR_VESSEL, PluginType.FLUX, vesselIdentifiers, consolidated, startDate, endDate, receiver, dataflow, isManual);
 		CreateAndSendFAQueryResponse response = activityClient.sendRequest(request,CreateAndSendFAQueryResponse.class);
 		String messageId = null;
 		if(response != null) {
