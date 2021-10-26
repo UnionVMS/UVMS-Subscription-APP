@@ -92,7 +92,8 @@ public class FaQueryTriggeredSubscriptionExecutor implements SubscriptionExecuto
 					datatypeFactory.newXMLGregorianCalendar(GregorianCalendar.from(startDate)),
 					datatypeFactory.newXMLGregorianCalendar(GregorianCalendar.from(endDate)),
 					receiverAndDataflow.getReceiver(),
-					receiverAndDataflow.getDataflow()
+					receiverAndDataflow.getDataflow(),
+					true
 			);
 			execution.getMessageIds().add(generatedQueryId);
 		}

@@ -62,7 +62,7 @@ class ActivitySenderImplTest {
         response.setMessageId("uuid1");
         when(activityClient.sendRequest(any(CreateAndSendFAQueryForVesselRequest.class), eq(CreateAndSendFAQueryResponse.class))).thenReturn(response);
         String messageId = sut.createAndSendQueryForVessel(Collections.singletonList(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.CFR, "CFR123456789")), true,
-                DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-01-01T10:00:00"), DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-02-01T10:00:00"), "receiver", "dataflow");
+                DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-01-01T10:00:00"), DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-02-01T10:00:00"), "receiver", "dataflow",false);
         assertEquals("uuid1", messageId);
     }
 
@@ -81,7 +81,7 @@ class ActivitySenderImplTest {
     void testSendVesselQueryWithNullResponse() {
         when(activityClient.sendRequest(any(CreateAndSendFAQueryForVesselRequest.class), eq(CreateAndSendFAQueryResponse.class))).thenReturn(null);
         String messageId = sut.createAndSendQueryForVessel(Collections.singletonList(new VesselIdentifierType(VesselIdentifierSchemeIdEnum.CFR, "CFR123456789")), true,
-                DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-01-01T10:00:00"), DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-02-01T10:00:00"), "receiver", "dataflow");
+                DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-01-01T10:00:00"), DatatypeFactory.newInstance().newXMLGregorianCalendar("2019-02-01T10:00:00"), "receiver", "dataflow",false);
         assertNull(messageId);
     }
 
@@ -96,7 +96,7 @@ class ActivitySenderImplTest {
     @Test
     @SneakyThrows
     void testSendVesselQueryWithEmptyRequest() {
-        assertDoesNotThrow(() -> sut.createAndSendQueryForVessel(null, false, null, null, null, null));
+        assertDoesNotThrow(() -> sut.createAndSendQueryForVessel(null, false, null, null, null, null,false));
     }
 
     @Test
