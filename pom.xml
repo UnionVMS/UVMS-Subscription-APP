@@ -351,9 +351,8 @@
 		<profile>
 			<id>enforce-jdk-version</id>
 			<activation>
-				<!-- To disable profile, define property -Dfocus-pom.enforce.jdk.version.disabled=true -->
 				<property>
-					<name>!focus-pom.enforce.jdk.version.disabled</name>
+					<name>focus-pom.enforce.jdk.version.enabled</name>
 				</property>
 			</activation>
 			<build>
@@ -446,6 +445,11 @@
 							</manifest>
 						</archive>
 					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>3.0.0-M1</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
