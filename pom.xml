@@ -30,7 +30,7 @@
         <spatial.model.version>1.0.10</spatial.model.version>
         <audit.model.version>4.0.6</audit.model.version>
 
-        <hibernate.version>4.3.11.Final</hibernate.version>
+        <hibernate.version>5.4.24.Final</hibernate.version>
         <lombok.version>1.16.18</lombok.version>
         <mapstruct.version>1.2.0.Final</mapstruct.version>
         <uvms.test.version>0.0.4</uvms.test.version>
