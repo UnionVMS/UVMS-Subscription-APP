@@ -596,6 +596,30 @@ public class SubscriptionServiceBeanTest {
     }
 
 	@Test
+	void createSubscriptionWithPositionMessageTypeAndHasEmailWithFalseXML() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE,
+				OutgoingMessageType.POSITION, Boolean.TRUE,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, false, 1, SubscriptionTimeUnit.DAYS, false,
+				EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.INC_POSITION, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				EMAIL_BODY, false, true, PASSWORD, true, false);
+
+		when(subscriptionDAO.createEntity(any())).thenAnswer(iom -> iom.getArgument(0));
+		assertDoesNotThrow(() -> sut.create(subscription));
+	}
+
+
+	@Test
+	void createSubscriptionWithPositionMessageTypeAndHasEmailWithTrueXML() {
+		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE,
+				OutgoingMessageType.POSITION, Boolean.TRUE,
+				ORGANISATION_ID, ENDPOINT_ID, CHANNEL_ID, false, 1, SubscriptionTimeUnit.DAYS, false,
+				EnumSet.of(SubscriptionVesselIdentifier.CFR), TriggerType.INC_POSITION, 1, SubscriptionTimeUnit.DAYS, "12:00", new Date(), new Date(),
+				EMAIL_BODY, false, true, PASSWORD, true, true);
+		assertThrows(ConstraintViolationException.class, () -> sut.create(subscription));
+	}
+
+
+	@Test
 	void createSubscriptionWithFAQueryMessageTypeAndNotHasEmail() {
 		SubscriptionDto subscription = SubscriptionTestHelper.createSubscriptionDtoWithEmailConfig( SUBSCR_ID, SUBSCR_NAME, Boolean.TRUE,
 				OutgoingMessageType.FA_QUERY, Boolean.FALSE,
